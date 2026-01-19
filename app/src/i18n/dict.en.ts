@@ -521,4 +521,34 @@ export const DICT_EN: Record<string, string> = {
   'parent.childAudio.resetButton': 'Reset to default',
   'parent.childAudio.resetOk': 'Reset to default',
   'parent.childAudio.saveButton': 'Save',
+
+    // -----------------------------------------
+  // Aliases (expo-router / native shells) — keep legacy keys working
+  // -----------------------------------------
+
+  // Child hub (new keys used in native screens)
+  'child.hub.title': 'Child Hub',
+  'child.hub.learn': '📚 Start Learning',
+  'child.hub.rewards': '🛍️ Rewards',
+  'child.hub.specialPacks': '✨ Special Packs',
+  'child.hub.games': '🎮 Games',
+
+  // Parent home (new keys used in native screens)
+  'parent.home.childrenCount': 'Children: {n}',
+
+  'parent.home.progress': 'Progress',
+  'parent.home.childSettings': 'Child settings',
+  'parent.home.manageChildren': 'Users',
+  'parent.home.audio': 'Audio settings',
+  'parent.home.pin': 'Parent PIN',
+
+
+'parent.home.nativeShellNote':
+  'Note: The full parent UI is still available on web. This native screen is a minimal navigation shell.',
+
+'parent.audio.nativeShellNote':
+  'Parent audio defaults UI is currently available on web. Native port will come later.',
+'parent.childAudio.nativeShellNote':
+  'Per-child audio overrides are currently editable on web. Native port will come later.',
+
 };

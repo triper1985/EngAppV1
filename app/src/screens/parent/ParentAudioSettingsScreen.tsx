@@ -1,4 +1,4 @@
-// src/screens/parent/ParentAudioSettingsScreen.tsx (Native)
+// app/src/screens/parent/ParentAudioSettingsScreen.tsx (Native)
 import { ScrollView, Text } from 'react-native';
 import { TopBar } from '../../ui/TopBar';
 import { useI18n } from '../../i18n/I18nContext';
@@ -6,12 +6,24 @@ import { useI18n } from '../../i18n/I18nContext';
 type Props = { onBack: () => void };
 
 export function ParentAudioSettingsScreen({ onBack }: Props) {
-  const { dir } = useI18n();
+  const { t, dir } = useI18n();
+
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <TopBar title="Audio settings" onBack={onBack} dir={dir} />
-      <Text style={{ opacity: 0.75 }}>
-        Parent audio defaults UI is currently available on web. Native port will come later.
+      <TopBar
+        title={t('parent.audio.title')}
+        onBack={onBack}
+        backLabel={t('parent.common.back')}
+        dir={dir}
+      />
+
+      <Text
+        style={{
+          opacity: 0.75,
+          textAlign: dir === 'rtl' ? 'right' : 'left',
+        }}
+      >
+        {t('parent.audio.nativeShellNote')}
       </Text>
     </ScrollView>
   );
