@@ -1,6 +1,8 @@
 // src/screens/learn/LearnHomeScreen.tsx
 import type { ChildProfile } from '../../types';
 
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { useI18n } from '../../i18n/I18nContext';
 
 import { TopBar } from '../../ui/TopBar';
@@ -17,19 +19,12 @@ type Props = {
 
 export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
   const { t, dir } = useI18n();
+  const isRtl = dir === 'rtl';
 
   const vm = getLearnHomeVM_A({ child, maxLayer: 4 });
 
   return (
-    <div
-      style={{
-        padding: 24,
-        maxWidth: 820,
-        margin: '0 auto',
-        direction: dir,
-        textAlign: dir === 'rtl' ? 'right' : 'left',
-      }}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
       <TopBar
         title={t('learn.groups.title')}
         onBack={onBack}
@@ -37,11 +32,11 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
         backLabel={t('learn.common.backOk')}
       />
 
-      <div style={{ marginTop: 10, opacity: 0.9 }}>
+      <Text style={[styles.subtitle, isRtl && styles.rtl]}>
         {t('learn.groups.subtitle')}
-      </div>
+      </Text>
 
-      <div style={{ marginTop: 14, display: 'grid', gap: 12 }}>
+      <View style={styles.stack}>
         {vm.layers.map((layer) => {
           const layerId = layer.layerId;
 
@@ -59,56 +54,83 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
 
           return (
             <Card key={layerId}>
-              <div style={{ display: 'grid', gap: 10 }}>
-                <div style={{ fontWeight: 900, fontSize: 16 }}>
+              <View style={styles.cardStack}>
+                <Text style={[styles.title, isRtl && styles.rtl]}>
                   {statusLabel} {header} — {t(layerTitleKey)}
-                </div>
+                </Text>
 
-                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                <Text style={styles.meta}>
                   {t('learn.groups.progressLabel')} {layer.progressPct}%
-                </div>
+                </Text>
 
-                <div style={{ opacity: 0.9 }}>{t(layerDescKey)}</div>
+                <Text style={[styles.desc, isRtl && styles.rtl]}>
+                  {t(layerDescKey)}
+                </Text>
 
-                {layer.isCurrent ? (
-                  <div style={{ fontSize: 13, opacity: 0.85 }}>
-                    {t('learn.groups.currentLayer', { layer: String(layerId) })}
-                  </div>
-                ) : null}
+                {layer.isCurrent && (
+                  <Text style={styles.currentNote}>
+                    {t('learn.groups.currentLayer', {
+                      layer: String(layerId),
+                    })}
+                  </Text>
+                )}
 
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ fontSize: 13, opacity: 0.85 }}>
+                <View style={styles.actions}>
+                  <Text style={styles.lockedText}>
                     {layer.isLocked
                       ? t('learn.groups.locked.layer', {
                           layer: String(layerId),
                         })
                       : ' '}
-                  </div>
+                  </Text>
 
                   <Button
                     disabled={layer.isLocked}
                     onClick={() => {
-                      if (layer.isLocked) return;
-                      onEnterLayer(layerId);
+                      if (!layer.isLocked) onEnterLayer(layerId);
                     }}
                   >
                     {layer.isLocked
                       ? t('learn.groups.buttonLocked')
                       : t('learn.groups.buttonEnter')}
                   </Button>
-                </div>
-              </div>
+                </View>
+              </View>
             </Card>
           );
         })}
-      </div>
-    </div>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingBottom: 26,
+    maxWidth: 820,
+    alignSelf: 'center',
+    width: '100%',
+  },
+
+  subtitle: { marginTop: 10, opacity: 0.9 },
+
+  stack: { marginTop: 14, gap: 12 },
+  cardStack: { gap: 10 },
+
+  title: { fontWeight: '900', fontSize: 16 },
+  meta: { fontSize: 13, opacity: 0.85 },
+  desc: { opacity: 0.9 },
+  currentNote: { fontSize: 13, opacity: 0.85 },
+
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  lockedText: { fontSize: 13, opacity: 0.85 },
+
+  rtl: { textAlign: 'right' as const },
+});

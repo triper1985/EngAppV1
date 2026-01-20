@@ -1,15 +1,14 @@
-// src/ui/CoinsBadge.tsx (Native)
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+// src/ui/CoinsBadge.tsx
+import { StyleSheet, Text, View } from 'react-native';
 
 type Props = {
   coins: number;
-  title?: string; // ignored on native
-  style?: ViewStyle;
+  title?: string; // kept for API compatibility
 };
 
-export function CoinsBadge({ coins, style }: Props) {
+export function CoinsBadge({ coins }: Props) {
   return (
-    <View style={[styles.badge, style]}>
+    <View style={styles.badge}>
       <Text style={styles.text}>🪙 {coins}</Text>
     </View>
   );
@@ -25,8 +24,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     minWidth: 74,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  text: {
-    fontWeight: '900',
-  },
+  text: { fontWeight: '900', textAlign: 'center' },
 });

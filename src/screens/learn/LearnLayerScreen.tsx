@@ -1,7 +1,8 @@
 // src/screens/learn/LearnLayerScreen.tsx
 import type { ChildProfile } from '../../types';
-
 import type { UnitGroupDef, UnitGroupId } from '../../tracks/beginnerTrack';
+
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useI18n } from '../../i18n/I18nContext';
 
@@ -48,57 +49,8 @@ export function LearnLayerScreen({
 
   const vm = getLearnLayerVM_A({ child, layerId });
 
-  if (!vm.hasAnyGroups) {
-    return (
-      <div
-        style={{
-          padding: 24,
-          maxWidth: 820,
-          margin: '0 auto',
-          direction: dir,
-          textAlign: isRtl ? 'right' : 'left',
-        }}
-      >
-        <TopBar
-          title={`${layerHeader} — ${layerTitle}`}
-          onBack={onBack}
-          dir={dir}
-          backLabel={t('learn.common.backOk')}
-        />
-
-        <div style={{ marginTop: 10, opacity: 0.9 }}>{layerDesc}</div>
-
-        <div style={{ marginTop: 14 }}>
-          <Card>
-            <div style={{ display: 'grid', gap: 10 }}>
-              <div style={{ fontWeight: 900, fontSize: 16 }}>
-                {t('learn.groups.noUnitsYet')}
-              </div>
-
-              <div style={{ opacity: 0.9 }}>
-                {t('learn.layer.empty.noContent')}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button onClick={onBack}>{t('learn.common.backOk')}</Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      style={{
-        padding: 24,
-        maxWidth: 820,
-        margin: '0 auto',
-        direction: dir,
-        textAlign: isRtl ? 'right' : 'left',
-      }}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
       <TopBar
         title={`${layerHeader} — ${layerTitle}`}
         onBack={onBack}
@@ -106,81 +58,104 @@ export function LearnLayerScreen({
         backLabel={t('learn.common.backOk')}
       />
 
-      <div style={{ marginTop: 10, opacity: 0.9 }}>{layerDesc}</div>
+      <Text style={[styles.layerDesc, isRtl && styles.rtl]}>{layerDesc}</Text>
 
-      <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
-        {vm.groups.map((gvm) => {
-          const g = gvm.group;
+      {!vm.hasAnyGroups ? (
+        <Card style={{ marginTop: 14 }}>
+          <View style={styles.cardStack}>
+            <Text style={styles.title}>{t('learn.groups.noUnitsYet')}</Text>
+            <Text style={styles.desc}>
+              {t('learn.layer.empty.noContent')}
+            </Text>
 
-          const statusLabel = gvm.isLocked
-            ? '🔒'
-            : gvm.isDone
-            ? '✅'
-            : gvm.isCurrentLayer
-            ? '⭐'
-            : '•';
+            <View style={styles.actionsEnd}>
+              <Button onClick={onBack}>{t('learn.common.backOk')}</Button>
+            </View>
+          </View>
+        </Card>
+      ) : (
+        <View style={styles.stack}>
+          {vm.groups.map((gvm) => {
+            const g = gvm.group;
 
-          const lockedSuffix = gvm.lockedSuffixKey
-            ? ` • ${t(gvm.lockedSuffixKey, gvm.lockedSuffixVars)}`
-            : '';
+            const statusLabel = gvm.isLocked
+              ? '🔒'
+              : gvm.isDone
+              ? '✅'
+              : gvm.isCurrentLayer
+              ? '⭐'
+              : '•';
 
-          const title = groupTitle(g, t);
-          const desc = groupDesc(g, t);
+            const lockedSuffix = gvm.lockedSuffixKey
+              ? ` • ${t(gvm.lockedSuffixKey, gvm.lockedSuffixVars)}`
+              : '';
 
-          return (
-            <Card key={gvm.groupId}>
-              <div style={{ display: 'grid', gap: 10 }}>
-                <div
-                  style={{
-                    fontWeight: 900,
-                    fontSize: 16,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    justifyContent: isRtl ? 'flex-end' : 'flex-start',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <span>{statusLabel}</span>
-                  {g.emoji ? (
-                    <span style={{ fontSize: 18 }}>{g.emoji}</span>
-                  ) : null}
-                  <span>{title}</span>
-                </div>
+            const title = groupTitle(g, t);
+            const desc = groupDesc(g, t);
 
-                <div style={{ fontSize: 13, opacity: 0.85 }}>
-                  {t('learn.groups.progressLabel')} {gvm.progressPct}% •{' '}
-                  {gvm.completed}/{gvm.total}
-                  {lockedSuffix}
-                </div>
+            return (
+              <Card key={gvm.groupId}>
+                <View style={styles.cardStack}>
+                  <Text style={[styles.title, isRtl && styles.rtl]}>
+                    {statusLabel} {g.emoji ? g.emoji + ' ' : ''}
+                    {title}
+                  </Text>
 
-                {desc ? <div style={{ opacity: 0.9 }}>{desc}</div> : null}
+                  <Text style={styles.meta}>
+                    {t('learn.groups.progressLabel')} {gvm.progressPct}% •{' '}
+                    {gvm.completed}/{gvm.total}
+                    {lockedSuffix}
+                  </Text>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <Button
-                    disabled={gvm.isLocked}
-                    onClick={() => {
-                      if (gvm.isLocked) return;
-                      onEnterGroup(gvm.groupId);
-                    }}
-                  >
-                    {gvm.isLocked
-                      ? t('learn.groups.buttonLocked')
-                      : t('learn.groups.buttonEnter')}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+                  {desc && (
+                    <Text style={[styles.desc, isRtl && styles.rtl]}>{desc}</Text>
+                  )}
+
+                  <View style={styles.actionsEnd}>
+                    <Button
+                      disabled={gvm.isLocked}
+                      onClick={() => {
+                        if (!gvm.isLocked) onEnterGroup(gvm.groupId);
+                      }}
+                    >
+                      {gvm.isLocked
+                        ? t('learn.groups.buttonLocked')
+                        : t('learn.groups.buttonEnter')}
+                    </Button>
+                  </View>
+                </View>
+              </Card>
+            );
+          })}
+        </View>
+      )}
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingBottom: 26,
+    maxWidth: 820,
+    alignSelf: 'center',
+    width: '100%',
+  },
+
+  layerDesc: { marginTop: 10, opacity: 0.9 },
+
+  stack: { marginTop: 14, gap: 12 },
+  cardStack: { gap: 10 },
+
+  title: { fontWeight: '900', fontSize: 16 },
+  meta: { fontSize: 13, opacity: 0.85 },
+  desc: { opacity: 0.9 },
+
+  actionsEnd: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+  },
+
+  rtl: { textAlign: 'right' as const },
+});

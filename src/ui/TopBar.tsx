@@ -1,13 +1,17 @@
-// src/ui/TopBar.tsx (Native)
+// src/ui/TopBar.tsx
 import type { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Button } from './Button';
 
 type Props = {
   title: string;
   onBack?: () => void;
   right?: ReactNode;
+
+  /** ✅ V5: allow i18n (default keeps backwards compatibility) */
   backLabel?: string;
+
+  /** Optional: swap layout for RTL */
   dir?: 'ltr' | 'rtl';
 };
 
@@ -16,9 +20,8 @@ export function TopBar({ title, onBack, right, backLabel, dir }: Props) {
   const isRtl = dir === 'rtl';
 
   return (
-    <View style={styles.row}>
-      {/* Left slot (fixed width to keep title centered) */}
-      <View style={styles.side}>
+    <View style={[styles.row, isRtl ? styles.rowRtl : null]}>
+      <View style={[styles.side, { alignItems: isRtl ? 'flex-end' : 'flex-start' }]}>
         {onBack ? (
           <Button onClick={onBack}>
             {isRtl ? `${label} →` : `← ${label}`}
@@ -26,45 +29,22 @@ export function TopBar({ title, onBack, right, backLabel, dir }: Props) {
         ) : null}
       </View>
 
-      {/* Center title */}
-      <View style={styles.center}>
-        <Text
-          style={styles.title}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {title}
-        </Text>
-      </View>
+      <Text style={styles.title} numberOfLines={1}>
+        {title}
+      </Text>
 
-      {/* Right slot (fixed width to keep title centered) */}
-      <View style={[styles.side, styles.rightSide]}>
-        {right ?? null}
+      <View style={[styles.side, { alignItems: isRtl ? 'flex-start' : 'flex-end' }]}>
+        {right ?? <View />}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  side: {
-    width: 120,
-  },
-  rightSide: {
-    alignItems: 'flex-end',
-  },
-  center: {
-    flex: 1,
-    minWidth: 0, // IMPORTANT: allows title to shrink/ellipsis instead of breaking mid-word
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '900',
-  },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  rowRtl: { flexDirection: 'row-reverse' },
+
+  side: { width: 120, justifyContent: 'center' },
+
+  title: { flex: 1, fontWeight: '900', fontSize: 18, textAlign: 'center' },
 });

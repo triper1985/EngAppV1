@@ -1,6 +1,9 @@
 // src/components/UserList.tsx
+import type { ReactNode } from 'react';
 import type { ChildProfile } from '../types';
 import { iconToDisplay } from '../data/icons';
+
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -18,40 +21,26 @@ export function UserList({ users, onAdd, onEdit, onDelete }: Props) {
   const isRtl = dir === 'rtl';
 
   return (
-    <Card style={{ marginTop: 14 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: isRtl ? 'flex-start' : 'flex-end',
-          alignItems: 'center',
-          gap: 10,
-          flexWrap: 'wrap',
-          direction: dir,
-        }}
-      >
+    <Card style={styles.card}>
+      <View style={[styles.header, { justifyContent: isRtl ? 'flex-start' : 'flex-end' }]}>
         <Button variant="primary" onClick={onAdd}>
           {t('parent.users.list.add')}
         </Button>
-      </div>
+      </View>
 
       {users.length === 0 ? (
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 14,
-            opacity: 0.75,
-            direction: dir,
-            textAlign: isRtl ? 'right' : 'left',
-          }}
-        >
+        <Text style={[styles.empty, { textAlign: isRtl ? 'right' : 'left' }]}>
           {t('parent.users.list.empty')}
-        </div>
+        </Text>
       ) : (
-        <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-          {users.map((u) => (
-            <UserRow key={u.id} user={u} onEdit={onEdit} onDelete={onDelete} />
-          ))}
-        </div>
+        <FlatList
+          data={users}
+          keyExtractor={(u) => u.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <UserRow user={item} onEdit={onEdit} onDelete={onDelete} isRtl={isRtl} />
+          )}
+        />
       )}
     </Card>
   );
@@ -61,69 +50,76 @@ function UserRow({
   user,
   onEdit,
   onDelete,
+  isRtl,
 }: {
   user: ChildProfile;
   onEdit: (u: ChildProfile) => void;
   onDelete: (u: ChildProfile) => void;
+  isRtl: boolean;
 }) {
-  const { t, dir } = useI18n();
-  const isRtl = dir === 'rtl';
+  const { t } = useI18n();
 
   return (
-    <div
-      style={{
-        border: '1px solid #eee',
-        borderRadius: 14,
-        padding: 12,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: 10,
-        flexWrap: 'wrap',
-        background: '#fff',
-        direction: dir,
-      }}
-    >
-      {/* Left/Right block (name + icon) */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 10,
-          alignItems: 'center',
-          flexDirection: isRtl ? 'row-reverse' : 'row',
-          textAlign: isRtl ? 'right' : 'left',
-          minWidth: 0,
-        }}
-      >
-        <span style={{ fontSize: 18 }}>{iconToDisplay(user.iconId)}</span>
+    <View style={[styles.row, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.identity, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+        <Text style={styles.icon}>{iconToDisplay(user.iconId)}</Text>
 
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>
-            {user.name}{' '}
-            <span style={{ opacity: 0.5, fontWeight: 500 }}>({user.id})</span>
-          </div>
-        </div>
-      </div>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text numberOfLines={1} style={[styles.name, { textAlign: isRtl ? 'right' : 'left' }]}>
+            {user.name} <Text style={styles.id}>({user.id})</Text>
+          </Text>
+        </View>
+      </View>
 
-      {/* Actions block */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          justifyContent: isRtl ? 'flex-start' : 'flex-end',
-        }}
-      >
-        <Button onClick={() => onEdit(user)}>
-          {t('parent.users.row.edit')}
-        </Button>
-        <Button
-          onClick={() => onDelete(user)}
-          style={{ border: '1px solid #b00020', color: '#b00020' }}
-        >
-          {t('parent.users.row.delete')}
-        </Button>
-      </div>
-    </div>
+      <View style={[styles.actions, { justifyContent: isRtl ? 'flex-start' : 'flex-end' }]}>
+        <Button onClick={() => onEdit(user)}>{t('parent.users.row.edit')}</Button>
+        <DangerButton onPress={() => onDelete(user)}>{t('parent.users.row.delete')}</DangerButton>
+      </View>
+    </View>
   );
 }
+
+function DangerButton({ children, onPress }: { children: ReactNode; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.dangerBtn, pressed ? { opacity: 0.85 } : null]}
+    >
+      <Text style={styles.dangerText}>{children}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: { marginTop: 14, padding: 12 },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  empty: { marginTop: 12, fontSize: 14, opacity: 0.75 },
+  list: { paddingTop: 12, gap: 10 },
+  row: {
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 14,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    backgroundColor: '#fff',
+  },
+  identity: { flex: 1, alignItems: 'center', gap: 10 },
+  icon: { fontSize: 18 },
+  name: { fontSize: 16, fontWeight: '800', lineHeight: 20 },
+  id: { opacity: 0.5, fontWeight: '500' },
+  actions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  dangerBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#b00020',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dangerText: { fontSize: 14, fontWeight: '800', color: '#b00020' },
+});

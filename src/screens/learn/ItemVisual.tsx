@@ -1,13 +1,18 @@
 // src/screens/learn/ItemVisual.tsx
-import type { CSSProperties } from 'react';
 import type { ContentItem } from '../../content/types';
+import { StyleSheet, Text, View } from 'react-native';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 type Props = {
   item: ContentItem;
   /** Visual scale. Default tuned for quiz tiles. */
   size?: number;
-  /** Optional style override for the wrapper */
-  style?: CSSProperties;
+
+  /**
+   * Back-compat: previously CSSProperties (web).
+   * In RN we accept either ViewStyle or TextStyle depending on kind.
+   */
+  style?: StyleProp<ViewStyle | TextStyle>;
 };
 
 /**
@@ -18,54 +23,87 @@ export function ItemVisual({ item, size = 68, style }: Props) {
   const v = item.visual;
 
   if (v.kind === 'color') {
-    const box: CSSProperties = {
-      width: size + 22,
-      height: size + 22,
-      borderRadius: 18,
-      background: v.hex,
-      border: '3px solid #111',
-      boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-      display: 'inline-block',
-      ...style,
-    };
+    const dim = size + 22;
 
-    return <span aria-label={item.en} title={item.en} style={box} />;
+    return (
+      <View
+        accessibilityLabel={item.en}
+        style={[
+          styles.colorBox,
+          {
+            width: dim,
+            height: dim,
+            borderRadius: 18,
+            backgroundColor: v.hex,
+          },
+          style as StyleProp<ViewStyle>,
+        ]}
+      />
+    );
   }
 
   if (v.kind === 'image') {
-    const box: CSSProperties = {
-      width: size + 22,
-      height: size + 22,
-      borderRadius: 18,
-      border: '2px solid #111',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: Math.round(size * 0.55),
-      boxShadow: '0 8px 18px rgba(0,0,0,0.08)',
-      background: '#fff',
-      ...style,
-    };
+    const dim = size + 22;
+    const fontSize = Math.round(size * 0.55);
 
     // Until we have real assets, show a neutral placeholder.
     return (
-      <span aria-label={item.en} title={v.assetId} style={box}>
-        🖼️
-      </span>
+      <View
+        accessibilityLabel={item.en}
+        style={[
+          styles.imageBox,
+          {
+            width: dim,
+            height: dim,
+            borderRadius: 18,
+          },
+          style as StyleProp<ViewStyle>,
+        ]}
+      >
+        <Text style={[{ fontSize }, styles.imagePlaceholder]}>🖼️</Text>
+      </View>
     );
   }
 
   // v.kind === 'text'
-  const textStyle: CSSProperties = {
-    fontSize: size,
-    lineHeight: 1,
-    fontWeight: 900,
-    ...style,
-  };
-
   return (
-    <span aria-label={item.en} title={item.en} style={textStyle}>
+    <Text
+      accessibilityLabel={item.en}
+      style={[
+        styles.text,
+        { fontSize: size, lineHeight: Math.round(size * 1.05) },
+        style as StyleProp<TextStyle>,
+      ]}
+    >
       {v.he}
-    </span>
+    </Text>
   );
 }
+
+const styles = StyleSheet.create({
+  colorBox: {
+    borderWidth: 3,
+    borderColor: '#111',
+    // shadow (best-effort)
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+  imageBox: {
+    borderWidth: 2,
+    borderColor: '#111',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // shadow (best-effort)
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
+  },
+  imagePlaceholder: { fontWeight: '900' },
+  text: { fontWeight: '900' },
+});

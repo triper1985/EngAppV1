@@ -1,5 +1,6 @@
 // src/screens/learn/UnitLearnScreen.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
@@ -11,10 +12,7 @@ import {
 } from '../../tracks/beginnerTrack';
 
 import { getBeginnerProgress } from '../../tracks/beginnerProgress';
-import {
-  getItemsForPackIds,
-  ensureRequiredSelected,
-} from '../../packs/packsCatalog';
+import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
 // ✅ V11.1: audio layer
 import { playFx, speakContentItem, stopTTS } from '../../audio';
@@ -28,31 +26,7 @@ import { useToast } from '../../ui/useToast';
 
 import { useI18n } from '../../i18n/I18nContext';
 
-function renderItemVisual(it: ContentItem, size: number) {
-  const v = it.visual;
-
-  if (v.kind === 'color') {
-    return (
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: 24,
-          background: v.hex,
-          margin: '0 auto',
-          border: '2px solid #00000012',
-        }}
-      />
-    );
-  }
-
-  if (v.kind === 'image') {
-    return <div style={{ fontSize: Math.round(size * 0.6) }}>🖼️</div>;
-  }
-
-  // visual text (numbers/letters/emoji)
-  return <div style={{ fontSize: Math.round(size * 0.8) }}>{v.he}</div>;
-}
+import { ItemVisual } from './ItemVisual';
 
 type Props = {
   child: ChildProfile;
@@ -62,6 +36,12 @@ type Props = {
   onStartQuiz?: (unitId: UnitId) => void; // ✅ V10 behavior (go to quiz)
 };
 
+function getItemSpeakText(it: ContentItem, isRtl: boolean): string {
+  // same rule you used for displayText
+  const txt = isRtl ? it.he ?? it.en : it.en ?? it.he;
+  return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
+}
+
 export function UnitLearnScreen({
   child,
   unitId,
@@ -70,6 +50,7 @@ export function UnitLearnScreen({
   onStartQuiz,
 }: Props) {
   const { t, dir } = useI18n();
+  const isRtl = dir === 'rtl';
 
   const catalog = useMemo(() => {
     const packs = ensureRequiredSelected(child.selectedPackIds ?? []);
@@ -132,14 +113,20 @@ export function UnitLearnScreen({
     const current = unitItems[Math.min(index, unitItems.length - 1)];
     if (!current) return;
 
-    const tt = window.setTimeout(() => {
+    const tt = setTimeout(() => {
       stopTTS();
-      speakContentItem(current, {}, child);
+
+      // ✅ IMPORTANT:
+      // Your speakContentItem expects SpeakItemLike { text: string }
+      // NOT a ContentItem.
+      const text = getItemSpeakText(current, isRtl);
+      speakContentItem({ text });
+
       setHeardThisItem(true);
     }, 120);
 
-    return () => window.clearTimeout(tt);
-  }, [index, unitItems]);
+    return () => clearTimeout(tt);
+  }, [index, unitItems, child, isRtl]);
 
   function persistChild(updated: ChildProfile) {
     ChildrenStore.upsert(updated);
@@ -180,7 +167,7 @@ export function UnitLearnScreen({
     persistChild(nextChild);
   }
 
-  function confirmExitLearn(): boolean {
+  async function confirmExitLearn(): Promise<boolean> {
     const total = unitItems.length;
 
     const latest = ChildrenStore.getById(child.id) ?? child;
@@ -194,38 +181,43 @@ export function UnitLearnScreen({
     const hasProgress = seenCount > 0 || index > 0;
 
     if (notDone && hasProgress) {
-      return window.confirm(t('learn.learn.confirmExit'));
+      return new Promise((resolve) => {
+        Alert.alert(
+          t('learn.learn.confirmExitTitle') || t('learn.common.confirm'),
+          t('learn.learn.confirmExit'),
+          [
+            { text: t('learn.common.cancel'), style: 'cancel', onPress: () => resolve(false) },
+            { text: t('learn.common.ok'), style: 'default', onPress: () => resolve(true) },
+          ]
+        );
+      });
     }
+
     return true;
   }
 
   const total = unitItems.length;
 
+  // ---- screens ----
+
   if (!unit) {
     return (
-      <div
-        style={{
-          padding: 24,
-          maxWidth: 760,
-          margin: '0 auto',
-          direction: dir,
-          textAlign: dir === 'rtl' ? 'right' : 'left',
-        }}
-      >
+      <ScrollView contentContainerStyle={styles.container}>
         <TopBar
           backLabel={t('learn.common.back')}
           dir={dir}
           title={t('learn.learn.titleFallback')}
           onBack={onBack}
         />
-        <div style={{ marginTop: 14 }}>
+
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ fontWeight: 900, fontSize: 18 }}>
+            <Text style={[styles.title18, isRtl && styles.rtl]}>
               {t('learn.common.unitNotFound')}
-            </div>
+            </Text>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
@@ -234,47 +226,32 @@ export function UnitLearnScreen({
 
   if (unitItems.length === 0) {
     return (
-      <div
-        style={{
-          padding: 24,
-          maxWidth: 760,
-          margin: '0 auto',
-          direction: dir,
-          textAlign: dir === 'rtl' ? 'right' : 'left',
-        }}
-      >
+      <ScrollView contentContainerStyle={styles.container}>
         <TopBar
           backLabel={t('learn.common.back')}
           dir={dir}
           title={unitTitle}
           onBack={onBack}
         />
-        <div style={{ marginTop: 14 }}>
+
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ fontWeight: 900, fontSize: 18 }}>
+            <Text style={[styles.title18, isRtl && styles.rtl]}>
               {t('learn.learn.noItemsTitle')}
-            </div>
-            <div style={{ marginTop: 6, opacity: 0.75 }}>
+            </Text>
+            <Text style={[styles.subtitle, isRtl && styles.rtl]}>
               {t('learn.learn.noItemsSubtitle')}
-            </div>
+            </Text>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
   // ✅ DONE screen (V10) + Go to Quiz button
   if (index >= total) {
     return (
-      <div
-        style={{
-          padding: 24,
-          maxWidth: 760,
-          margin: '0 auto',
-          direction: dir,
-          textAlign: dir === 'rtl' ? 'right' : 'left',
-        }}
-      >
+      <ScrollView contentContainerStyle={styles.container}>
         <TopBar
           backLabel={t('learn.common.back')}
           dir={dir}
@@ -282,17 +259,18 @@ export function UnitLearnScreen({
           onBack={onBack}
         />
 
-        <div style={{ marginTop: 14 }}>
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 900, fontSize: 30 }}>
+            <View style={styles.center}>
+              <Text style={[styles.doneTitle, isRtl && styles.rtl]}>
                 {t('learn.learn.doneTitle')}
-              </div>
-              <div style={{ marginTop: 8, fontSize: 16, opacity: 0.85 }}>
-                {t('learn.learn.doneSubtitle', { title: unitTitle })}
-              </div>
+              </Text>
 
-              <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
+              <Text style={[styles.doneSubtitle, isRtl && styles.rtl]}>
+                {t('learn.learn.doneSubtitle', { title: unitTitle })}
+              </Text>
+
+              <View style={styles.doneButtons}>
                 <Button
                   fullWidth
                   onClick={() => {
@@ -317,21 +295,41 @@ export function UnitLearnScreen({
                 <Button fullWidth onClick={onBack}>
                   {t('learn.learn.buttonBackToUnits')}
                 </Button>
-              </div>
-            </div>
+              </View>
+            </View>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
   const current = unitItems[Math.min(index, total - 1)];
+  if (!current) {
+    // should not happen, but keeps TS happy and prevents crashes
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <TopBar
+          backLabel={t('learn.common.back')}
+          dir={dir}
+          title={unitTitle}
+          onBack={onBack}
+        />
+        <View style={{ marginTop: 14 }}>
+          <Card>
+            <Text style={[styles.title18, isRtl && styles.rtl]}>
+              {t('learn.learn.titleFallback')}
+            </Text>
+          </Card>
+        </View>
+      </ScrollView>
+    );
+  }
+
   const isLast = index >= total - 1;
   const progressText = `${Math.min(index + 1, total)} / ${total}`;
 
   // ✅ NEW: avoid duplicate line when visual is same as text (numbers/letters)
-  const displayText =
-    dir === 'rtl' ? current.he ?? current.en : current.en ?? current.he;
+  const displayText = isRtl ? current.he ?? current.en : current.en ?? current.he;
 
   const visualText = current.visual.kind === 'text' ? current.visual.he : null;
 
@@ -345,56 +343,35 @@ export function UnitLearnScreen({
     (!!visualText && !!displayText && visualText.trim() === displayText.trim());
 
   return (
-    <div
-      style={{
-        padding: 24,
-        maxWidth: 760,
-        margin: '0 auto',
-        direction: dir,
-        textAlign: dir === 'rtl' ? 'right' : 'left',
-      }}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
       <TopBar
         backLabel={t('learn.common.back')}
         dir={dir}
         title={unitTitle}
-        onBack={() => {
-          if (confirmExitLearn()) onBack();
+        onBack={async () => {
+          if (await confirmExitLearn()) onBack();
         }}
-        right={
-          <div style={{ fontSize: 13, opacity: 0.75, alignSelf: 'center' }}>
-            {progressText}
-          </div>
-        }
+        right={<Text style={styles.progressText}>{progressText}</Text>}
       />
 
-      <div style={{ marginTop: 14 }}>
+      <View style={{ marginTop: 14 }}>
         <Card>
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div style={{ fontWeight: 900, fontSize: 18, textAlign: 'center' }}>
-              {renderItemVisual(current, 160)}
-            </div>
+          <View style={styles.cardContent}>
+            <View style={styles.visualWrap}>
+              <ItemVisual item={current as ContentItem} size={160} />
+            </View>
 
             {!hideTextLine && (
-              <div
-                style={{ fontSize: 28, fontWeight: 900, textAlign: 'center' }}
-              >
+              <Text style={[styles.wordLine, isRtl && styles.rtl]}>
                 {displayText}
-              </div>
+              </Text>
             )}
 
-            <div style={{ marginTop: 4, opacity: 0.75, textAlign: 'center' }}>
-              {toast ? toast : null}
-            </div>
+            <Text style={[styles.toastLine, isRtl && styles.rtl]}>
+              {toast ? toast : ''}
+            </Text>
 
-            <div
-              style={{
-                display: 'flex',
-                gap: 10,
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-              }}
-            >
+            <View style={styles.actions}>
               <Button
                 onClick={() => {
                   const now = Date.now();
@@ -403,11 +380,14 @@ export function UnitLearnScreen({
 
                   playFx('tap');
                   stopTTS();
-                  speakContentItem(current, {}, child);
+
+                  const text = getItemSpeakText(current, isRtl);
+                  speakContentItem({ text });
+
                   setHeardThisItem(true);
                   showToast(t('learn.learn.toastHeard'));
                 }}
-                style={{ fontSize: 18, padding: '12px 18px' }}
+                style={styles.bigBtn}
               >
                 {t('learn.learn.buttonHear')}
               </Button>
@@ -427,25 +407,63 @@ export function UnitLearnScreen({
                   setHeardThisItem(false);
                   showToast(t('learn.learn.toastNext'));
                 }}
-                style={{ fontSize: 18, padding: '12px 18px' }}
+                style={styles.bigBtn}
               >
                 {t('learn.learn.buttonNext')}
               </Button>
-            </div>
+            </View>
 
-            <div
-              style={{
-                marginTop: 12,
-                fontSize: 12,
-                opacity: 0.7,
-                textAlign: 'center',
-              }}
-            >
+            <Text style={[styles.tip, isRtl && styles.rtl]}>
               {t('learn.learn.tip')}
-            </div>
-          </div>
+            </Text>
+          </View>
         </Card>
-      </div>
-    </div>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingBottom: 26,
+    maxWidth: 760,
+    alignSelf: 'center',
+    width: '100%',
+  },
+
+  rtl: { textAlign: 'right' as const },
+
+  title18: { fontWeight: '900', fontSize: 18 },
+  subtitle: { marginTop: 6, opacity: 0.75 },
+
+  progressText: { fontSize: 13, opacity: 0.75, alignSelf: 'center' },
+
+  center: { alignItems: 'center' },
+
+  doneTitle: { fontWeight: '900', fontSize: 30, textAlign: 'center' },
+  doneSubtitle: { marginTop: 8, fontSize: 16, opacity: 0.85, textAlign: 'center' },
+  doneButtons: { marginTop: 16, gap: 10, alignSelf: 'stretch' },
+
+  cardContent: { gap: 12 },
+  visualWrap: { alignItems: 'center' },
+
+  wordLine: { fontSize: 28, fontWeight: '900', textAlign: 'center' },
+  toastLine: { marginTop: 4, opacity: 0.75, textAlign: 'center', minHeight: 20 },
+
+  actions: {
+    marginTop: 4,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+
+  bigBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+  },
+
+  tip: { marginTop: 12, fontSize: 12, opacity: 0.7, textAlign: 'center' },
+});

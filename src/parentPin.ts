@@ -163,3 +163,38 @@ export function clearParentPin() {
 export function resetParentPin() {
   clearParentPin();
 }
+// ---- Extra: explicit hydration for RN (recommended) ----
+
+export async function hydrateParentPin(): Promise<void> {
+  if (hydrated) return;
+
+  // Web: localStorage sync hydration already happens fast
+  if (hasWebLocalStorage()) {
+    scheduleHydrateIfNeeded();
+    // scheduleHydrateIfNeeded marks hydrated synchronously in web path
+    return;
+  }
+
+  // RN: force await once, so callers can safely rely on real pin
+  if (AsyncStorage?.getItem) {
+    try {
+      const raw = await AsyncStorage.getItem(LS_KEY);
+      cache = parseStore(raw);
+    } catch {
+      // ignore
+    } finally {
+      hydrated = true;
+      hydrating = false;
+    }
+    return;
+  }
+
+  // no storage
+  hydrated = true;
+  hydrating = false;
+}
+
+export function isParentPinHydrated(): boolean {
+  return hydrated;
+}
+

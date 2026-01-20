@@ -1,39 +1,37 @@
 // src/ui/useToast.ts
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export function useToast(defaultDurationMs = 1800) {
+type ToastApi = {
+  toast: string | null;
+  showToast: (msg: string) => void;
+  clearToast: () => void;
+};
+
+/**
+ * Native-safe toast hook (simple text message).
+ * Kept compatible with previous usage patterns:
+ * - const { toast, showToast } = useToast(1800)
+ */
+export function useToast(durationMs = 1800): ToastApi {
   const [toast, setToast] = useState<string | null>(null);
-  const timerRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearToast = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
     setToast(null);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
   }, []);
 
   const showToast = useCallback(
-    (msg: string, durationMs?: number) => {
-      setToast(msg);
-
+    (msg: string) => {
       if (timerRef.current) clearTimeout(timerRef.current);
-
-      const ms =
-        typeof durationMs === 'number' ? durationMs : defaultDurationMs;
-      timerRef.current = setTimeout(() => {
-        setToast(null);
-        timerRef.current = null;
-      }, ms);
+      setToast(msg);
+      timerRef.current = setTimeout(() => setToast(null), durationMs);
     },
-    [defaultDurationMs]
+    [durationMs]
   );
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+  useEffect(() => () => clearToast(), [clearToast]);
 
   return { toast, showToast, clearToast };
 }

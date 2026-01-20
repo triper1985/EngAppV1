@@ -1,18 +1,28 @@
 // src/ui/Button.tsx
-import React from 'react';
-import { Pressable, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import type { ReactNode } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'pill';
 
 type Props = {
-  children: React.ReactNode;
-  onClick?: () => void; // שומרים onClick כדי לא לשנות את כל הקוד
+  children: ReactNode;
+
+  /** Back-compat: many screens use onClick from web days */
+  onClick?: () => void;
+
   disabled?: boolean;
   variant?: Variant;
   fullWidth?: boolean;
-  style?: ViewStyle;
-  title?: string; // לא בשימוש בנייטיב (אפשר להשאיר)
-  type?: 'button' | 'submit'; // לא רלוונטי בנייטיב
+
+  /** RN style */
+  style?: StyleProp<ViewStyle>;
+
+  /** Optional accessibility hint */
+  title?: string;
+
+  /** Web-only legacy prop; ignored in RN */
+  type?: 'button' | 'submit';
 };
 
 export function Button({
@@ -22,24 +32,34 @@ export function Button({
   variant = 'secondary',
   fullWidth,
   style,
+  title,
 }: Props) {
+  const btnStyles: StyleProp<ViewStyle> = [
+    styles.base,
+    variantStyles[variant],
+    fullWidth ? styles.fullWidth : null,
+    disabled ? styles.disabled : null,
+    style,
+  ];
+
+  const textStyles: StyleProp<TextStyle> = [
+    styles.textBase,
+    textVariantStyles[variant],
+    disabled ? styles.textDisabled : null,
+  ];
+
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={typeof title === 'string' ? title : undefined}
       onPress={disabled ? undefined : onClick}
-      disabled={disabled}
-      style={({ pressed }) => [
-        styles.base,
-        fullWidth ? styles.fullWidth : null,
-        variantStyles[variant].container,
-        disabled ? styles.disabled : null,
-        pressed && !disabled ? styles.pressed : null,
-        style,
-      ]}
+      style={({ pressed }) => [btnStyles, pressed && !disabled ? styles.pressed : null]}
     >
-      <Text style={[styles.text, variantStyles[variant].text]}>
-        {typeof children === 'string' ? children : children}
-      </Text>
+      <View style={styles.content}>
+        <Text style={textStyles} numberOfLines={1}>
+          {children as any}
+        </Text>
+      </View>
     </Pressable>
   );
 }
@@ -50,39 +70,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 14,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
   },
-  fullWidth: { alignSelf: 'stretch' },
-  text: { fontSize: 14, fontWeight: '800' },
+  pressed: { opacity: 0.9 },
   disabled: { opacity: 0.6 },
-  pressed: { opacity: 0.85 },
+
+  fullWidth: { alignSelf: 'stretch' },
+
+  content: { alignItems: 'center', justifyContent: 'center' },
+
+  textBase: { fontSize: 14, fontWeight: '800' as const },
+  textDisabled: {}, // keep for future tweaks
 });
 
-const variantStyles: Record<
-  Variant,
-  { container: ViewStyle; text: TextStyle }
-> = {
-  primary: {
-    container: { backgroundColor: '#111', borderColor: '#111' },
-    text: { color: '#fff' },
-  },
-  secondary: {
-    container: { backgroundColor: '#fff', borderColor: '#ddd' },
-    text: { color: '#111' },
-  },
-  ghost: {
-    container: { backgroundColor: 'transparent', borderColor: 'transparent' },
-    text: { color: '#111' },
-  },
+const variantStyles: Record<Variant, ViewStyle> = {
+  primary: { backgroundColor: '#111', borderColor: '#111' },
+  secondary: { backgroundColor: '#fff', borderColor: '#ddd' },
+  ghost: { backgroundColor: 'transparent', borderColor: 'transparent' },
   pill: {
-    container: {
-      backgroundColor: '#fff',
-      borderColor: '#ddd',
-      borderRadius: 999,
-      paddingVertical: 8,
-      paddingHorizontal: 10,
-    },
-    text: { color: '#111', fontSize: 13 },
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
   },
+};
+
+const textVariantStyles: Record<Variant, TextStyle> = {
+  primary: { color: '#fff' },
+  secondary: { color: '#111' },
+  ghost: { color: '#111' },
+  pill: { color: '#111', fontSize: 13, fontWeight: '800' as const },
 };

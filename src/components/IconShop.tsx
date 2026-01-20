@@ -1,5 +1,7 @@
 // src/components/IconShop.tsx
 import { useMemo, useState } from 'react';
+import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+
 import { ICONS, iconToDisplay } from '../data/icons';
 import { getIconPrice, isIconFree } from '../data/iconShop';
 
@@ -28,15 +30,9 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
     price: number;
   } | null>(null);
 
-  const unlocked = useMemo(
-    () => new Set<string>(unlockedIconIds ?? []),
-    [unlockedIconIds]
-  );
+  const unlocked = useMemo(() => new Set<string>(unlockedIconIds ?? []), [unlockedIconIds]);
 
-  const lockedIcons = useMemo(
-    () => ICONS.filter((ic) => !unlocked.has(ic.id)),
-    [unlocked]
-  );
+  const lockedIcons = useMemo(() => ICONS.filter((ic) => !unlocked.has(ic.id)), [unlocked]);
 
   const canBuyCount = useMemo(() => {
     return lockedIcons.filter((ic) => {
@@ -67,8 +63,8 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
       onBuy(iconId, 0);
       return;
     }
-
     if (coins < price) return;
+
     setConfirming({ iconId, label, price });
   }
 
@@ -78,51 +74,27 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
     setConfirming(null);
   }
 
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 720 ? 3 : 2;
+
   return (
-    <Card style={{ padding: 16 }}>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>Icon Shop</div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            Unlock new icons with coins
-          </div>
-        </div>
+    <Card style={styles.card}>
+      <View style={styles.header}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Icon Shop</Text>
+          <Text style={styles.subtitle}>Unlock new icons with coins</Text>
+        </View>
 
-        <div
-          style={{
-            padding: '8px 10px',
-            borderRadius: 12,
-            border: '1px solid #ddd',
-            background: '#fff',
-            fontWeight: 900,
-            minWidth: 92,
-            textAlign: 'center',
-          }}
-          title="Coins"
-        >
-          Coins: {coins}
-        </div>
-      </div>
+        <View style={styles.coinsPill}>
+          <Text style={styles.coinsText}>Coins: {coins}</Text>
+        </View>
+      </View>
 
-      {/* Filters */}
-      <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <View style={styles.filters}>
         <Button
           variant="pill"
           onClick={() => setFilter('all')}
-          style={
-            filter === 'all'
-              ? { background: '#111', color: '#fff', border: '1px solid #111' }
-              : undefined
-          }
+          style={filter === 'all' ? styles.filterSelected : undefined}
         >
           All ({lockedIcons.length})
         </Button>
@@ -130,11 +102,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
         <Button
           variant="pill"
           onClick={() => setFilter('canBuy')}
-          style={
-            filter === 'canBuy'
-              ? { background: '#111', color: '#fff', border: '1px solid #111' }
-              : undefined
-          }
+          style={filter === 'canBuy' ? styles.filterSelected : undefined}
         >
           Can buy ({canBuyCount})
         </Button>
@@ -142,131 +110,132 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
         <Button
           variant="pill"
           onClick={() => setFilter('free')}
-          style={
-            filter === 'free'
-              ? { background: '#111', color: '#fff', border: '1px solid #111' }
-              : undefined
-          }
+          style={filter === 'free' ? styles.filterSelected : undefined}
         >
           Free
         </Button>
-      </div>
+      </View>
 
-      {/* Grid */}
-      <div style={{ marginTop: 14 }}>
+      <View style={{ marginTop: 14 }}>
         {lockedIcons.length === 0 ? (
-          <div style={{ padding: 10, fontSize: 14, opacity: 0.7 }}>
-            🎉 All icons unlocked!
-          </div>
+          <Text style={styles.info}>🎉 All icons unlocked!</Text>
         ) : filteredLockedIcons.length === 0 ? (
-          <div style={{ padding: 10, fontSize: 14, opacity: 0.7 }}>
-            Nothing matches this filter.
-          </div>
+          <Text style={styles.info}>Nothing matches this filter.</Text>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 12,
-            }}
-          >
-            {filteredLockedIcons.map((ic) => {
+          <FlatList
+            data={filteredLockedIcons}
+            key={numColumns}
+            numColumns={numColumns}
+            keyExtractor={(ic) => ic.id}
+            columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
+            contentContainerStyle={styles.grid}
+            renderItem={({ item: ic }) => {
               const price = getIconPrice(ic.id);
               const free = isIconFree(ic.id);
               const canBuy = free || coins >= price;
               const need = Math.max(0, price - coins);
 
               return (
-                <div
-                  key={ic.id}
-                  style={{
-                    border: '1px solid #eee',
-                    borderRadius: 14,
-                    padding: 14,
-                    background: '#fff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                  }}
-                >
-                  <div
-                    style={{ display: 'flex', gap: 12, alignItems: 'center' }}
-                  >
-                    <div style={{ fontSize: 42 }}>{iconToDisplay(ic.id)}</div>
+                <View style={styles.itemCard}>
+                  <View style={styles.itemTop}>
+                    <Text style={styles.itemEmoji}>{iconToDisplay(ic.id)}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.itemLabel}>{ic.label}</Text>
+                      <Text style={styles.itemMeta}>
+                        Price: <Text style={styles.bold}>{priceLabel(price)}</Text>
+                      </Text>
+                    </View>
+                  </View>
 
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 900, fontSize: 16 }}>
-                        {ic.label}
-                      </div>
-                      <div
-                        style={{ fontSize: 13, opacity: 0.75, marginTop: 2 }}
-                      >
-                        Price: <b>{priceLabel(price)}</b>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    fullWidth
-                    disabled={!canBuy}
-                    onClick={() => requestBuy(ic.id, ic.label)}
-                    title={
-                      !free && !canBuy ? `Need ${need} more coins` : undefined
-                    }
-                  >
-                    {free
-                      ? 'Get for free'
-                      : canBuy
-                      ? 'Buy'
-                      : `Need ${need} more`}
+                  <Button fullWidth disabled={!canBuy} onClick={() => requestBuy(ic.id, ic.label)}>
+                    {free ? 'Get for free' : canBuy ? 'Buy' : `Need ${need} more`}
                   </Button>
 
-                  {!free && !canBuy && (
-                    <div style={{ fontSize: 12, opacity: 0.65 }}>
-                      Not enough coins.
-                    </div>
-                  )}
-                </div>
+                  {!free && !canBuy ? <Text style={styles.notEnough}>Not enough coins.</Text> : null}
+                </View>
               );
-            })}
-          </div>
+            }}
+          />
         )}
-      </div>
+      </View>
 
-      {/* Confirm modal */}
-      <Modal
-        open={!!confirming}
-        title="Confirm purchase"
-        onClose={() => setConfirming(null)}
-      >
-        {confirming && (
+      <Modal open={!!confirming} title="Confirm purchase" onClose={() => setConfirming(null)}>
+        {confirming ? (
           <>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <div style={{ fontSize: 46 }}>
-                {iconToDisplay(confirming.iconId)}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 900 }}>{confirming.label}</div>
-                <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
-                  Price: <b>{confirming.price}</b> coins
-                </div>
-                <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
-                  After purchase: <b>{Math.max(0, coins - confirming.price)}</b>
-                </div>
-              </div>
-            </div>
+            <View style={styles.confirmRow}>
+              <Text style={styles.confirmEmoji}>{iconToDisplay(confirming.iconId)}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.confirmTitle}>{confirming.label}</Text>
+                <Text style={styles.confirmMeta}>
+                  Price: <Text style={styles.bold}>{confirming.price}</Text> coins
+                </Text>
+                <Text style={styles.confirmMeta}>
+                  After purchase:{' '}
+                  <Text style={styles.bold}>{Math.max(0, coins - confirming.price)}</Text>
+                </Text>
+              </View>
+            </View>
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <View style={styles.confirmActions}>
               <Button fullWidth onClick={() => setConfirming(null)}>
                 Cancel
               </Button>
               <Button fullWidth variant="primary" onClick={doBuy}>
                 Buy
               </Button>
-            </div>
+            </View>
           </>
-        )}
+        ) : null}
       </Modal>
     </Card>
   );
 }
+
+const styles = StyleSheet.create({
+  card: { padding: 16 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+  },
+  title: { fontWeight: '900', fontSize: 18 },
+  subtitle: { fontSize: 12, opacity: 0.7, marginTop: 2 },
+  coinsPill: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    minWidth: 92,
+    alignItems: 'center',
+  },
+  coinsText: { fontWeight: '900' },
+  filters: { marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  filterSelected: { borderColor: '#111', borderWidth: 2 },
+  info: { paddingVertical: 10, fontSize: 14, opacity: 0.7 },
+  grid: { paddingBottom: 4 },
+  gridRow: { gap: 12 },
+  itemCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 14,
+    padding: 14,
+    backgroundColor: '#fff',
+    marginBottom: 12,
+  },
+  itemTop: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 10 },
+  itemEmoji: { fontSize: 42 },
+  itemLabel: { fontWeight: '900', fontSize: 16 },
+  itemMeta: { fontSize: 13, opacity: 0.75, marginTop: 2 },
+  bold: { fontWeight: '900' },
+  notEnough: { fontSize: 12, opacity: 0.65, marginTop: 8 },
+  confirmRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  confirmEmoji: { fontSize: 46 },
+  confirmTitle: { fontWeight: '900' },
+  confirmMeta: { fontSize: 13, opacity: 0.75, marginTop: 4 },
+  confirmActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+});

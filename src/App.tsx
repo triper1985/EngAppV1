@@ -30,6 +30,8 @@ import { AuthProvider, useAuth } from './screens/auth/AuthProvider';
 import { LoginScreen } from './screens/auth/LoginScreen';
 import { RegisterScreen } from './screens/auth/RegisterScreen';
 
+import { ParentGate } from './ParentGate';
+import { hydrateParentPin } from './parentPin';
 
 type Screen =
   | 'home'
@@ -81,7 +83,9 @@ function AppInner() {
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
 
   // Parent selection state
-  const [parentSelectedChildId, setParentSelectedChildId] = useState<string | null>(null);
+  const [parentSelectedChildId, setParentSelectedChildId] = useState<string | null>(
+    null
+  );
 
   // Parent UI language should be stable (not depend on last selected child)
   const [parentLocale, setParentLocale] = useState<'en' | 'he'>(() => {
@@ -101,6 +105,29 @@ function AppInner() {
   const [specialPackId, setSpecialPackId] = useState<string | null>(null);
   const [specialGroupId, setSpecialGroupId] = useState<string | null>(null);
   const [specialMode, setSpecialMode] = useState<SpecialMode>('learn');
+
+  // ✅ Parent security:
+  // - First time: after successful email/password login => allow entry without PIN (this session only)
+  // - Every later entry (while session exists) => require PIN
+  const [parentUnlocked, setParentUnlocked] = useState(false);
+
+  // ✅ Parent PIN storage hydration (RN AsyncStorage)
+  const [pinReady, setPinReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      await hydrateParentPin();
+      if (alive) setPinReady(true);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // If session ends, lock parent again
+  useEffect(() => {
+    if (!session) setParentUnlocked(false);
+  }, [session]);
 
   function syncUsersFromStore(forceActive = true) {
     ChildrenStore.ensureDefaultsIfEmpty();
@@ -132,13 +159,23 @@ function AppInner() {
   useEffect(() => {
     if (!isReady) return;
     if (isParentScreen(screen) && !session) {
+      setParentUnlocked(false);
       setScreen('login');
     }
   }, [isReady, session, screen]);
 
+  function exitParentToHome() {
+    // leaving parent area -> next enter should require PIN (if session still exists)
+    setParentUnlocked(false);
+    setScreen('home');
+  }
+
   const ui = (() => {
     // Loading auth state (only matters when we need it)
-    if (!isReady && (screen === 'login' || screen === 'register' || isParentScreen(screen))) {
+    if (
+      !isReady &&
+      (screen === 'login' || screen === 'register' || isParentScreen(screen))
+    ) {
       return (
         <View style={{ padding: 16 }}>
           <Text>Loading…</Text>
@@ -153,7 +190,11 @@ function AppInner() {
       return (
         <LoginScreen
           onGoRegister={() => setScreen('register')}
-          onLoggedIn={() => setScreen('parentHome')}
+          onLoggedIn={() => {
+            // First entry after login: allow parent without PIN (this time)
+            setParentUnlocked(true);
+            setScreen('parentHome');
+          }}
           onBack={() => setScreen('home')}
         />
       );
@@ -163,7 +204,10 @@ function AppInner() {
       return (
         <RegisterScreen
           onGoLogin={() => setScreen('login')}
-          onRegistered={() => setScreen('parentHome')}
+          onRegistered={() => {
+            setParentUnlocked(true);
+            setScreen('parentHome');
+          }}
           onBack={() => setScreen('home')}
         />
       );
@@ -174,30 +218,29 @@ function AppInner() {
     // -------------------------
     if (screen === 'home') {
       return (
-<HomeScreen
-  users={users}
-  onUserChanged={(userId: string) => {
-    const child = users.find((u) => u.id === userId);
-    if (!child) return;
-
-    // אם המטרה של onUserChanged היא “לשמור בחירה”/לעדכן state
-    setActiveChild(child);
-  }}
-  onSelectChild={(userId: string) => {
-    const child = users.find((u) => u.id === userId);
-    if (!child) return;
-
-    setActiveChild(child);
-    setScreen('childHub');
-  }}
-  onEnterParent={() => {
-    if (!session) setScreen('login');
-    else setScreen('parentHome');
-  }}
-/>
-
-
-
+        <HomeScreen
+          users={users}
+          onUserChanged={(userId: string) => {
+            const child = users.find((u) => u.id === userId);
+            if (!child) return;
+            setActiveChild(child);
+          }}
+          onSelectChild={(userId: string) => {
+            const child = users.find((u) => u.id === userId);
+            if (!child) return;
+            setActiveChild(child);
+            setScreen('childHub');
+          }}
+          onEnterParent={() => {
+            if (!session) {
+              setScreen('login');
+              return;
+            }
+            // Session exists -> require PIN every time you enter parent
+            setParentUnlocked(false);
+            setScreen('parentHome'); // the parent block will show ParentGate first
+          }}
+        />
       );
     }
 
@@ -276,10 +319,7 @@ function AppInner() {
     // -------------------------
     if (screen === 'gamesHub' && activeChild) {
       return (
-        <GamesHubScreen
-          child={activeChild}
-          onBack={() => setScreen('childHub')}
-        />
+        <GamesHubScreen child={activeChild} onBack={() => setScreen('childHub')} />
       );
     }
 
@@ -300,11 +340,34 @@ function AppInner() {
     }
 
     // -------------------------
-    // PARENT (requires session)
+    // PARENT (requires session + PIN per entry)
     // -------------------------
     if (isParentScreen(screen)) {
       // session guard already handled by effect, but keep safe:
       if (!session) return null;
+
+      // Ensure PIN store is hydrated before using ParentGate (RN-safe)
+      if (!pinReady) {
+        return (
+          <View style={{ padding: 16 }}>
+            <Text>Loading…</Text>
+          </View>
+        );
+      }
+
+      // Require PIN unless this parent entry is already unlocked
+      if (!parentUnlocked) {
+        return (
+          <ParentGate
+            onExit={exitParentToHome}
+            onUnlocked={() => {
+              setParentUnlocked(true);
+              // stay on current requested parent screen
+              // (we're already in a parent screen, so do nothing)
+            }}
+          />
+        );
+      }
 
       if (screen === 'parentHome') {
         return (
@@ -312,7 +375,7 @@ function AppInner() {
             users={users}
             parentLocale={parentLocale}
             onChangeParentLocale={(loc) => setParentLocale(loc)}
-            onExit={() => setScreen('home')}
+            onExit={exitParentToHome}
             onOpenProgress={() => setScreen('parentProgress')}
             onOpenChildSettings={() => setScreen('parentChildSettings')}
             onOpenUsers={() => setScreen('parentUsers')}
@@ -341,8 +404,7 @@ function AppInner() {
             onSelectChild={(id) => setParentSelectedChildId(id)}
             onUsersChanged={(next) => {
               setUsers(next);
-              if (!parentSelectedChildId && next[0])
-                setParentSelectedChildId(next[0].id);
+              if (!parentSelectedChildId && next[0]) setParentSelectedChildId(next[0].id);
             }}
             onOpenChildAudio={() => setScreen('parentChildAudioSettings')}
             onBack={() => setScreen('parentHome')}
@@ -359,9 +421,7 @@ function AppInner() {
             child={child}
             onBack={() => setScreen('parentChildSettings')}
             onChildUpdated={(updated) => {
-              setUsers((prev) =>
-                prev.map((u) => (u.id === updated.id ? updated : u))
-              );
+              setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
             }}
           />
         );
@@ -373,8 +433,7 @@ function AppInner() {
             users={users}
             onUsersChanged={(next) => {
               setUsers(next);
-              if (!parentSelectedChildId && next[0])
-                setParentSelectedChildId(next[0].id);
+              if (!parentSelectedChildId && next[0]) setParentSelectedChildId(next[0].id);
             }}
             onBack={() => setScreen('parentHome')}
           />
@@ -388,6 +447,8 @@ function AppInner() {
       if (screen === 'parentPin') {
         return <ParentPinSettingsScreen onBack={() => setScreen('parentHome')} />;
       }
+
+      return null;
     }
 
     // -------------------------
@@ -412,7 +473,12 @@ function AppInner() {
         <Text style={{ fontSize: 18, fontWeight: '700' }}>Unknown screen</Text>
         <Pressable
           onPress={() => setScreen('home')}
-          style={{ paddingVertical: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center' }}
+          style={{
+            paddingVertical: 12,
+            borderRadius: 12,
+            borderWidth: 1,
+            alignItems: 'center',
+          }}
         >
           <Text>Go Home</Text>
         </Pressable>
@@ -421,15 +487,12 @@ function AppInner() {
   })();
 
   return (
-<I18nProvider
-  child={activeChild ?? null}
-  forcedLocale={isParentScreen(screen) ? parentLocale : undefined}
->
-  <View style={{ flex: 1, backgroundColor: '#fff' }}>
-    {ui}
-  </View>
-</I18nProvider>
-
+    <I18nProvider
+      child={activeChild ?? null}
+      forcedLocale={isParentScreen(screen) ? parentLocale : undefined}
+    >
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>{ui}</View>
+    </I18nProvider>
   );
 }
 

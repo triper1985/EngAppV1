@@ -1,5 +1,6 @@
 // src/screens/learn/UnitQuizScreen.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import { shuffle, sampleDistinct } from './learnUtils';
@@ -20,10 +21,7 @@ import {
   setBestQuizScore,
 } from '../../tracks/beginnerProgress';
 
-import {
-  getItemsForPackIds,
-  ensureRequiredSelected,
-} from '../../packs/packsCatalog';
+import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
 // ✅ V11.1: audio layer (replaces tts)
 import { playFx, speakContentItem, stopTTS } from '../../audio';
@@ -37,51 +35,8 @@ import { Card } from '../../ui/Card';
 import { useToast } from '../../ui/useToast';
 
 import { useI18n } from '../../i18n/I18nContext';
-
-function renderItemVisual(it: ContentItem, size: number) {
-  const v = it.visual;
-
-  if (v.kind === 'color') {
-    return (
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: 24,
-          background: v.hex,
-          margin: '0 auto',
-          border: '2px solid #00000012',
-        }}
-      />
-    );
-  }
-
-  if (v.kind === 'image') {
-    return <div style={{ fontSize: Math.round(size * 0.6) }}>🖼️</div>;
-  }
-
-  return <div style={{ fontSize: Math.round(size * 0.8) }}>{v.he}</div>;
-}
-
-type Props = {
-  child: ChildProfile;
-  unitId: UnitId;
-  onBack: () => void;
-  onChildUpdated: (updated: ChildProfile) => void;
-  onStartPractice: (unitId: UnitId) => void;
-  onRetryQuiz: () => void;
-};
-
-type Question = {
-  correctId: string;
-  optionIds: string[];
-};
-
-function fireConfetti() {
-  const c = (window as any).confetti;
-  if (!c) return;
-  c({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-}
+import { ItemVisual } from './ItemVisual';
+import { Confetti } from '../../components/Confetti';
 
 // ---------------------------
 // Better distractors for numbers
@@ -108,8 +63,7 @@ function getPreferredDistractors(
   if (needCount <= 0) return [];
 
   const correctItem = byId.get(correctId);
-  if (!correctItem)
-    return shuffle(ids.filter((x) => x !== correctId)).slice(0, needCount);
+  if (!correctItem) return shuffle(ids.filter((x) => x !== correctId)).slice(0, needCount);
 
   const correctN = parseNumericVisual(correctItem);
   if (correctN === null) {
@@ -150,6 +104,25 @@ function getPreferredDistractors(
   return out.slice(0, needCount);
 }
 
+type Props = {
+  child: ChildProfile;
+  unitId: UnitId;
+  onBack: () => void;
+  onChildUpdated: (updated: ChildProfile) => void;
+  onStartPractice: (unitId: UnitId) => void;
+  onRetryQuiz: () => void;
+};
+
+type Question = {
+  correctId: string;
+  optionIds: string[];
+};
+
+function getSpeakTextForItem(it: ContentItem, isRtl: boolean): string {
+  const txt = isRtl ? it.he ?? it.en : it.en ?? it.he;
+  return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
+}
+
 export function UnitQuizScreen({
   child,
   unitId,
@@ -159,7 +132,10 @@ export function UnitQuizScreen({
   onRetryQuiz,
 }: Props) {
   const { t, dir } = useI18n();
+  const isRtl = dir === 'rtl';
   const { toast, showToast, clearToast } = useToast(1800);
+
+  const [confettiKey, setConfettiKey] = useState(0);
 
   const unit: UnitDef | undefined = useMemo(
     () => BEGINNER_UNITS.find((u) => u.id === unitId),
@@ -182,10 +158,7 @@ export function UnitQuizScreen({
     return resolveUnitItems(unit, catalog);
   }, [unit, catalog]);
 
-  const byId = useMemo(
-    () => new Map(unitItems.map((it) => [it.id, it])),
-    [unitItems]
-  );
+  const byId = useMemo(() => new Map(unitItems.map((it) => [it.id, it])), [unitItems]);
 
   const questions: Question[] = useMemo(() => {
     if (!unit || unitItems.length === 0) return [];
@@ -198,12 +171,7 @@ export function UnitQuizScreen({
       const optionCount = Math.min(4, Math.max(3, ids.length));
       const needDistractors = optionCount - 1;
 
-      const distractors = getPreferredDistractors(
-        correctId,
-        ids,
-        byId,
-        needDistractors
-      );
+      const distractors = getPreferredDistractors(correctId, ids, byId, needDistractors);
 
       return { correctId, optionIds: shuffle([correctId, ...distractors]) };
     });
@@ -220,16 +188,11 @@ export function UnitQuizScreen({
   // ✅ V11.3: debounce for manual "Hear" button
   const lastSpeakAtRef = useRef<number>(0);
 
-  const [finished, setFinished] = useState<null | {
-    score: number;
-    passed: boolean;
-  }>(null);
+  const [finished, setFinished] = useState<null | { score: number; passed: boolean }>(null);
   const [persisted, setPersisted] = useState(false);
 
   useEffect(() => {
-    return () => {
-      stopTTS();
-    };
+    return () => stopTTS();
   }, []);
 
   const attempts = getQuizAttemptsToday(child, unitId);
@@ -260,15 +223,19 @@ export function UnitQuizScreen({
     if (lastAutoSpeakKey.current === key) return;
     lastAutoSpeakKey.current = key;
 
-    const tt = window.setTimeout(() => {
+    const tt = setTimeout(() => {
       stopTTS();
       if (lockedToday) return;
       if (finished) return;
-      speakContentItem(correctItem, {}, child);
+
+      // ✅ IMPORTANT:
+      // Your audio layer expects SpeakItemLike { text } and NO { child } in context.
+      const text = getSpeakTextForItem(correctItem, isRtl);
+      speakContentItem({ text });
     }, 120);
 
-    return () => window.clearTimeout(tt);
-  }, [unitId, qIndex, q, correctItem, lockedToday, finished]);
+    return () => clearTimeout(tt);
+  }, [unitId, qIndex, q, correctItem, lockedToday, finished, isRtl]);
 
   function persistChild(updated: ChildProfile) {
     ChildrenStore.upsert(updated);
@@ -283,11 +250,7 @@ export function UnitQuizScreen({
     if (passed) {
       next = resetQuizDailyStateOnPass(next, unitId);
     } else {
-      next = recordQuizFailAttempt(
-        next,
-        unitId,
-        Array.from(wrongIdsRef.current.values())
-      );
+      next = recordQuizFailAttempt(next, unitId, Array.from(wrongIdsRef.current.values()));
     }
 
     persistChild(next);
@@ -300,7 +263,7 @@ export function UnitQuizScreen({
     saveScoreAndDailyState(finished.score, finished.passed);
 
     if (finished.passed) {
-      fireConfetti();
+      setConfettiKey((k) => k + 1);
 
       const latest = ChildrenStore.getById(child.id) ?? child;
       const bonus = coinsBonusForQuizPass(latest);
@@ -320,23 +283,19 @@ export function UnitQuizScreen({
 
   if (!unit) {
     return (
-      <div
-        style={{ padding: 24, maxWidth: 760, margin: '0 auto', direction: dir }}
-      >
+      <ScrollView contentContainerStyle={styles.container}>
         <TopBar
           backLabel={t('learn.common.back')}
           dir={dir}
           title={t('learn.quiz.titleFallback')}
           onBack={onBack}
         />
-        <div style={{ marginTop: 14 }}>
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ fontWeight: 900, fontSize: 18 }}>
-              {t('learn.common.unitNotFound')}
-            </div>
+            <Text style={styles.h1}>{t('learn.common.unitNotFound')}</Text>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
@@ -344,76 +303,48 @@ export function UnitQuizScreen({
 
   if (lockedToday) {
     return (
-      <div
-        style={{ padding: 24, maxWidth: 760, margin: '0 auto', direction: dir }}
-      >
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={topTitle}
-          onBack={onBack}
-        />
+      <ScrollView contentContainerStyle={styles.container}>
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={topTitle} onBack={onBack} />
 
-        <div style={{ marginTop: 14 }}>
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 900, fontSize: 28 }}>
-                {t('learn.quiz.lockedTodayTitle')}
-              </div>
+            <View style={styles.center}>
+              <Text style={styles.lockTitle}>{t('learn.quiz.lockedTodayTitle')}</Text>
 
-              <div style={{ marginTop: 8, fontSize: 16, opacity: 0.85 }}>
-                {t('learn.quiz.lockedTodayAttempts', {
-                  attempts: String(attempts),
-                })}
-              </div>
+              <Text style={styles.lockSub}>
+                {t('learn.quiz.lockedTodayAttempts', { attempts: String(attempts) })}
+              </Text>
 
-              <div style={{ marginTop: 10, fontSize: 14, opacity: 0.75 }}>
-                {t('learn.quiz.lockedTodayHint')}
-              </div>
+              <Text style={styles.lockHint}>{t('learn.quiz.lockedTodayHint')}</Text>
 
-              <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-                <Button
-                  variant="primary"
-                  fullWidth
-                  onClick={() => onStartPractice(unitId)}
-                >
+              <View style={styles.doneButtons}>
+                <Button variant="primary" fullWidth onClick={() => onStartPractice(unitId)}>
                   {t('learn.quiz.buttonPractice')}
                 </Button>
 
                 <Button fullWidth onClick={onBack}>
                   {t('learn.common.back')}
                 </Button>
-              </div>
-            </div>
+              </View>
+            </View>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
   if (unitItems.length === 0 || questions.length === 0) {
     return (
-      <div
-        style={{ padding: 24, maxWidth: 760, margin: '0 auto', direction: dir }}
-      >
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={topTitle}
-          onBack={onBack}
-        />
+      <ScrollView contentContainerStyle={styles.container}>
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={topTitle} onBack={onBack} />
 
-        <div style={{ marginTop: 14 }}>
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ fontWeight: 900, fontSize: 18 }}>
-              {t('learn.quiz.notEnoughItemsTitle')}
-            </div>
-            <div style={{ marginTop: 8, opacity: 0.8 }}>
-              {t('learn.quiz.notEnoughItemsSubtitle')}
-            </div>
+            <Text style={styles.h1}>{t('learn.quiz.notEnoughItemsTitle')}</Text>
+            <Text style={styles.muted}>{t('learn.quiz.notEnoughItemsSubtitle')}</Text>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
@@ -424,57 +355,42 @@ export function UnitQuizScreen({
     const willLock = !passed && attemptsAfterFail >= 3;
 
     return (
-      <div
-        style={{ padding: 24, maxWidth: 760, margin: '0 auto', direction: dir }}
-      >
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={topTitle}
-          onBack={onBack}
-        />
+      <ScrollView contentContainerStyle={styles.container}>
+        {passed && confettiKey > 0 && <Confetti key={confettiKey} durationMs={900} pieces={90} />}
 
-        <div style={{ marginTop: 14 }}>
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={topTitle} onBack={onBack} />
+
+        <View style={{ marginTop: 14 }}>
           <Card>
-            <div style={{ textAlign: 'center' }}>
+            <View style={styles.center}>
               {passed ? (
                 <>
-                  <div style={{ fontWeight: 900, fontSize: 30 }}>
-                    {t('learn.quiz.passedTitle')}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 16, opacity: 0.85 }}>
+                  <Text style={styles.doneTitle}>{t('learn.quiz.passedTitle')}</Text>
+                  <Text style={styles.mutedCenter}>
                     {t('learn.quiz.unitLabel', { title: unitTitle })}
-                  </div>
+                  </Text>
                 </>
               ) : (
                 <>
-                  <div style={{ fontWeight: 900, fontSize: 30 }}>
-                    {t('learn.quiz.failedTitle')}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 16, opacity: 0.85 }}>
-                    {t('learn.quiz.failedSubtitle')}
-                  </div>
+                  <Text style={styles.doneTitle}>{t('learn.quiz.failedTitle')}</Text>
+                  <Text style={styles.mutedCenter}>{t('learn.quiz.failedSubtitle')}</Text>
                 </>
               )}
 
-              <div style={{ fontSize: 56, marginTop: 10 }}>{score}%</div>
+              <Text style={styles.scoreBig}>{score}%</Text>
 
               {!passed && (
-                <div style={{ marginTop: 10, fontSize: 14, opacity: 0.75 }}>
+                <Text style={styles.lockHint}>
                   {t('learn.quiz.attemptsToday', {
                     attempts: String(attemptsAfterFail),
                     willLock: willLock ? t('learn.quiz.willLockSuffix') : '',
                   })}
-                </div>
+                </Text>
               )}
 
-              <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
+              <View style={styles.doneButtons}>
                 {!passed && (
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={() => onStartPractice(unitId)}
-                  >
+                  <Button variant="primary" fullWidth onClick={() => onStartPractice(unitId)}>
                     {t('learn.quiz.buttonPracticeWrong')}
                   </Button>
                 )}
@@ -488,70 +404,43 @@ export function UnitQuizScreen({
                 <Button fullWidth onClick={onBack}>
                   {t('learn.common.backOk')}
                 </Button>
-              </div>
-            </div>
+              </View>
+            </View>
           </Card>
-        </div>
-      </div>
+        </View>
+      </ScrollView>
     );
   }
 
   const progressPct = Math.round(((qIndex + 1) / questions.length) * 100);
-  const correctId = q.correctId;
+  const correctId = q!.correctId;
 
   return (
-    <div
-      style={{ padding: 24, maxWidth: 760, margin: '0 auto', direction: dir }}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
       <TopBar
         backLabel={t('learn.common.back')}
         dir={dir}
         title={topTitle}
         onBack={onBack}
-        right={
-          <div style={{ fontSize: 13, opacity: 0.75, alignSelf: 'center' }}>
-            {qIndex + 1}/{questions.length}
-          </div>
-        }
+        right={<Text style={styles.progressText}>{qIndex + 1}/{questions.length}</Text>}
       />
 
-      <div style={{ marginTop: 14 }}>
+      <View style={{ marginTop: 14 }}>
         <Card>
-          {toast && (
-            <div
-              style={{
-                marginBottom: 12,
-                padding: '10px 12px',
-                borderRadius: 12,
-                border: '1px solid #eee',
-                background: '#fafafa',
-                fontSize: 14,
-                fontWeight: 700,
-                textAlign: 'center',
-              }}
-            >
-              {toast}
-            </div>
+          {!!toast && (
+            <View style={styles.toastBox}>
+              <Text style={styles.toastText}>{toast}</Text>
+            </View>
           )}
 
-          <div style={{ height: 10, background: '#eee', borderRadius: 999 }}>
-            <div
-              style={{
-                width: `${progressPct}%`,
-                height: '100%',
-                background: '#bbb',
-                borderRadius: 999,
-                transition: 'width 200ms ease',
-              }}
-            />
-          </div>
+          <View style={styles.barTrack}>
+            <View style={[styles.barFill, { width: `${progressPct}%` }]} />
+          </View>
 
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <div style={{ fontWeight: 900, fontSize: 22 }}>
-              {t('learn.quiz.hearAndChoose')}
-            </div>
+          <View style={styles.centerBlock}>
+            <Text style={styles.promptTitle}>{t('learn.quiz.hearAndChoose')}</Text>
 
-            <div style={{ marginTop: 10 }}>
+            <View style={{ marginTop: 10 }}>
               <Button
                 variant="primary"
                 onClick={() => {
@@ -563,61 +452,39 @@ export function UnitQuizScreen({
 
                   playFx('tap');
                   stopTTS();
-                  speakContentItem(correctItem, {}, child);
+
+                  const text = getSpeakTextForItem(correctItem, isRtl);
+                  speakContentItem({ text });
                 }}
                 disabled={!correctItem}
-                style={{ fontSize: 18, padding: '12px 18px' }}
+                style={styles.bigBtn}
               >
                 {t('learn.quiz.buttonHear')}
               </Button>
-            </div>
-          </div>
+            </View>
+          </View>
 
-          <div
-            style={{
-              marginTop: 18,
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              gap: 14,
-            }}
-          >
-            {q.optionIds.map((id) => {
+          <View style={styles.optionsGrid}>
+            {q!.optionIds.map((id) => {
               const it = byId.get(id);
               if (!it) return null;
 
               const isCorrect = id === correctId;
               const isSelected = selected === id;
 
-              let border = '2px solid #e6e6e6';
-              let bg = '#fff';
-
-              if (locked) {
-                if (isSelected && isCorrect) {
-                  border = '3px solid #2ecc71';
-                  bg = '#f0fff6';
-                } else if (isSelected && !isCorrect) {
-                  border = '3px solid #e74c3c';
-                  bg = '#fff3f3';
-                }
-              }
+              const tileStyle = [
+                styles.optionTile,
+                locked && isSelected && isCorrect ? styles.tileCorrect : null,
+                locked && isSelected && !isCorrect ? styles.tileWrong : null,
+                locked ? styles.tileLocked : null,
+              ];
 
               return (
-                <button
+                <Pressable
                   key={id}
                   disabled={locked}
-                  style={{
-                    border,
-                    background: bg,
-                    borderRadius: 18,
-                    padding: '18px 10px',
-                    height: 140,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 16,
-                    cursor: locked ? 'not-allowed' : 'pointer',
-                  }}
-                  onClick={() => {
+                  style={tileStyle}
+                  onPress={() => {
                     if (locked) return;
 
                     setSelected(id);
@@ -626,19 +493,15 @@ export function UnitQuizScreen({
                     if (isCorrect) setCorrectCount((c) => c + 1);
                     else wrongIdsRef.current.add(correctId);
 
-                    window.setTimeout(() => {
+                    setTimeout(() => {
                       setSelected(null);
                       setLocked(false);
 
                       const nextIndex = qIndex + 1;
 
                       if (nextIndex >= questions.length) {
-                        const finalCorrect = isCorrect
-                          ? correctCount + 1
-                          : correctCount;
-                        const score = Math.round(
-                          (finalCorrect / questions.length) * 100
-                        );
+                        const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
+                        const score = Math.round((finalCorrect / questions.length) * 100);
                         const passed = score >= QUIZ_PASS_SCORE;
                         setFinished({ score, passed });
                       } else {
@@ -647,29 +510,111 @@ export function UnitQuizScreen({
                     }, 700);
                   }}
                 >
-                  {renderItemVisual(it, 86)}
-                </button>
+                  <ItemVisual item={it as ContentItem} size={86} />
+                </Pressable>
               );
             })}
-          </div>
+          </View>
 
           {qIndex > 0 && (
-            <div
-              style={{
-                marginTop: 14,
-                fontSize: 13,
-                opacity: 0.75,
-                textAlign: 'center',
-              }}
-            >
+            <Text style={styles.scoreLine}>
               {t('learn.quiz.scoreLine', {
                 correct: String(correctCount),
                 done: String(qIndex),
               })}
-            </div>
+            </Text>
           )}
         </Card>
-      </div>
-    </div>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingBottom: 26,
+    maxWidth: 760,
+    alignSelf: 'center',
+    width: '100%',
+  },
+
+  h1: { fontWeight: '900', fontSize: 18 },
+  muted: { marginTop: 8, opacity: 0.8, lineHeight: 20 },
+
+  progressText: { fontSize: 13, opacity: 0.75, alignSelf: 'center' },
+
+  toastBox: {
+    marginBottom: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    backgroundColor: '#fafafa',
+  },
+  toastText: { fontSize: 14, fontWeight: '700', textAlign: 'center' },
+
+  barTrack: {
+    height: 10,
+    backgroundColor: '#eee',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  barFill: { height: '100%', backgroundColor: '#bbb', borderRadius: 999 },
+
+  center: { alignItems: 'center' },
+  centerBlock: { marginTop: 16, alignItems: 'center' },
+
+  promptTitle: { fontWeight: '900', fontSize: 22, textAlign: 'center' },
+  bigBtn: { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14 },
+
+  optionsGrid: {
+    marginTop: 18,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+    justifyContent: 'space-between',
+  },
+  optionTile: {
+    width: '48%',
+    minHeight: 140,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#e6e6e6',
+    backgroundColor: '#fff',
+    paddingVertical: 18,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  tileCorrect: {
+    borderWidth: 3,
+    borderColor: '#2ecc71',
+    backgroundColor: '#f0fff6',
+  },
+  tileWrong: {
+    borderWidth: 3,
+    borderColor: '#e74c3c',
+    backgroundColor: '#fff3f3',
+  },
+  tileLocked: { opacity: 0.95 },
+
+  scoreLine: {
+    marginTop: 14,
+    fontSize: 13,
+    opacity: 0.75,
+    textAlign: 'center',
+  },
+
+  lockTitle: { fontWeight: '900', fontSize: 28, textAlign: 'center' },
+  lockSub: { marginTop: 8, fontSize: 16, opacity: 0.85, textAlign: 'center' },
+  lockHint: { marginTop: 10, fontSize: 14, opacity: 0.75, textAlign: 'center' },
+
+  doneTitle: { fontWeight: '900', fontSize: 30, textAlign: 'center' },
+  mutedCenter: { marginTop: 6, fontSize: 16, opacity: 0.85, textAlign: 'center' },
+  scoreBig: { fontSize: 56, marginTop: 10 },
+
+  doneButtons: { marginTop: 16, gap: 10, alignSelf: 'stretch' },
+});

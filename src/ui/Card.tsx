@@ -1,10 +1,11 @@
-// src/ui/Card.tsx (Native)
+// src/ui/Card.tsx
 import type { ReactNode } from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 type Props = {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function Card({ children, style }: Props) {

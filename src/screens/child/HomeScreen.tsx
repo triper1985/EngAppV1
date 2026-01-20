@@ -1,65 +1,109 @@
-// HomeScreen.tsx  (Native)
-import { ScrollView, Text, Pressable, View } from 'react-native';
+// src/screens/child/HomeScreen.tsx
+import type { ChildProfile } from '../../types';
+import { iconToDisplay } from '../../data/icons';
+import { ChildrenStore } from '../../storage/childrenStore';
 
-type UserLike = { id: string; name: string };
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../ui/Button';
+import { Card } from '../../ui/Card';
 
 type Props = {
-  users: UserLike[];
-  onUserChanged: (userId: string) => void;
-  onSelectChild: (userId: string) => void;
+  users: ChildProfile[];
+  onUsersChanged: (users: ChildProfile[]) => void;
+  onSelectChild: (child: ChildProfile) => void;
   onEnterParent: () => void;
 };
 
-export function HomeScreen({
-  users,
-  onUserChanged,
-  onSelectChild,
-  onEnterParent,
-}: Props) {
+export function HomeScreen({ users, onUsersChanged, onSelectChild, onEnterParent }: Props) {
+  function refresh() {
+    onUsersChanged(ChildrenStore.list());
+  }
+
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <Text style={{ fontSize: 24, fontWeight: '700' }}>English App</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.topRow}>
+        <Text style={styles.h1}>English App</Text>
+        <Button variant="primary" onClick={onEnterParent}>
+          Parent 🔒
+        </Button>
+      </View>
 
-      <Pressable
-        onPress={onEnterParent}
-        style={{
-          paddingVertical: 12,
-          paddingHorizontal: 14,
-          borderRadius: 12,
-          borderWidth: 1,
-          alignItems: 'center',
-        }}
-      >
-        <Text style={{ fontSize: 16 }}>Parent</Text>
-      </Pressable>
+      <View style={{ marginTop: 16 }}>
+        <Text style={styles.h2}>Choose a child</Text>
 
-      <View style={{ height: 1, backgroundColor: '#ddd' }} />
+        {users.length === 0 ? (
+          <Card style={styles.emptyCard}>
+            <Text style={styles.emptyText}>No children yet. Add one in Parent mode.</Text>
+          </Card>
+        ) : (
+          <View style={styles.list}>
+            {users.map((u) => (
+              <Button
+                key={u.id}
+                onClick={() => onSelectChild(u)}
+                style={styles.childRowBtn}
+              >
+                <View style={styles.childRow}>
+                  <View style={styles.childLeft}>
+                    <Text style={styles.icon}>{iconToDisplay(u.iconId)}</Text>
+                    <Text style={styles.childName}>{u.name}</Text>
+                  </View>
+                  <Text style={styles.enterHint}>Enter →</Text>
+                </View>
+              </Button>
+            ))}
+          </View>
+        )}
+      </View>
 
-      <Text style={{ fontSize: 18, fontWeight: '600' }}>Choose child</Text>
-
-      {users.length === 0 ? (
-        <Text style={{ opacity: 0.7 }}>No children yet</Text>
-      ) : (
-        <View style={{ gap: 10 }}>
-          {users.map((u) => (
-            <Pressable
-              key={u.id}
-              onPress={() => {
-                onUserChanged(u.id);
-                onSelectChild(u.id);
-              }}
-              style={{
-                paddingVertical: 12,
-                paddingHorizontal: 14,
-                borderRadius: 12,
-                borderWidth: 1,
-              }}
-            >
-              <Text style={{ fontSize: 16 }}>{u.name}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
+      {/* Dev helper – אפשר להשאיר או למחוק */}
+      <View style={{ marginTop: 14 }}>
+        <Button
+          onClick={() => {
+            ChildrenStore.ensureDefaultsIfEmpty();
+            refresh();
+          }}
+        >
+          Refresh
+        </Button>
+      </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    paddingBottom: 26,
+    maxWidth: 820,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  h1: { fontSize: 22, fontWeight: '900' },
+  h2: { fontSize: 16, fontWeight: '900', marginBottom: 10 },
+
+  emptyCard: { padding: 12 },
+  emptyText: { fontSize: 14, opacity: 0.75 },
+
+  list: { gap: 10 },
+  childRowBtn: {
+    // Button already styles; we just make it look like a "card row"
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  childRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  childLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  icon: { fontSize: 28 },
+  childName: { fontSize: 18, fontWeight: '800' },
+  enterHint: { fontSize: 14, opacity: 0.7 },
+});
