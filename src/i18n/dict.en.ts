@@ -521,4 +521,63 @@ export const DICT_EN: Record<string, string> = {
   'parent.childAudio.resetButton': 'Reset to default',
   'parent.childAudio.resetOk': 'Reset to default',
   'parent.childAudio.saveButton': 'Save',
+
+    // -----------------------------------------
+  // Aliases (expo-router / native shells) — keep legacy keys working
+  // -----------------------------------------
+
+  // Child hub (new keys used in native screens)
+  'child.hub.title': 'Child Hub',
+  'child.hub.learn': '📚 Start Learning',
+  'child.hub.rewards': '🛍️ Rewards',
+  'child.hub.specialPacks': '✨ Special Packs',
+  'child.hub.games': '🎮 Games',
+
+  // Parent home (new keys used in native screens)
+  'parent.home.childrenCount': 'Children: {n}',
+
+  'parent.home.progress': 'Progress',
+  'parent.home.childSettings': 'Child settings',
+  'parent.home.manageChildren': 'Users',
+  'parent.home.audio': 'Audio settings',
+  'parent.home.pin': 'Parent PIN',
+
+
+'parent.home.nativeShellNote':
+  'Note: The full parent UI is still available on web. This native screen is a minimal navigation shell.',
+
+'parent.audio.nativeShellNote':
+  'Parent audio defaults UI is currently available on web. Native port will come later.',
+'parent.childAudio.nativeShellNote':
+  'Per-child audio overrides are currently editable on web. Native port will come later.',
+  // -----------------------------------------
+  // Parent - PIN Settings (Native / V11.4+)
+  // -----------------------------------------
+  'parent.pin.statusTitle': 'Status',
+  'parent.pin.status.loading': 'Loading…',
+  'parent.pin.status.enabled': 'Enabled',
+  'parent.pin.status.disabled': 'Disabled',
+
+  'parent.pin.setTitle': 'Set PIN',
+  'parent.pin.changeTitle': 'Change PIN',
+
+  'parent.pin.currentHint': 'Current PIN',
+  'parent.pin.currentPlaceholder': 'Enter current PIN',
+
+  'parent.pin.newHint': 'New PIN',
+  'parent.pin.newPlaceholder': 'Enter new PIN (min 4 digits)',
+
+  'parent.pin.confirmHint': 'Confirm new PIN',
+  'parent.pin.confirmPlaceholder': 'Re-enter new PIN',
+
+  'parent.pin.clear': 'Clear',
+  'parent.pin.save': 'Save',
+  'parent.pin.saveChange': 'Save change',
+
+  'parent.pin.toast.cleared': 'PIN cleared',
+  'parent.pin.error.currentWrong': 'Current PIN is incorrect',
+  'parent.pin.error.currentWrongToClear': 'Enter the correct current PIN to clear',
+  'parent.pin.error.newTooShort': 'New PIN must be at least 4 digits',
+  'parent.pin.error.confirmMismatch': 'PIN confirmation does not match',
+
 };

@@ -1,5 +1,4 @@
 // src/audio/tts.ts
-
 import type { ContentItem } from '../content/types';
 import type { ChildProfile } from '../types';
 import { getEffectiveAudioSettings, getTtsPitch, getTtsRate } from './settings';
@@ -25,14 +24,37 @@ function normalizeText(text: string | undefined | null): string {
   return (text ?? '').trim();
 }
 
+/**
+ * Safe access to SpeechSynthesis (Web only).
+ * On RN/Expo Android there is no speechSynthesis -> return null.
+ */
+function getSynth(): SpeechSynthesis | null {
+  const anyGlobal = globalThis as any;
+
+  const synth =
+    anyGlobal?.speechSynthesis ??
+    anyGlobal?.window?.speechSynthesis ??
+    null;
+
+  if (!synth) return null;
+  if (typeof synth.cancel !== 'function') return null;
+  if (typeof synth.speak !== 'function') return null;
+
+  return synth as SpeechSynthesis;
+}
+
 function pickVoiceByIdOrLang(
   lang: string,
   child?: ChildProfile | null
 ): SpeechSynthesisVoice | undefined {
-  const synth = window.speechSynthesis;
-  const voices = synth.getVoices();
+  const synth = getSynth();
+  if (!synth) return undefined;
+
+  const voices = synth.getVoices?.() ?? [];
+  if (!voices.length) return undefined;
 
   const { voiceId } = getEffectiveAudioSettings(child);
+
   if (voiceId) {
     const byId =
       voices.find((v) => v.voiceURI === voiceId) ||
@@ -52,8 +74,9 @@ function pickVoiceByIdOrLang(
 }
 
 export function stopTTS(): void {
-  if (typeof window === 'undefined') return;
-  window.speechSynthesis.cancel();
+  const synth = getSynth();
+  if (!synth) return;
+  synth.cancel();
 }
 
 export function speakText(
@@ -67,14 +90,19 @@ export function speakText(
   const clean = normalizeText(text);
   if (!clean) return;
 
-  const lang = opts.lang ?? 'en-US';
+  const synth = getSynth();
+  if (!synth) return; // ✅ RN/Native: no-op (prevents crash)
 
-  const synth = window.speechSynthesis;
+  const lang = opts.lang ?? 'en-US';
 
   // Cancel previous utterance (V10 behavior)
   synth.cancel();
 
-  const u = new SpeechSynthesisUtterance(clean);
+  // SpeechSynthesisUtterance exists only on Web
+  const AnyUtter = (globalThis as any).SpeechSynthesisUtterance;
+  if (typeof AnyUtter !== 'function') return;
+
+  const u = new AnyUtter(clean) as SpeechSynthesisUtterance;
   u.lang = lang;
 
   const voice = pickVoiceByIdOrLang(lang, child);
@@ -131,7 +159,18 @@ export function speakItemOnce(
   // Mark immediately to avoid racing re-renders triggering multiple timeouts
   markSpoken(key);
 
-  window.setTimeout(() => {
+  // ✅ RN-safe: use global setTimeout (not window.setTimeout)
+  const setT = (globalThis as any).setTimeout as
+    | ((fn: () => void, ms: number) => any)
+    | undefined;
+
+  if (typeof setT !== 'function') {
+    // worst-case: just speak immediately
+    speakItem(item, opts, child);
+    return;
+  }
+
+  setT(() => {
     speakItem(item, opts, child);
   }, delayMs);
 }

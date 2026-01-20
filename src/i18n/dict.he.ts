@@ -503,4 +503,60 @@ export const DICT_HE: Record<string, string> = {
   'parent.childAudio.resetButton': 'איפוס לברירת מחדל',
   'parent.childAudio.resetOk': 'איפוס לברירת מחדל בוצע',
   'parent.childAudio.saveButton': 'שמירה',
+
+    // -----------------------------------------
+  // Aliases (expo-router / native shells) — keep legacy keys working
+  // -----------------------------------------
+
+  // Child hub (new keys used in native screens)
+  'child.hub.title': 'מרכז הילד',
+  'child.hub.learn': '📚 התחל ללמוד',
+  'child.hub.rewards': '🛍️ תגמולים',
+  'child.hub.specialPacks': '✨ חבילות מיוחדות',
+  'child.hub.games': '🎮 משחקים',
+
+  // Parent home (new keys used in native screens)
+  'parent.home.childrenCount': 'מספר ילדים: {n}',
+
+  'parent.home.progress': 'התקדמות',
+  'parent.home.childSettings': 'הגדרות ילד',
+  'parent.home.manageChildren': 'משתמשים',
+  'parent.home.audio': 'הגדרות שמע',
+  'parent.home.pin': 'קוד הורה',
+'parent.home.nativeShellNote':
+  'הערה: ממשק ההורה המלא עדיין זמין בווב. המסך הזה בנייטיב הוא שלד ניווט מינימלי.',
+'parent.audio.nativeShellNote':
+  'ממשק הגדרות השמע של ההורה זמין כרגע בווב. גרסת נייטיב תגיע בהמשך.',
+'parent.childAudio.nativeShellNote':
+  'הגדרות שמע מותאמות לילד זמינות כרגע בווב. גרסת נייטיב תגיע בהמשך.',
+  // -----------------------------------------
+  // Parent - PIN Settings (Native / V11.4+)
+  // -----------------------------------------
+  'parent.pin.statusTitle': 'סטטוס',
+  'parent.pin.status.loading': 'טוען…',
+  'parent.pin.status.enabled': 'פעיל',
+  'parent.pin.status.disabled': 'כבוי',
+
+  'parent.pin.setTitle': 'הגדרת קוד',
+  'parent.pin.changeTitle': 'שינוי קוד',
+
+  'parent.pin.currentHint': 'קוד נוכחי',
+  'parent.pin.currentPlaceholder': 'הזן קוד נוכחי',
+
+  'parent.pin.newHint': 'קוד חדש',
+  'parent.pin.newPlaceholder': 'הזן קוד חדש (מינימום 4 ספרות)',
+
+  'parent.pin.confirmHint': 'אישור קוד חדש',
+  'parent.pin.confirmPlaceholder': 'הזן שוב את הקוד החדש',
+
+  'parent.pin.clear': 'איפוס',
+  'parent.pin.save': 'שמירה',
+  'parent.pin.saveChange': 'שמירה',
+
+  'parent.pin.toast.cleared': 'הקוד אופס',
+  'parent.pin.error.currentWrong': 'הקוד הנוכחי שגוי',
+  'parent.pin.error.currentWrongToClear': 'כדי לאפס צריך להזין קוד נוכחי נכון',
+  'parent.pin.error.newTooShort': 'הקוד החדש חייב להיות לפחות 4 ספרות',
+  'parent.pin.error.confirmMismatch': 'האישור לא תואם לקוד החדש',
+
 };

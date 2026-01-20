@@ -1,4 +1,3 @@
-// src/screens/parent/ParentHomeScreen.tsx (Native)
 import { ScrollView, Text, View } from 'react-native';
 import type { ChildProfile } from '../../types';
 import { TopBar } from '../../ui/TopBar';
@@ -32,37 +31,75 @@ export function ParentHomeScreen({
   const { t, dir } = useI18n();
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <TopBar title={t('parent.home.title') ?? 'Parent'} onBack={onExit} backLabel={t('parent.common.back') ?? 'Back'} dir={dir} />
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
+      <TopBar
+        title={t('parent.home.title')}
+        onBack={onExit}
+        backLabel={t('parent.common.back')}
+        dir={dir}
+      />
 
-      <View style={{ gap: 6 }}>
-        <Text style={{ fontWeight: '800' }}>{t('parent.home.childrenCount') ?? 'Children'}: {users.length}</Text>
+      {/* Centered header block */}
+      <View style={{ marginTop: 14, alignItems: 'center' }}>
+        <Text style={{ fontWeight: '800' }}>
+          {t('parent.home.usersTitle')}: {users.length}
+        </Text>
+
+        <View style={{ marginTop: 14, alignItems: 'center' }}>
+          <Text style={{ fontWeight: '700' }}>
+            {t('parent.home.languageTitle')}
+          </Text>
+
+          <View style={{ flexDirection: 'row', marginTop: 10 }}>
+            <View style={{ marginEnd: 10 }}>
+              <Button
+                variant={parentLocale === 'en' ? 'primary' : 'secondary'}
+                onClick={() => onChangeParentLocale('en')}
+              >
+                {t('parent.home.language.en')}
+              </Button>
+            </View>
+
+            <Button
+              variant={parentLocale === 'he' ? 'primary' : 'secondary'}
+              onClick={() => onChangeParentLocale('he')}
+            >
+              {t('parent.home.language.he')}
+            </Button>
+          </View>
+        </View>
       </View>
 
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        <Button variant={parentLocale === 'en' ? 'primary' : 'secondary'} onClick={() => onChangeParentLocale('en')}>EN</Button>
-        <Button variant={parentLocale === 'he' ? 'primary' : 'secondary'} onClick={() => onChangeParentLocale('he')}>HE</Button>
+      {/* Main actions */}
+      <View style={{ marginTop: 16 }}>
+        <View style={{ marginBottom: 10 }}>
+          <Button variant="primary" fullWidth onClick={onOpenProgress}>
+            {t('parent.home.progressTitle')}
+          </Button>
+        </View>
+
+        <View style={{ marginBottom: 10 }}>
+          <Button fullWidth onClick={onOpenChildSettings}>
+            {t('parent.home.childSettingsTitle')}
+          </Button>
+        </View>
+
+        <View style={{ marginBottom: 10 }}>
+          <Button fullWidth onClick={onOpenUsers}>
+            {t('parent.home.usersTitle')}
+          </Button>
+        </View>
+
+        <View style={{ marginBottom: 10 }}>
+          <Button fullWidth onClick={onOpenAudioSettings}>
+            {t('parent.home.audioTitle')}
+          </Button>
+        </View>
+
+        <Button fullWidth onClick={onOpenParentPin}>
+          {t('parent.home.pinTitle')}
+        </Button>
       </View>
-
-      <Button variant="primary" fullWidth onClick={onOpenProgress}>
-        {t('parent.home.progress') ?? 'Progress'}
-      </Button>
-      <Button fullWidth onClick={onOpenChildSettings}>
-        {t('parent.home.childSettings') ?? 'Child settings'}
-      </Button>
-      <Button fullWidth onClick={onOpenUsers}>
-        {t('parent.home.manageChildren') ?? 'Manage children'}
-      </Button>
-      <Button fullWidth onClick={onOpenAudioSettings}>
-        {t('parent.home.audio') ?? 'Audio settings'}
-      </Button>
-      <Button fullWidth onClick={onOpenParentPin}>
-        {t('parent.home.pin') ?? 'Parent PIN'}
-      </Button>
-
-      <Text style={{ opacity: 0.6, fontSize: 12 }}>
-        Note: The full parent UI is still available on web. This native screen is a minimal navigation shell.
-      </Text>
     </ScrollView>
   );
 }

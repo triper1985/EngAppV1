@@ -21,9 +21,46 @@ type Store = {
 
 const LS_KEY = 'english_parent_report_v1';
 
+// ✅ RN fallback (no localStorage)
+let memStore: Store | null = null;
+
+function hasLocalStorage(): boolean {
+  try {
+    const ls = (globalThis as any)?.localStorage;
+    return !!ls && typeof ls.getItem === 'function' && typeof ls.setItem === 'function';
+  } catch {
+    return false;
+  }
+}
+
+function readRaw(): string | null {
+  if (!hasLocalStorage()) return null;
+  try {
+    return (globalThis as any).localStorage.getItem(LS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeRaw(value: string) {
+  if (!hasLocalStorage()) return;
+  try {
+    (globalThis as any).localStorage.setItem(LS_KEY, value);
+  } catch {
+    // ignore
+  }
+}
+
 function loadStore(): Store {
-  const raw = localStorage.getItem(LS_KEY);
+  // ✅ RN: keep in memory (prevents crashes)
+  if (!hasLocalStorage()) {
+    if (!memStore) memStore = { version: 1, byChildId: {} };
+    return memStore;
+  }
+
+  const raw = readRaw();
   if (!raw) return { version: 1, byChildId: {} };
+
   try {
     const parsed = JSON.parse(raw);
     if (parsed?.version === 1 && parsed?.byChildId) return parsed as Store;
@@ -34,7 +71,13 @@ function loadStore(): Store {
 }
 
 function saveStore(s: Store) {
-  localStorage.setItem(LS_KEY, JSON.stringify(s));
+  // ✅ RN: update memory only
+  if (!hasLocalStorage()) {
+    memStore = s;
+    return;
+  }
+
+  writeRaw(JSON.stringify(s));
 }
 
 export function getDateIdLocal(d = new Date()): string {

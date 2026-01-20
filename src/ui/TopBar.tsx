@@ -16,7 +16,8 @@ export function TopBar({ title, onBack, right, backLabel, dir }: Props) {
   const isRtl = dir === 'rtl';
 
   return (
-    <View style={[styles.row, isRtl ? styles.rowRtl : null]}>
+    <View style={styles.row}>
+      {/* Left slot (fixed width to keep title centered) */}
       <View style={styles.side}>
         {onBack ? (
           <Button onClick={onBack}>
@@ -25,11 +26,21 @@ export function TopBar({ title, onBack, right, backLabel, dir }: Props) {
         ) : null}
       </View>
 
+      {/* Center title */}
       <View style={styles.center}>
-        <Text style={styles.title}>{title}</Text>
+        <Text
+          style={styles.title}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
       </View>
 
-      <View style={[styles.side, styles.rightSide]}>{right ?? null}</View>
+      {/* Right slot (fixed width to keep title centered) */}
+      <View style={[styles.side, styles.rightSide]}>
+        {right ?? null}
+      </View>
     </View>
   );
 }
@@ -41,9 +52,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
   },
-  rowRtl: {
-    flexDirection: 'row-reverse',
-  },
   side: {
     width: 120,
   },
@@ -52,6 +60,7 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
+    minWidth: 0, // IMPORTANT: allows title to shrink/ellipsis instead of breaking mid-word
     alignItems: 'center',
   },
   title: {

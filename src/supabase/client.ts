@@ -1,5 +1,6 @@
 // src/supabase/client.ts
-import 'react-native-url-polyfill/auto';
+import 'react-native-url-polyfill';
+
 import { createClient } from '@supabase/supabase-js';
 
 // Expo: values from .env
