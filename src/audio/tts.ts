@@ -1,176 +1,200 @@
 // src/audio/tts.ts
-import type { ContentItem } from '../content/types';
-import type { ChildProfile } from '../types';
-import { getEffectiveAudioSettings, getTtsPitch, getTtsRate } from './settings';
-import { hasSpoken, markSpoken } from './once';
+// RN-safe TTS layer:
+// - Web: window.speechSynthesis
+// - Native (Expo): expo-speech (best effort)
+//
+// Public API is kept compatible with previous versions.
 
-export type SpeakContext = 'learn' | 'quiz' | 'practice';
+import { Platform } from 'react-native';
+import type { AudioSettings } from './settings';
+import { getAudioSettings } from './settings';
+
+export type SpeakContext = {
+  lang?: string; // e.g. 'en' | 'he'
+};
 
 export type SpeakItemLike = {
-  he?: string;
-  en?: string;
+  text: string;
+  lang?: string;
 };
 
-type SpeakTextOpts = {
-  lang?: 'en-US' | 'he-IL';
-  context?: SpeakContext;
+// ---------- Optional native speech bridge (expo-speech) ----------
+type ExpoSpeechLike = {
+  speak?: (text: string, options?: any) => void;
+  stop?: () => void;
+  getAvailableVoicesAsync?: () => Promise<any[]>;
 };
 
-type SpeakOnceOpts = SpeakTextOpts & {
-  delayMs?: number; // default 120ms (matches V10 behavior)
-};
-
-function normalizeText(text: string | undefined | null): string {
-  return (text ?? '').trim();
+function tryGetExpoSpeech(): ExpoSpeechLike | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require('expo-speech');
+    return (mod?.default ?? mod) as ExpoSpeechLike;
+  } catch {
+    return null;
+  }
 }
 
-/**
- * Safe access to SpeechSynthesis (Web only).
- * On RN/Expo Android there is no speechSynthesis -> return null.
- */
-function getSynth(): SpeechSynthesis | null {
-  const anyGlobal = globalThis as any;
-
-  const synth =
-    anyGlobal?.speechSynthesis ??
-    anyGlobal?.window?.speechSynthesis ??
-    null;
-
-  if (!synth) return null;
-  if (typeof synth.cancel !== 'function') return null;
-  if (typeof synth.speak !== 'function') return null;
-
-  return synth as SpeechSynthesis;
+function clampRateFromSpeed(speed: AudioSettings['ttsSpeed']): number {
+  // expo-speech "rate" differs per platform, but ~0.8/1.0 is usually safe.
+  return speed === 'slow' ? 0.8 : 1.0;
 }
 
-function pickVoiceByIdOrLang(
-  lang: string,
-  child?: ChildProfile | null
-): SpeechSynthesisVoice | undefined {
-  const synth = getSynth();
-  if (!synth) return undefined;
+function getWebSynth(): SpeechSynthesis | null {
+  try {
+    const w = globalThis as any;
+    return w?.speechSynthesis ?? null;
+  } catch {
+    return null;
+  }
+}
 
-  const voices = synth.getVoices?.() ?? [];
-  if (!voices.length) return undefined;
+function resolveWebVoice(voiceId?: string): SpeechSynthesisVoice | null {
+  if (!voiceId) return null;
+  const synth = getWebSynth();
+  if (!synth?.getVoices) return null;
 
-  const { voiceId } = getEffectiveAudioSettings(child);
+  const voices = synth.getVoices() ?? [];
+  for (const v of voices) {
+    const id = (v as any)?.voiceURI || v.name;
+    if (id === voiceId) return v;
+  }
+  return null;
+}
 
-  if (voiceId) {
-    const byId =
-      voices.find((v) => v.voiceURI === voiceId) ||
-      voices.find((v) => v.name === voiceId);
-    if (byId) return byId;
+// Track last engine to stop cleanly
+let lastEngine: 'web' | 'expo' | null = null;
+
+export function stopTTS() {
+  // Stop web
+  try {
+    const synth = getWebSynth();
+    synth?.cancel?.();
+  } catch {
+    // ignore
   }
 
-  // Fallback: try match exact lang, then prefix match (en- / he-)
-  const exact = voices.find((v) => v.lang === lang);
-  if (exact) return exact;
+  // Stop expo
+  try {
+    const expo = tryGetExpoSpeech();
+    expo?.stop?.();
+  } catch {
+    // ignore
+  }
 
-  const prefix = lang.split('-')[0] + '-';
-  const pref = voices.find((v) => v.lang?.startsWith(prefix));
-  if (pref) return pref;
-
-  return voices[0];
+  lastEngine = null;
 }
 
-export function stopTTS(): void {
-  const synth = getSynth();
-  if (!synth) return;
-  synth.cancel();
-}
+export function speakText(text: string, ctx?: SpeakContext) {
+  const s = getAudioSettings();
+  if (!s.ttsEnabled) return;
 
-export function speakText(
-  text: string,
-  opts: SpeakTextOpts = {},
-  child?: ChildProfile | null
-): void {
-  const { ttsEnabled, ttsSpeed } = getEffectiveAudioSettings(child);
-  if (!ttsEnabled) return;
-
-  const clean = normalizeText(text);
+  const clean = String(text ?? '').trim();
   if (!clean) return;
 
-  const synth = getSynth();
-  if (!synth) return; // ✅ RN/Native: no-op (prevents crash)
+  // Always stop previous first
+  stopTTS();
 
-  const lang = opts.lang ?? 'en-US';
+  // ---------- Native (Expo) ----------
+  if (Platform.OS !== 'web') {
+    const expo = tryGetExpoSpeech();
+    if (expo?.speak) {
+      lastEngine = 'expo';
 
-  // Cancel previous utterance (V10 behavior)
-  synth.cancel();
+      // Best-effort mapping:
+      // - rate from speed
+      // - voiceId passed as "voice" (may be ignored on some platforms)
+      // - language can be passed if supported; some expo versions use "language"
+      expo.speak(clean, {
+        rate: clampRateFromSpeed(s.ttsSpeed),
+        pitch: 1.0,
+        voice: s.voiceId ?? undefined,
+        language: ctx?.lang ?? undefined,
+      });
+      return;
+    }
 
-  // SpeechSynthesisUtterance exists only on Web
-  const AnyUtter = (globalThis as any).SpeechSynthesisUtterance;
-  if (typeof AnyUtter !== 'function') return;
-
-  const u = new AnyUtter(clean) as SpeechSynthesisUtterance;
-  u.lang = lang;
-
-  const voice = pickVoiceByIdOrLang(lang, child);
-  if (voice) u.voice = voice;
-
-  // Kid-friendly tuning (V10 baseline) + speed choice (V11.1)
-  u.rate = getTtsRate(ttsSpeed);
-  u.pitch = getTtsPitch();
-
-  synth.speak(u);
-}
-
-export function speakItem(
-  item: SpeakItemLike,
-  opts: SpeakTextOpts = {},
-  child?: ChildProfile | null
-): void {
-  // Default: English learning audio. If missing, fallback to Hebrew.
-  const en = normalizeText(item.en);
-  const he = normalizeText(item.he);
-
-  const text = en ? en : he;
-  if (!text) return;
-
-  const lang = opts.lang ?? (en ? 'en-US' : 'he-IL');
-  speakText(text, { ...opts, lang }, child);
-}
-
-/**
- * Convenience for existing code that passes ContentItem.
- */
-export function speakContentItem(
-  item: ContentItem,
-  opts: SpeakTextOpts = {},
-  child?: ChildProfile | null
-): void {
-  speakItem({ en: item.en, he: item.he }, opts, child);
-}
-
-/**
- * Speak only once per key (guards + delay centralized).
- * This is what removes the duplicated "already spoken" logic from screens.
- */
-export function speakItemOnce(
-  key: string,
-  item: SpeakItemLike,
-  opts: SpeakOnceOpts = {},
-  child?: ChildProfile | null
-): void {
-  if (hasSpoken(key)) return;
-
-  const delayMs = opts.delayMs ?? 120;
-
-  // Mark immediately to avoid racing re-renders triggering multiple timeouts
-  markSpoken(key);
-
-  // ✅ RN-safe: use global setTimeout (not window.setTimeout)
-  const setT = (globalThis as any).setTimeout as
-    | ((fn: () => void, ms: number) => any)
-    | undefined;
-
-  if (typeof setT !== 'function') {
-    // worst-case: just speak immediately
-    speakItem(item, opts, child);
+    // If expo-speech missing, do nothing (no crash)
     return;
   }
 
-  setT(() => {
-    speakItem(item, opts, child);
-  }, delayMs);
+  // ---------- Web ----------
+  const synth = getWebSynth();
+  if (!synth) return;
+
+  try {
+    const u = new SpeechSynthesisUtterance(clean);
+
+    // language (optional)
+    if (ctx?.lang) u.lang = ctx.lang;
+
+    // speed
+    u.rate = s.ttsSpeed === 'slow' ? 0.8 : 1.0;
+
+    // voice
+    const v = resolveWebVoice(s.voiceId);
+    if (v) u.voice = v;
+
+    lastEngine = 'web';
+    synth.speak(u);
+  } catch {
+    // ignore
+  }
+}
+
+export function speakItem(item: SpeakItemLike, ctx?: SpeakContext) {
+  speakText(item?.text ?? '', { lang: item?.lang ?? ctx?.lang });
+}
+
+export function speakContentItem(item: SpeakItemLike, ctx?: SpeakContext) {
+  speakItem(item, ctx);
+}
+
+// “Once” behavior is handled by once.ts; here we just keep API
+export function speakItemOnce(item: SpeakItemLike, ctx?: SpeakContext) {
+  speakItem(item, ctx);
+}
+
+/**
+ * Optional helper (if you want to use it later):
+ * Returns voices list best-effort (web sync, native async when available).
+ */
+export async function listAvailableVoices(): Promise<Array<{ id: string; name: string; language?: string }>> {
+  // Native
+  if (Platform.OS !== 'web') {
+    const expo = tryGetExpoSpeech();
+    if (expo?.getAvailableVoicesAsync) {
+      try {
+        const v = await expo.getAvailableVoicesAsync();
+        const arr = Array.isArray(v) ? v : [];
+        return arr
+          .map((x) => {
+            const id = String(x?.identifier ?? x?.id ?? x?.voiceURI ?? x?.name ?? x?.language ?? '');
+            const name = String(x?.name ?? x?.identifier ?? id);
+            const language = x?.language ? String(x.language) : undefined;
+            return id ? { id, name, language } : null;
+          })
+          .filter(Boolean) as any;
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  // Web
+  const synth = getWebSynth();
+  if (!synth?.getVoices) return [];
+  try {
+    return (synth.getVoices() ?? [])
+      .map((v) => {
+        const id = String((v as any)?.voiceURI || v.name || '');
+        const name = String(v.name || id);
+        const language = v.lang ? String(v.lang) : undefined;
+        return id ? { id, name, language } : null;
+      })
+      .filter(Boolean) as any;
+  } catch {
+    return [];
+  }
 }
