@@ -28,3 +28,6 @@ dist-ssr
 
 expo-env.d.ts
 # @end expo-cli
+*.zip
+*.rar
+*.7z
