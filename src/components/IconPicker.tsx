@@ -1,7 +1,6 @@
 // src/components/IconPicker.tsx
 import { useMemo } from 'react';
 import {
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
@@ -19,7 +18,11 @@ type Props = {
 };
 
 export function IconPicker({ value, unlockedIconIds, onPick }: Props) {
-  const unlocked = useMemo(() => new Set(unlockedIconIds ?? []), [unlockedIconIds]);
+  const unlocked = useMemo(
+    () => new Set<string>(unlockedIconIds ?? []),
+    [unlockedIconIds]
+  );
+
   const visibleIcons = useMemo(
     () => ICONS.filter((ic) => unlocked.has(ic.id)),
     [unlocked]
@@ -27,6 +30,9 @@ export function IconPicker({ value, unlockedIconIds, onPick }: Props) {
 
   const { width } = useWindowDimensions();
   const numColumns = width >= 520 ? 5 : width >= 380 ? 4 : 3;
+  const cellWidthPct = 100 / numColumns;
+
+  const selectedId = typeof value === 'string' && value.trim() ? value : undefined;
 
   return (
     <Card style={styles.card}>
@@ -41,33 +47,32 @@ export function IconPicker({ value, unlockedIconIds, onPick }: Props) {
         </Text>
       ) : (
         <>
-          <FlatList
-            data={visibleIcons}
-            key={numColumns}
-            numColumns={numColumns}
-            keyExtractor={(ic) => ic.id}
-            contentContainerStyle={styles.grid}
-            columnWrapperStyle={numColumns > 1 ? styles.rowWrap : undefined}
-            renderItem={({ item: ic }) => {
-              const selected = ic.id === value;
+          <View style={styles.grid}>
+            {visibleIcons.map((ic) => {
+              const selected = ic.id === selectedId;
+
               return (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => onPick(ic.id)}
-                  style={[
-                    styles.cell,
-                    selected ? styles.cellSelected : styles.cellUnselected,
-                  ]}
-                >
-                  <Text style={styles.emoji}>{iconToDisplay(ic.id)}</Text>
-                </Pressable>
+                <View key={ic.id} style={[styles.cellWrap, { width: `${cellWidthPct}%` }]}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onPick(ic.id)}
+                    style={[
+                      styles.cell,
+                      selected ? styles.cellSelected : styles.cellUnselected,
+                    ]}
+                  >
+                    <Text style={styles.emoji}>{iconToDisplay(ic.id)}</Text>
+                  </Pressable>
+                </View>
               );
-            }}
-          />
+            })}
+          </View>
 
           <Text style={styles.selectedLabel}>
             Selected:{' '}
-            <Text style={styles.selectedEmoji}>{iconToDisplay(value)}</Text>
+            <Text style={styles.selectedEmoji}>
+              {selectedId ? iconToDisplay(selectedId) : '—'}
+            </Text>
           </Text>
         </>
       )}
@@ -81,23 +86,34 @@ const styles = StyleSheet.create({
   title: { fontWeight: '900', fontSize: 18 },
   subtitle: { fontSize: 13, opacity: 0.75, marginTop: 2 },
   empty: { marginTop: 12, fontSize: 14, opacity: 0.75 },
-  grid: { paddingTop: 12 },
-  rowWrap: { gap: 10 },
+
+  grid: {
+    paddingTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+
+  cellWrap: {
+    paddingRight: 10,
+    paddingBottom: 10,
+  },
+
   cell: {
-    flex: 1,
+    width: '100%',
     height: 70,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
     borderWidth: 1,
   },
+
   cellSelected: {
     borderWidth: 2,
     borderColor: '#111',
     backgroundColor: '#f3f3f3',
   },
   cellUnselected: { borderColor: '#ddd', backgroundColor: '#fff' },
+
   emoji: { fontSize: 28 },
   selectedLabel: { marginTop: 12, fontSize: 12, opacity: 0.75 },
   selectedEmoji: { fontWeight: '900' },

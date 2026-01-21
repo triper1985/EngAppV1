@@ -1,4 +1,5 @@
-import { ScrollView, Text, View } from 'react-native';
+// src/screens/parent/ParentHomeScreen.tsx
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import type { ChildProfile } from '../../types';
 import { TopBar } from '../../ui/TopBar';
 import { Button } from '../../ui/Button';
@@ -29,9 +30,10 @@ export function ParentHomeScreen({
   onOpenAudioSettings,
 }: Props) {
   const { t, dir } = useI18n();
+  const isRtl = dir === 'rtl';
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
+    <ScrollView contentContainerStyle={styles.container}>
       <TopBar
         title={t('parent.home.title')}
         onBack={onExit}
@@ -39,19 +41,19 @@ export function ParentHomeScreen({
         dir={dir}
       />
 
-      {/* Centered header block */}
-      <View style={{ marginTop: 14, alignItems: 'center' }}>
-        <Text style={{ fontWeight: '800' }}>
+      {/* Header block */}
+      <View style={styles.headerBlock}>
+        <Text style={[styles.headerLine, isRtl && styles.rtlText]}>
           {t('parent.home.usersTitle')}: {users.length}
         </Text>
 
-        <View style={{ marginTop: 14, alignItems: 'center' }}>
-          <Text style={{ fontWeight: '700' }}>
+        <View style={styles.langBlock}>
+          <Text style={[styles.langTitle, isRtl && styles.rtlText]}>
             {t('parent.home.languageTitle')}
           </Text>
 
-          <View style={{ flexDirection: 'row', marginTop: 10 }}>
-            <View style={{ marginEnd: 10 }}>
+          <View style={[styles.langRow, isRtl && styles.rowRtl]}>
+            <View style={styles.langBtnWrap}>
               <Button
                 variant={parentLocale === 'en' ? 'primary' : 'secondary'}
                 onClick={() => onChangeParentLocale('en')}
@@ -60,37 +62,39 @@ export function ParentHomeScreen({
               </Button>
             </View>
 
-            <Button
-              variant={parentLocale === 'he' ? 'primary' : 'secondary'}
-              onClick={() => onChangeParentLocale('he')}
-            >
-              {t('parent.home.language.he')}
-            </Button>
+            <View style={styles.langBtnWrap}>
+              <Button
+                variant={parentLocale === 'he' ? 'primary' : 'secondary'}
+                onClick={() => onChangeParentLocale('he')}
+              >
+                {t('parent.home.language.he')}
+              </Button>
+            </View>
           </View>
         </View>
       </View>
 
       {/* Main actions */}
-      <View style={{ marginTop: 16 }}>
-        <View style={{ marginBottom: 10 }}>
+      <View style={styles.actions}>
+        <View style={styles.actionGap}>
           <Button variant="primary" fullWidth onClick={onOpenProgress}>
             {t('parent.home.progressTitle')}
           </Button>
         </View>
 
-        <View style={{ marginBottom: 10 }}>
+        <View style={styles.actionGap}>
           <Button fullWidth onClick={onOpenChildSettings}>
             {t('parent.home.childSettingsTitle')}
           </Button>
         </View>
 
-        <View style={{ marginBottom: 10 }}>
+        <View style={styles.actionGap}>
           <Button fullWidth onClick={onOpenUsers}>
             {t('parent.home.usersTitle')}
           </Button>
         </View>
 
-        <View style={{ marginBottom: 10 }}>
+        <View style={styles.actionGap}>
           <Button fullWidth onClick={onOpenAudioSettings}>
             {t('parent.home.audioTitle')}
           </Button>
@@ -103,3 +107,23 @@ export function ParentHomeScreen({
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { padding: 16, paddingBottom: 28 },
+
+  headerBlock: { marginTop: 14, alignItems: 'center' },
+  headerLine: { fontWeight: '800' },
+
+  langBlock: { marginTop: 14, alignItems: 'center' },
+  langTitle: { fontWeight: '700' },
+
+  langRow: { flexDirection: 'row', marginTop: 10 },
+  rowRtl: { flexDirection: 'row-reverse' },
+
+  langBtnWrap: { marginHorizontal: 6 },
+
+  actions: { marginTop: 16 },
+  actionGap: { marginBottom: 10 },
+
+  rtlText: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
+});

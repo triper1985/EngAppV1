@@ -77,10 +77,10 @@ export function LearnUnitsScreen({
       {packLockedByLayer && (
         <View style={{ marginTop: 10 }}>
           <Card>
-            <Text style={styles.lockTitle}>
+            <Text style={[styles.lockTitle, isRtl && styles.rtl]}>
               🔒 {t('learn.units.locked.layerTitle')}
             </Text>
-            <Text style={styles.lockDesc}>
+            <Text style={[styles.lockDesc, isRtl && styles.metaRtl]}>
               {t('learn.units.locked.layerDesc', {
                 layer: String(packRequiredLayer),
               })}
@@ -90,7 +90,7 @@ export function LearnUnitsScreen({
       )}
 
       {!!toast && (
-        <Text style={styles.toast}>{toast}</Text>
+        <Text style={[styles.toast, isRtl && styles.metaRtl]}>{toast}</Text>
       )}
 
       <View style={styles.stack}>
@@ -110,11 +110,11 @@ export function LearnUnitsScreen({
             <Card key={u.id} style={{ opacity: lockedByLayer ? 0.75 : 1 }}>
               <View style={styles.unitRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.unitTitle}>
+                  <Text style={[styles.unitTitle, isRtl && styles.rtl]}>
                     {u.titleKey ? t(u.titleKey) : u.title}
                   </Text>
 
-                  <Text style={styles.unitStatus}>
+                  <Text style={[styles.unitStatus, isRtl && styles.metaRtl]}>
                     {lockedByLayer
                       ? t('learn.units.status.lockedByLayer', {
                           layer: String(unitRequiredLayer),
@@ -169,8 +169,9 @@ export function LearnUnitsScreen({
         })}
       </View>
 
-      <Text style={styles.childLabel}>
-        {t('learn.common.childLabel')} <Text style={{ fontWeight: '900' }}>{child.name}</Text>
+      <Text style={[styles.childLabel, isRtl && styles.metaRtl]}>
+        {t('learn.common.childLabel')}{' '}
+        <Text style={{ fontWeight: '900' }}>{child.name}</Text>
       </Text>
     </ScrollView>
   );
@@ -204,5 +205,8 @@ const styles = StyleSheet.create({
   toast: { marginTop: 10, fontSize: 16, minHeight: 22 },
 
   childLabel: { marginTop: 12, fontSize: 12, opacity: 0.7 },
+
   rtl: { textAlign: 'right' as const },
+  metaRtl: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });
+ 

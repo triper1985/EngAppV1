@@ -187,8 +187,9 @@ export function ParentAudioSettingsScreen({ onBack }: Props) {
       }
 
       for (const [id, v] of uniq.entries()) {
-        const lang = v.lang ? String(v.lang) : '';
-        const langLabel = lang ? ` (${lang})` : '';
+        const lang = v.lang ? String(v.lang) : "";
+        if (lang && !lang.toLowerCase().startsWith("en")) continue;
+        const langLabel = lang ? ` (${lang})` : "";
         opts.push({ id, label: `${v.name}${langLabel}`, lang });
       }
 
@@ -212,8 +213,9 @@ export function ParentAudioSettingsScreen({ onBack }: Props) {
 
     for (const [id, v] of uniqNative.entries()) {
       const name = v?.name ?? v?.identifier ?? id;
-      const lang = v?.language ? String(v.language) : '';
-      const langLabel = lang ? ` (${lang})` : '';
+      const lang = v?.language ? String(v.language) : "";
+      if (lang && !lang.toLowerCase().startsWith("en")) continue;
+      const langLabel = lang ? ` (${lang})` : "";
       opts.push({ id, label: `${String(name)}${langLabel}`, lang });
     }
 
@@ -234,7 +236,7 @@ export function ParentAudioSettingsScreen({ onBack }: Props) {
 
   function previewVoice(voiceId: string | null) {
     stopAllSpeech();
-    const text = t('parent.audio.sampleText');
+    const text = "Hello! Let's learn English.";
     const rate = settings.ttsSpeed === 'slow' ? 0.8 : 1.0;
 
     // Native: expo-speech preview (voice selection works)
@@ -244,6 +246,7 @@ export function ParentAudioSettingsScreen({ onBack }: Props) {
           rate,
           pitch: 1.0,
           voice: voiceId ?? undefined,
+          language: "en-US",
         });
         return;
       } catch {

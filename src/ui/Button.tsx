@@ -53,7 +53,10 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={typeof title === 'string' ? title : undefined}
       onPress={disabled ? undefined : onClick}
-      style={({ pressed }) => [btnStyles, pressed && !disabled ? styles.pressed : null]}
+      style={({ pressed }) => [
+        btnStyles,
+        pressed && !disabled ? styles.pressed : null,
+      ]}
     >
       <View style={styles.content}>
         <Text style={textStyles} numberOfLines={1}>
@@ -78,6 +81,7 @@ const styles = StyleSheet.create({
 
   fullWidth: { alignSelf: 'stretch' },
 
+  // keep centered: works well for both LTR/RTL
   content: { alignItems: 'center', justifyContent: 'center' },
 
   textBase: { fontSize: 14, fontWeight: '800' as const },

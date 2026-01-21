@@ -17,18 +17,24 @@ type Props = {
 
 /**
  * Renders the "no-reading" visual for a content item.
- * This intentionally avoids showing the English word on screen for beginner.
+ * ✅ Fix (V1LearnTest): Keep layout stable across visuals.
+ * Always return a fixed-size container; never let emoji/text change the card height.
  */
 export function ItemVisual({ item, size = 68, style }: Props) {
   const v = item.visual;
 
-  if (v.kind === 'color') {
-    const dim = size + 22;
+  // One stable box size for all kinds.
+  const dim = size + 22;
 
+  // Keep inner text visually centered and not affecting outer layout.
+  const textSize = Math.round(size * 0.95);
+
+  if (v.kind === 'color') {
     return (
       <View
         accessibilityLabel={item.en}
         style={[
+          styles.boxBase,
           styles.colorBox,
           {
             width: dim,
@@ -43,14 +49,12 @@ export function ItemVisual({ item, size = 68, style }: Props) {
   }
 
   if (v.kind === 'image') {
-    const dim = size + 22;
-    const fontSize = Math.round(size * 0.55);
-
     // Until we have real assets, show a neutral placeholder.
     return (
       <View
         accessibilityLabel={item.en}
         style={[
+          styles.boxBase,
           styles.imageBox,
           {
             width: dim,
@@ -60,43 +64,58 @@ export function ItemVisual({ item, size = 68, style }: Props) {
           style as StyleProp<ViewStyle>,
         ]}
       >
-        <Text style={[{ fontSize }, styles.imagePlaceholder]}>🖼️</Text>
+        <Text
+          style={[
+            styles.centerText,
+            { fontSize: Math.round(size * 0.55), lineHeight: Math.round(size * 0.6) },
+          ]}
+        >
+          🖼️
+        </Text>
       </View>
     );
   }
 
   // v.kind === 'text'
   return (
-    <Text
+    <View
       accessibilityLabel={item.en}
       style={[
-        styles.text,
-        { fontSize: size, lineHeight: Math.round(size * 1.05) },
-        style as StyleProp<TextStyle>,
+        styles.boxBase,
+        {
+          width: dim,
+          height: dim,
+          borderRadius: 18,
+        },
+        style as StyleProp<ViewStyle>,
       ]}
     >
-      {v.he}
-    </Text>
+      <Text
+        style={[
+          styles.centerText,
+          styles.textBold,
+          {
+            fontSize: textSize,
+            // Keep a stable and conservative lineHeight to avoid jumping across emoji glyphs.
+            lineHeight: Math.round(textSize * 1.05),
+          },
+        ]}
+        // Prevent multi-line growth
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+      >
+        {v.he}
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  colorBox: {
-    borderWidth: 3,
-    borderColor: '#111',
-    // shadow (best-effort)
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
-  },
-  imageBox: {
-    borderWidth: 2,
-    borderColor: '#111',
-    backgroundColor: '#fff',
+  boxBase: {
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     // shadow (best-effort)
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -104,6 +123,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
-  imagePlaceholder: { fontWeight: '900' },
-  text: { fontWeight: '900' },
+
+  colorBox: {
+    borderWidth: 3,
+    borderColor: '#111',
+  },
+
+  imageBox: {
+    borderWidth: 2,
+    borderColor: '#111',
+    backgroundColor: '#fff',
+  },
+
+  centerText: {
+    textAlign: 'center',
+    textAlignVertical: 'center' as any,
+  },
+
+  textBold: { fontWeight: '900' },
 });

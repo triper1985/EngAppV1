@@ -1,5 +1,6 @@
+// src/screens/parent/ParentProgressGroupsScreen.tsx
 import { useMemo } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import type { ChildProfile } from '../../types';
 
 import {
@@ -22,14 +23,13 @@ type Props = {
 export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
+  const textAlign = isRtl ? 'right' : 'left';
 
-  // ✅ runtime guard (extra safety)
+  // runtime guard (extra safety)
   if (!child) {
     return (
       <View style={{ marginTop: 14 }}>
-        <Text style={{ opacity: 0.75 }}>
-          {t('parent.progress.noChildSelected')}
-        </Text>
+        <Text style={[styles.dim, { textAlign }]}>{t('parent.progress.noChildSelected')}</Text>
       </View>
     );
   }
@@ -72,23 +72,12 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
         return (
           <View key={g.id} style={{ marginBottom: 10 }}>
             <Card>
-              <View
-                style={{
-                  flexDirection: isRtl ? 'row-reverse' : 'row',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 28, width: 40, textAlign: 'center' }}>
-                  {g.emoji}
-                </Text>
+              <View style={[styles.row, isRtl && styles.rowRtl]}>
+                <Text style={styles.emoji}>{g.emoji}</Text>
 
-                <View style={{ flex: 1, minWidth: 0 }}>
+                <View style={styles.main}>
                   <Text
-                    style={{
-                      fontWeight: '900',
-                      fontSize: 16,
-                      textAlign: isRtl ? 'right' : 'left',
-                    }}
+                    style={[styles.title, { textAlign }]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
@@ -97,12 +86,7 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
 
                   {desc ? (
                     <Text
-                      style={{
-                        fontSize: 12,
-                        opacity: 0.7,
-                        marginTop: 2,
-                        textAlign: isRtl ? 'right' : 'left',
-                      }}
+                      style={[styles.desc, { textAlign }]}
                       numberOfLines={2}
                       ellipsizeMode="tail"
                     >
@@ -111,18 +95,15 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
                   ) : null}
                 </View>
 
-                <Text
-                  style={
-                    isRtl
-                      ? { fontSize: 13, opacity: 0.85, marginEnd: 10, textAlign: 'left' }
-                      : { fontSize: 13, opacity: 0.85, marginStart: 10, textAlign: 'right' }
-                  }
-                >
-                  {t('parent.progress.completed', {
-                    done: String(completed),
-                    total: String(total),
-                  })}
-                </Text>
+                {/* Completed label: keep it as a fixed-ish column, align to edge */}
+                <View style={[styles.trailing, isRtl ? styles.trailingRtl : styles.trailingLtr]}>
+                  <Text style={[styles.completed, { textAlign: isRtl ? 'right' : 'left' }]}>
+                    {t('parent.progress.completed', {
+                      done: String(completed),
+                      total: String(total),
+                    })}
+                  </Text>
+                </View>
               </View>
 
               <View style={{ marginTop: 10 }}>
@@ -137,3 +118,42 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  dim: { opacity: 0.75 },
+
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowRtl: {
+    flexDirection: 'row-reverse',
+  },
+
+  emoji: {
+    fontSize: 28,
+    width: 40,
+    textAlign: 'center',
+  },
+
+  main: { flex: 1, minWidth: 0 },
+
+  title: { fontWeight: '900', fontSize: 16 },
+  desc: { fontSize: 12, opacity: 0.7, marginTop: 2 },
+
+  // keep trailing as its own column so margins don't flip weirdly in RTL
+  trailing: {
+    minWidth: 96,
+    justifyContent: 'center',
+  },
+  trailingLtr: {
+    alignItems: 'flex-end',
+    paddingLeft: 10,
+  },
+  trailingRtl: {
+    alignItems: 'flex-start',
+    paddingRight: 10,
+  },
+
+  completed: { fontSize: 13, opacity: 0.85 },
+});

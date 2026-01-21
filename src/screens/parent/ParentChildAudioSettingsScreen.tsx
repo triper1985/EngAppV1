@@ -230,8 +230,9 @@ export function ParentChildAudioSettingsScreen({
       }
 
       for (const [id, v] of uniq.entries()) {
-        const lang = v.lang ? String(v.lang) : '';
-        const langLabel = lang ? ` (${lang})` : '';
+        const lang = v.lang ? String(v.lang) : "";
+        if (lang && !lang.toLowerCase().startsWith("en")) continue;
+        const langLabel = lang ? ` (${lang})` : "";
         opts.push({ id, label: `${v.name}${langLabel}`, lang });
       }
 
@@ -253,12 +254,15 @@ export function ParentChildAudioSettingsScreen({
       if (!uniqNative.has(String(id))) uniqNative.set(String(id), v);
     }
 
-    for (const [id, v] of uniqNative.entries()) {
-      const name = v?.name ?? v?.identifier ?? id;
-      const lang = v?.language ? String(v.language) : '';
-      const langLabel = lang ? ` (${lang})` : '';
-      opts.push({ id, label: `${String(name)}${langLabel}`, lang });
-    }
+for (const [id, v] of uniqNative.entries()) {
+  const name = v?.name ?? v?.identifier ?? v?.id ?? id;
+  const lang = v?.language ? String(v.language) : '';
+  if (lang && !lang.toLowerCase().startsWith('en')) continue;
+
+  const langLabel = lang ? ` (${lang})` : '';
+  opts.push({ id, label: `${String(name)}${langLabel}`, lang });
+}
+
 
     return opts
       .slice(0, 1)
@@ -281,7 +285,7 @@ export function ParentChildAudioSettingsScreen({
 
   function previewVoice(voiceId: string | null) {
     stopAllSpeech();
-    const text = t('parent.audio.sampleText');
+    const text = "Hello! Let's learn English.";
     const rate = effective.ttsSpeed === 'slow' ? 0.8 : 1.0;
 
     // Native: use expo-speech for preview so voice selection works
@@ -291,6 +295,7 @@ export function ParentChildAudioSettingsScreen({
           rate,
           pitch: 1.0,
           voice: voiceId ?? undefined,
+          language: "en-US",
         });
         return;
       } catch {

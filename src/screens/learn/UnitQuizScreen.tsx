@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
-import { shuffle, sampleDistinct } from './learnUtils';
 import type { ContentItem } from '../../content/types';
 
 import {
@@ -23,8 +22,8 @@ import {
 
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
-// ✅ V11.1: audio layer (replaces tts)
-import { playFx, speakContentItem, stopTTS } from '../../audio';
+// ✅ audio layer
+import { playFx, speakContentItem, stopTTS, getEffectiveAudioSettings } from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
 import { coinsBonusForQuizPass } from '../../rewards/coins';
@@ -38,71 +37,7 @@ import { useI18n } from '../../i18n/I18nContext';
 import { ItemVisual } from './ItemVisual';
 import { Confetti } from '../../components/Confetti';
 
-// ---------------------------
-// Better distractors for numbers
-// ---------------------------
-function parseNumericVisual(it: ContentItem): number | null {
-  const v = it.visual;
-  if (v.kind !== 'text') return null;
-
-  const raw = (v.he ?? '').trim();
-  if (!raw) return null;
-
-  const n = Number(raw.replace(/[^\d.-]/g, ''));
-  if (!Number.isFinite(n)) return null;
-
-  return n;
-}
-
-function getPreferredDistractors(
-  correctId: string,
-  ids: string[],
-  byId: Map<string, ContentItem>,
-  needCount: number
-): string[] {
-  if (needCount <= 0) return [];
-
-  const correctItem = byId.get(correctId);
-  if (!correctItem) return shuffle(ids.filter((x) => x !== correctId)).slice(0, needCount);
-
-  const correctN = parseNumericVisual(correctItem);
-  if (correctN === null) {
-    return shuffle(ids.filter((x) => x !== correctId)).slice(0, needCount);
-  }
-
-  const candidates = ids
-    .filter((x) => x !== correctId)
-    .map((id) => {
-      const it = byId.get(id);
-      const n = it ? parseNumericVisual(it) : null;
-      const dist = n === null ? -1 : Math.abs(n - correctN);
-      return { id, dist };
-    });
-
-  const numeric = candidates.filter((c) => c.dist >= 0);
-  const nonNumeric = candidates.filter((c) => c.dist < 0);
-
-  const sorted = numeric
-    .sort((a, b) => {
-      if (b.dist !== a.dist) return b.dist - a.dist;
-      return Math.random() - 0.5;
-    })
-    .map((c) => c.id);
-
-  const out: string[] = [];
-  for (const id of sorted) {
-    out.push(id);
-    if (out.length >= needCount) return out;
-  }
-
-  const fallback = shuffle(nonNumeric.map((c) => c.id));
-  for (const id of fallback) {
-    out.push(id);
-    if (out.length >= needCount) break;
-  }
-
-  return out.slice(0, needCount);
-}
+import { shuffle, sampleDistinct } from './learnUtils';
 
 type Props = {
   child: ChildProfile;
@@ -118,8 +53,9 @@ type Question = {
   optionIds: string[];
 };
 
-function getSpeakTextForItem(it: ContentItem, isRtl: boolean): string {
-  const txt = isRtl ? it.he ?? it.en : it.en ?? it.he;
+function getSpeakTextForItem(it: ContentItem): string {
+  // V1LearnTest decision: TTS is always English.
+  const txt = it.en ?? it.he;
   return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
 }
 
@@ -135,6 +71,9 @@ export function UnitQuizScreen({
   const isRtl = dir === 'rtl';
   const { toast, showToast, clearToast } = useToast(1800);
 
+  // ✅ Effective audio settings for THIS child (global + child override)
+  const effectiveAudio = useMemo(() => getEffectiveAudioSettings(child), [child]);
+
   const [confettiKey, setConfettiKey] = useState(0);
 
   const unit: UnitDef | undefined = useMemo(
@@ -145,7 +84,6 @@ export function UnitQuizScreen({
   const unitTitle = useMemo(() => {
     if (!unit) return '';
     return unit.titleKey ? t(unit.titleKey) : unit.title;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit, t]);
 
   const catalog = useMemo(() => {
@@ -169,13 +107,10 @@ export function UnitQuizScreen({
 
     return correctIds.map((correctId) => {
       const optionCount = Math.min(4, Math.max(3, ids.length));
-      const needDistractors = optionCount - 1;
-
-      const distractors = getPreferredDistractors(correctId, ids, byId, needDistractors);
-
+      const distractors = shuffle(ids.filter((x) => x !== correctId)).slice(0, optionCount - 1);
       return { correctId, optionIds: shuffle([correctId, ...distractors]) };
     });
-  }, [unit, unitItems, byId]);
+  }, [unit, unitItems]);
 
   const [qIndex, setQIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -185,7 +120,7 @@ export function UnitQuizScreen({
   const wrongIdsRef = useRef<Set<string>>(new Set());
   const lastAutoSpeakKey = useRef<string>('');
 
-  // ✅ V11.3: debounce for manual "Hear" button
+  // ✅ debounce for manual "Hear" button
   const lastSpeakAtRef = useRef<number>(0);
 
   const [finished, setFinished] = useState<null | { score: number; passed: boolean }>(null);
@@ -228,14 +163,12 @@ export function UnitQuizScreen({
       if (lockedToday) return;
       if (finished) return;
 
-      // ✅ IMPORTANT:
-      // Your audio layer expects SpeakItemLike { text } and NO { child } in context.
-      const text = getSpeakTextForItem(correctItem, isRtl);
-      speakContentItem({ text });
+      const text = getSpeakTextForItem(correctItem);
+      speakContentItem({ text }, { settings: effectiveAudio });
     }, 120);
 
     return () => clearTimeout(tt);
-  }, [unitId, qIndex, q, correctItem, lockedToday, finished, isRtl]);
+  }, [unitId, qIndex, q, correctItem, lockedToday, finished, effectiveAudio]);
 
   function persistChild(updated: ChildProfile) {
     ChildrenStore.upsert(updated);
@@ -280,6 +213,8 @@ export function UnitQuizScreen({
     setPersisted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finished]);
+
+  /* -------------------------------- render -------------------------------- */
 
   if (!unit) {
     return (
@@ -341,7 +276,9 @@ export function UnitQuizScreen({
         <View style={{ marginTop: 14 }}>
           <Card>
             <Text style={styles.h1}>{t('learn.quiz.notEnoughItemsTitle')}</Text>
-            <Text style={styles.muted}>{t('learn.quiz.notEnoughItemsSubtitle')}</Text>
+            <Text style={[styles.muted, isRtl && styles.rtl]}>
+              {t('learn.quiz.notEnoughItemsSubtitle')}
+            </Text>
           </Card>
         </View>
       </ScrollView>
@@ -412,8 +349,10 @@ export function UnitQuizScreen({
     );
   }
 
-  const progressPct = Math.round(((qIndex + 1) / questions.length) * 100);
+  // ✅ Option A: define correctId ONCE, before map
   const correctId = q!.correctId;
+
+  const progressPct = Math.round(((qIndex + 1) / questions.length) * 100);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -422,7 +361,11 @@ export function UnitQuizScreen({
         dir={dir}
         title={topTitle}
         onBack={onBack}
-        right={<Text style={styles.progressText}>{qIndex + 1}/{questions.length}</Text>}
+        right={
+          <Text style={styles.progressText}>
+            {qIndex + 1}/{questions.length}
+          </Text>
+        }
       />
 
       <View style={{ marginTop: 14 }}>
@@ -453,8 +396,8 @@ export function UnitQuizScreen({
                   playFx('tap');
                   stopTTS();
 
-                  const text = getSpeakTextForItem(correctItem, isRtl);
-                  speakContentItem({ text });
+                  const text = getSpeakTextForItem(correctItem);
+                  speakContentItem({ text }, { settings: effectiveAudio });
                 }}
                 disabled={!correctItem}
                 style={styles.bigBtn}
@@ -464,6 +407,7 @@ export function UnitQuizScreen({
             </View>
           </View>
 
+          {/* ✅ GRID 2×2 – STABLE (no gap) */}
           <View style={styles.optionsGrid}>
             {q!.optionIds.map((id) => {
               const it = byId.get(id);
@@ -480,38 +424,39 @@ export function UnitQuizScreen({
               ];
 
               return (
-                <Pressable
-                  key={id}
-                  disabled={locked}
-                  style={tileStyle}
-                  onPress={() => {
-                    if (locked) return;
+                <View key={id} style={styles.optionCell}>
+                  <Pressable
+                    disabled={locked}
+                    style={tileStyle}
+                    onPress={() => {
+                      if (locked) return;
 
-                    setSelected(id);
-                    setLocked(true);
+                      setSelected(id);
+                      setLocked(true);
 
-                    if (isCorrect) setCorrectCount((c) => c + 1);
-                    else wrongIdsRef.current.add(correctId);
+                      if (isCorrect) setCorrectCount((c) => c + 1);
+                      else wrongIdsRef.current.add(correctId);
 
-                    setTimeout(() => {
-                      setSelected(null);
-                      setLocked(false);
+                      setTimeout(() => {
+                        setSelected(null);
+                        setLocked(false);
 
-                      const nextIndex = qIndex + 1;
+                        const nextIndex = qIndex + 1;
 
-                      if (nextIndex >= questions.length) {
-                        const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
-                        const score = Math.round((finalCorrect / questions.length) * 100);
-                        const passed = score >= QUIZ_PASS_SCORE;
-                        setFinished({ score, passed });
-                      } else {
-                        setQIndex(nextIndex);
-                      }
-                    }, 700);
-                  }}
-                >
-                  <ItemVisual item={it as ContentItem} size={86} />
-                </Pressable>
+                        if (nextIndex >= questions.length) {
+                          const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
+                          const score = Math.round((finalCorrect / questions.length) * 100);
+                          const passed = score >= QUIZ_PASS_SCORE;
+                          setFinished({ score, passed });
+                        } else {
+                          setQIndex(nextIndex);
+                        }
+                      }, 700);
+                    }}
+                  >
+                    <ItemVisual item={it as ContentItem} size={86} />
+                  </Pressable>
+                </View>
               );
             })}
           </View>
@@ -538,6 +483,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
+
+  rtl: { textAlign: 'right' as const },
 
   h1: { fontWeight: '900', fontSize: 18 },
   muted: { marginTop: 8, opacity: 0.8, lineHeight: 20 },
@@ -569,22 +516,23 @@ const styles = StyleSheet.create({
   promptTitle: { fontWeight: '900', fontSize: 22, textAlign: 'center' },
   bigBtn: { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14 },
 
+  // ✅ Stable 2×2 grid without gap (Android safe)
   optionsGrid: {
     marginTop: 18,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 14,
-    justifyContent: 'space-between',
+  },
+  optionCell: {
+    width: '50%',
+    padding: 7,
   },
   optionTile: {
-    width: '48%',
-    minHeight: 140,
+    width: '100%',
+    aspectRatio: 1,
     borderRadius: 18,
     borderWidth: 2,
     borderColor: '#e6e6e6',
     backgroundColor: '#fff',
-    paddingVertical: 18,
-    paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

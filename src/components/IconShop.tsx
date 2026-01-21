@@ -1,6 +1,6 @@
 // src/components/IconShop.tsx
 import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions, Pressable } from 'react-native';
 
 import { ICONS, iconToDisplay } from '../data/icons';
 import { getIconPrice, isIconFree } from '../data/iconShop';
@@ -30,15 +30,17 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
     price: number;
   } | null>(null);
 
-  const unlocked = useMemo(() => new Set<string>(unlockedIconIds ?? []), [unlockedIconIds]);
+  const unlocked = useMemo(
+    () => new Set<string>(unlockedIconIds ?? []),
+    [unlockedIconIds]
+  );
 
   const lockedIcons = useMemo(() => ICONS.filter((ic) => !unlocked.has(ic.id)), [unlocked]);
 
   const canBuyCount = useMemo(() => {
     return lockedIcons.filter((ic) => {
-      const free = isIconFree(ic.id);
-      if (free) return true;
-      return coins >= getIconPrice(ic.id);
+      const price = getIconPrice(ic.id);
+      return isIconFree(ic.id) || coins >= price;
     }).length;
   }, [lockedIcons, coins]);
 
@@ -76,6 +78,10 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
 
   const { width } = useWindowDimensions();
   const numColumns = width >= 720 ? 3 : 2;
+
+  // We intentionally avoid FlatList here because IconShop is often rendered inside a ScrollView
+  // in the screen, and nested VirtualizedList causes RN warnings & broken behavior.
+  const cellWidthPct = `${100 / numColumns}%`;
 
   return (
     <Card style={styles.card}>
@@ -122,40 +128,42 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
         ) : filteredLockedIcons.length === 0 ? (
           <Text style={styles.info}>Nothing matches this filter.</Text>
         ) : (
-          <FlatList
-            data={filteredLockedIcons}
-            key={numColumns}
-            numColumns={numColumns}
-            keyExtractor={(ic) => ic.id}
-            columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
-            contentContainerStyle={styles.grid}
-            renderItem={({ item: ic }) => {
+          <View style={styles.gridWrap}>
+            {filteredLockedIcons.map((ic) => {
               const price = getIconPrice(ic.id);
               const free = isIconFree(ic.id);
               const canBuy = free || coins >= price;
               const need = Math.max(0, price - coins);
 
               return (
-                <View style={styles.itemCard}>
-                  <View style={styles.itemTop}>
-                    <Text style={styles.itemEmoji}>{iconToDisplay(ic.id)}</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.itemLabel}>{ic.label}</Text>
-                      <Text style={styles.itemMeta}>
-                        Price: <Text style={styles.bold}>{priceLabel(price)}</Text>
-                      </Text>
+                <View key={ic.id} style={[styles.cell, { width: cellWidthPct }]}>
+                  <View style={styles.itemCard}>
+                    <View style={styles.itemTop}>
+                      <Text style={styles.itemEmoji}>{iconToDisplay(ic.id)}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.itemLabel}>{ic.label}</Text>
+                        <Text style={styles.itemMeta}>
+                          Price: <Text style={styles.bold}>{priceLabel(price)}</Text>
+                        </Text>
+                      </View>
                     </View>
+
+                    <Button
+                      fullWidth
+                      disabled={!canBuy}
+                      onClick={() => requestBuy(ic.id, ic.label)}
+                    >
+                      {free ? 'Get for free' : canBuy ? 'Buy' : `Need ${need} more`}
+                    </Button>
+
+                    {!free && !canBuy ? (
+                      <Text style={styles.notEnough}>Not enough coins.</Text>
+                    ) : null}
                   </View>
-
-                  <Button fullWidth disabled={!canBuy} onClick={() => requestBuy(ic.id, ic.label)}>
-                    {free ? 'Get for free' : canBuy ? 'Buy' : `Need ${need} more`}
-                  </Button>
-
-                  {!free && !canBuy ? <Text style={styles.notEnough}>Not enough coins.</Text> : null}
                 </View>
               );
-            }}
-          />
+            })}
+          </View>
         )}
       </View>
 
@@ -193,6 +201,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
 
 const styles = StyleSheet.create({
   card: { padding: 16 },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -202,6 +211,7 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: '900', fontSize: 18 },
   subtitle: { fontSize: 12, opacity: 0.7, marginTop: 2 },
+
   coinsPill: {
     paddingVertical: 8,
     paddingHorizontal: 10,
@@ -213,19 +223,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coinsText: { fontWeight: '900' },
+
   filters: { marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterSelected: { borderColor: '#111', borderWidth: 2 },
+
   info: { paddingVertical: 10, fontSize: 14, opacity: 0.7 },
-  grid: { paddingBottom: 4 },
-  gridRow: { gap: 12 },
+
+  // Grid (no FlatList)
+  gridWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -6,
+  },
+  cell: {
+    paddingHorizontal: 6,
+    paddingBottom: 12,
+  },
+
   itemCard: {
-    flex: 1,
     borderWidth: 1,
     borderColor: '#eee',
     borderRadius: 14,
     padding: 14,
     backgroundColor: '#fff',
-    marginBottom: 12,
   },
   itemTop: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 10 },
   itemEmoji: { fontSize: 42 },
@@ -233,6 +253,7 @@ const styles = StyleSheet.create({
   itemMeta: { fontSize: 13, opacity: 0.75, marginTop: 2 },
   bold: { fontWeight: '900' },
   notEnough: { fontSize: 12, opacity: 0.65, marginTop: 8 },
+
   confirmRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   confirmEmoji: { fontSize: 46 },
   confirmTitle: { fontWeight: '900' },

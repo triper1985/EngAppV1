@@ -579,5 +579,9 @@ export const DICT_EN: Record<string, string> = {
   'parent.pin.error.currentWrongToClear': 'Enter the correct current PIN to clear',
   'parent.pin.error.newTooShort': 'New PIN must be at least 4 digits',
   'parent.pin.error.confirmMismatch': 'PIN confirmation does not match',
+  'learn.common.ok': 'OK',
+  'learn.common.cancel': 'Cancel',
+  'learn.common.confirm': 'Confirm',
+  'learn.learn.confirmExitTitle': 'Exit learning?',
 
 };

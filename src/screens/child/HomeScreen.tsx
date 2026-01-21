@@ -1,29 +1,54 @@
 // src/screens/child/HomeScreen.tsx
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import type { ChildProfile } from '../../types';
 import { iconToDisplay } from '../../data/icons';
 import { ChildrenStore } from '../../storage/childrenStore';
 
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../ui/Button';
-import { Card } from '../../ui/Card';
 
 type Props = {
   users: ChildProfile[];
-  onUsersChanged: (users: ChildProfile[]) => void;
+
+  /**
+   * בעבר היה חובה, אבל בפועל בהרצה ראינו שזה לא תמיד נשלח → גרם לקריסה.
+   * נשאר כ־optional כדי לאפשר למסך לעבוד גם בלי ניהול state מלמעלה.
+   */
+  onUsersChanged?: (users: ChildProfile[]) => void;
+
   onSelectChild: (child: ChildProfile) => void;
   onEnterParent: () => void;
 };
 
 export function HomeScreen({ users, onUsersChanged, onSelectChild, onEnterParent }: Props) {
+  // ✅ local state so Refresh works even if parent didn't pass onUsersChanged
+  const [localUsers, setLocalUsers] = useState<ChildProfile[]>(users ?? []);
+
+  useEffect(() => {
+    setLocalUsers(users ?? []);
+  }, [users]);
+
+  const hasUsers = (localUsers?.length ?? 0) > 0;
+
   function refresh() {
-    onUsersChanged(ChildrenStore.list());
+    const next = ChildrenStore.list();
+    setLocalUsers(next);
+    onUsersChanged?.(next);
   }
+
+  const sortedUsers = useMemo(() => {
+    const arr = [...(localUsers ?? [])];
+    arr.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+    return arr;
+  }, [localUsers]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.topRow}>
-        <Text style={styles.h1}>English App</Text>
-        <Button variant="primary" onClick={onEnterParent}>
+      <View style={styles.header}>
+        <Text style={styles.title}>English App</Text>
+
+        <Button variant="primary" onClick={onEnterParent} style={styles.parentBtn}>
           Parent 🔒
         </Button>
       </View>
@@ -31,38 +56,41 @@ export function HomeScreen({ users, onUsersChanged, onSelectChild, onEnterParent
       <View style={{ marginTop: 16 }}>
         <Text style={styles.h2}>Choose a child</Text>
 
-        {users.length === 0 ? (
-          <Card style={styles.emptyCard}>
+        {!hasUsers ? (
+          <View style={styles.emptyBox}>
             <Text style={styles.emptyText}>No children yet. Add one in Parent mode.</Text>
-          </Card>
+          </View>
         ) : (
           <View style={styles.list}>
-            {users.map((u) => (
-              <Button
+            {sortedUsers.map((u) => (
+              <Pressable
                 key={u.id}
-                onClick={() => onSelectChild(u)}
-                style={styles.childRowBtn}
+                onPress={() => onSelectChild(u)}
+                style={({ pressed }) => [styles.childRow, pressed ? styles.pressed : null]}
+                accessibilityRole="button"
               >
-                <View style={styles.childRow}>
-                  <View style={styles.childLeft}>
-                    <Text style={styles.icon}>{iconToDisplay(u.iconId)}</Text>
-                    <Text style={styles.childName}>{u.name}</Text>
-                  </View>
-                  <Text style={styles.enterHint}>Enter →</Text>
+                <View style={styles.left}>
+                  <Text style={styles.icon}>{iconToDisplay(u.iconId)}</Text>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {u.name}
+                  </Text>
                 </View>
-              </Button>
+
+                <Text style={styles.enter}>Enter →</Text>
+              </Pressable>
             ))}
           </View>
         )}
       </View>
 
-      {/* Dev helper – אפשר להשאיר או למחוק */}
+      {/* Dev helper – keep for now */}
       <View style={{ marginTop: 14 }}>
         <Button
           onClick={() => {
             ChildrenStore.ensureDefaultsIfEmpty();
             refresh();
           }}
+          style={styles.refreshBtn}
         >
           Refresh
         </Button>
@@ -73,37 +101,54 @@ export function HomeScreen({ users, onUsersChanged, onSelectChild, onEnterParent
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    paddingBottom: 26,
+    padding: 20,
+    paddingBottom: 28,
     maxWidth: 820,
     alignSelf: 'center',
     width: '100%',
   },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  h1: { fontSize: 22, fontWeight: '900' },
-  h2: { fontSize: 16, fontWeight: '900', marginBottom: 10 },
 
-  emptyCard: { padding: 12 },
-  emptyText: { fontSize: 14, opacity: 0.75 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
 
-  list: { gap: 10 },
-  childRowBtn: {
-    // Button already styles; we just make it look like a "card row"
-    paddingVertical: 0,
-    paddingHorizontal: 0,
+  title: { fontSize: 26, fontWeight: '900' },
+  parentBtn: { borderRadius: 999 },
+
+  h2: { fontSize: 18, fontWeight: '800', marginBottom: 10 },
+
+  emptyBox: {
+    padding: 12,
+    borderWidth: 1,
     borderColor: '#ddd',
+    borderRadius: 14,
     backgroundColor: '#fff',
   },
+  emptyText: { opacity: 0.8 },
+
+  list: { gap: 10 },
+
   childRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 14,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  childLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  icon: { fontSize: 28 },
-  childName: { fontSize: 18, fontWeight: '800' },
-  enterHint: { fontSize: 14, opacity: 0.7 },
+  pressed: { opacity: 0.85 },
+
+  left: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 },
+  icon: { fontSize: 26 },
+  name: { fontSize: 18, fontWeight: '900', flexShrink: 1 },
+
+  enter: { fontSize: 14, opacity: 0.7, marginLeft: 10 },
+
+  refreshBtn: { alignSelf: 'flex-start' },
 });

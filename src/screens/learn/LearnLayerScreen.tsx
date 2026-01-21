@@ -63,8 +63,10 @@ export function LearnLayerScreen({
       {!vm.hasAnyGroups ? (
         <Card style={{ marginTop: 14 }}>
           <View style={styles.cardStack}>
-            <Text style={styles.title}>{t('learn.groups.noUnitsYet')}</Text>
-            <Text style={styles.desc}>
+            <Text style={[styles.title, isRtl && styles.rtl]}>
+              {t('learn.groups.noUnitsYet')}
+            </Text>
+            <Text style={[styles.desc, isRtl && styles.rtl]}>
               {t('learn.layer.empty.noContent')}
             </Text>
 
@@ -101,7 +103,7 @@ export function LearnLayerScreen({
                     {title}
                   </Text>
 
-                  <Text style={styles.meta}>
+                  <Text style={[styles.meta, isRtl && styles.metaRtl]}>
                     {t('learn.groups.progressLabel')} {gvm.progressPct}% •{' '}
                     {gvm.completed}/{gvm.total}
                     {lockedSuffix}
@@ -158,4 +160,5 @@ const styles = StyleSheet.create({
   },
 
   rtl: { textAlign: 'right' as const },
+  metaRtl: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });

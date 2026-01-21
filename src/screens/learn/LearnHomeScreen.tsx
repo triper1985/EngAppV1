@@ -59,7 +59,7 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
                   {statusLabel} {header} — {t(layerTitleKey)}
                 </Text>
 
-                <Text style={styles.meta}>
+                <Text style={[styles.meta, isRtl && styles.metaRtl]}>
                   {t('learn.groups.progressLabel')} {layer.progressPct}%
                 </Text>
 
@@ -68,15 +68,15 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
                 </Text>
 
                 {layer.isCurrent && (
-                  <Text style={styles.currentNote}>
+                  <Text style={[styles.currentNote, isRtl && styles.metaRtl]}>
                     {t('learn.groups.currentLayer', {
                       layer: String(layerId),
                     })}
                   </Text>
                 )}
 
-                <View style={styles.actions}>
-                  <Text style={styles.lockedText}>
+                <View style={[styles.actions, isRtl && styles.rowRtl]}>
+                  <Text style={[styles.lockedText, isRtl && styles.metaRtl]}>
                     {layer.isLocked
                       ? t('learn.groups.locked.layer', {
                           layer: String(layerId),
@@ -132,5 +132,8 @@ const styles = StyleSheet.create({
 
   lockedText: { fontSize: 13, opacity: 0.85 },
 
+  rowRtl: { flexDirection: 'row-reverse' as const },
+
   rtl: { textAlign: 'right' as const },
+  metaRtl: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });

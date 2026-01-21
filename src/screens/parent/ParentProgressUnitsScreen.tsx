@@ -1,5 +1,6 @@
+// src/screens/parent/ParentProgressUnitsScreen.tsx
 import { useMemo, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import type { ChildProfile } from '../../types';
 
 import {
@@ -25,7 +26,7 @@ import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 
 type Props = {
-  child: ChildProfile; // ✅ required
+  child: ChildProfile; // required
   groupId: UnitGroupId;
   onBackToGroups: () => void;
   onToast?: (msg: string) => void;
@@ -41,15 +42,15 @@ export function ParentProgressUnitsScreen({
 }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
+  const textAlign = isRtl ? 'right' : 'left';
+
   const [busy, setBusy] = useState(false);
 
-  // ✅ Runtime guard (extra safety)
+  // runtime guard (extra safety)
   if (!child) {
     return (
       <View style={{ marginTop: 14 }}>
-        <Text style={{ opacity: 0.75 }}>
-          {t('parent.progress.noChildSelected')}
-        </Text>
+        <Text style={[styles.dim, { textAlign }]}>{t('parent.progress.noChildSelected')}</Text>
       </View>
     );
   }
@@ -133,32 +134,21 @@ export function ParentProgressUnitsScreen({
   return (
     <View style={{ marginTop: 14 }}>
       {/* Top actions row */}
-      <View
-        style={{
-          flexDirection: isRtl ? 'row-reverse' : 'row',
-          marginBottom: 10,
-          alignItems: 'center',
-        }}
-      >
-        <Button onClick={onBackToGroups} disabled={busy}>
-          {t('parent.progress.units.backToGroups')}
-        </Button>
+      <View style={[styles.topRow, isRtl && styles.rowRtl]}>
+        <View style={styles.btnWrap}>
+          <Button onClick={onBackToGroups} disabled={busy}>
+            {t('parent.progress.units.backToGroups')}
+          </Button>
+        </View>
 
-        <View style={isRtl ? { marginEnd: 10 } : { marginStart: 10 }}>
+        <View style={styles.btnWrap}>
           <Button variant="secondary" onClick={resetAll} disabled={busy}>
             {t('parent.progress.units.resetAll')}
           </Button>
         </View>
       </View>
 
-      <Text
-        style={{
-          fontSize: 13,
-          opacity: 0.75,
-          marginBottom: 10,
-          textAlign: isRtl ? 'right' : 'left',
-        }}
-      >
+      <Text style={[styles.policyLine, { textAlign }]}>
         {t('parent.progress.units.passInfo', { pass: String(QUIZ_PASS_SCORE) })}
       </Text>
 
@@ -177,59 +167,39 @@ export function ParentProgressUnitsScreen({
             <Card>
               <View>
                 <Text
-                  style={{
-                    fontWeight: '900',
-                    textAlign: isRtl ? 'right' : 'left',
-                  }}
+                  style={[styles.unitTitle, { textAlign }]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
                   {unitTitle(u)}
                 </Text>
 
-                <Text
-                  style={{
-                    fontSize: 13,
-                    opacity: 0.82,
-                    marginTop: 4,
-                    textAlign: isRtl ? 'right' : 'left',
-                  }}
-                >
+                <Text style={[styles.unitMeta, { textAlign }]}>
                   {statusLabel(c, u)}
                   {showActions ? (
                     <>
-                      {' '}
-                      •{' '}
-                      {t('parent.progress.units.attemptsToday', {
-                        n: String(attempts),
-                      })}
-                      {lockedToday
-                        ? ` • ${t('parent.progress.units.lockedToday')}`
-                        : ''}
+                      {' '}•{' '}
+                      {t('parent.progress.units.attemptsToday', { n: String(attempts) })}
+                      {lockedToday ? ` • ${t('parent.progress.units.lockedToday')}` : ''}
                     </>
                   ) : null}
                 </Text>
 
                 {/* Action row */}
-                <View
-                  style={{
-                    flexDirection: isRtl ? 'row-reverse' : 'row',
-                    marginTop: 10,
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                  }}
-                >
+                <View style={[styles.actionsRow, isRtl && styles.rowRtl]}>
                   {showActions ? (
                     <>
-                      <Button
-                        variant="secondary"
-                        onClick={() => unlockQuizToday(u)}
-                        disabled={busy}
-                      >
-                        {t('parent.progress.units.unlockQuizToday')}
-                      </Button>
+                      <View style={styles.btnWrap}>
+                        <Button
+                          variant="secondary"
+                          onClick={() => unlockQuizToday(u)}
+                          disabled={busy}
+                        >
+                          {t('parent.progress.units.unlockQuizToday')}
+                        </Button>
+                      </View>
 
-                      <View style={isRtl ? { marginEnd: 8 } : { marginStart: 8 }}>
+                      <View style={styles.btnWrap}>
                         <Button
                           variant="secondary"
                           onClick={() => resetAttemptsToday(u)}
@@ -240,14 +210,7 @@ export function ParentProgressUnitsScreen({
                       </View>
                     </>
                   ) : (
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        opacity: 0.6,
-                        marginTop: 6,
-                        textAlign: isRtl ? 'right' : 'left',
-                      }}
-                    >
+                    <Text style={[styles.noActions, { textAlign }]}>
                       {t('parent.progress.units.noActions')}
                     </Text>
                   )}
@@ -260,3 +223,49 @@ export function ParentProgressUnitsScreen({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  dim: { opacity: 0.75 },
+
+  rowRtl: { flexDirection: 'row-reverse' },
+
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 10,
+  },
+
+  // wrapper that creates consistent spacing even with row-reverse + wrap
+  btnWrap: {
+    marginHorizontal: 6,
+    marginBottom: 8,
+  },
+
+  policyLine: {
+    fontSize: 13,
+    opacity: 0.75,
+    marginBottom: 10,
+  },
+
+  unitTitle: { fontWeight: '900' },
+
+  unitMeta: {
+    fontSize: 13,
+    opacity: 0.82,
+    marginTop: 4,
+  },
+
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+
+  noActions: {
+    fontSize: 12,
+    opacity: 0.6,
+    marginTop: 6,
+  },
+});

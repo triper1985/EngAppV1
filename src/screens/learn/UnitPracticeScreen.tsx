@@ -13,8 +13,13 @@ import {
 
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
-// ✅ V11.1: audio layer (replaces tts)
-import { playFx, speakContentItem, stopTTS } from '../../audio';
+// ✅ audio layer
+import {
+  playFx,
+  speakContentItem,
+  stopTTS,
+  getEffectiveAudioSettings,
+} from '../../audio';
 
 import { getFailedIdsToday } from '../../tracks/beginnerProgress';
 
@@ -40,15 +45,18 @@ type Question = {
   optionIds: string[];
 };
 
-function getSpeakTextForItem(it: ContentItem, isRtl: boolean): string {
-  // Prefer the same direction logic used elsewhere
-  const txt = isRtl ? it.he ?? it.en : it.en ?? it.he;
+function getSpeakTextForItem(it: ContentItem, _isRtl: boolean): string {
+  // V1LearnTest decision: TTS is always English.
+  const txt = it.en ?? it.he;
   return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
 }
 
 export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
+
+  // ✅ Effective audio settings for THIS child (global + child override)
+  const effectiveAudio = useMemo(() => getEffectiveAudioSettings(child), [child]);
 
   const unit: UnitDef | undefined = useMemo(
     () => BEGINNER_UNITS.find((u) => u.id === unitId),
@@ -137,16 +145,12 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
 
     const tt = setTimeout(() => {
       stopTTS();
-
-      // ✅ IMPORTANT:
-      // Your audio layer expects SpeakItemLike { text }, not ContentItem,
-      // and SpeakContext does NOT include { child } in your project.
       const text = getSpeakTextForItem(correctItem, isRtl);
-      speakContentItem({ text });
+      speakContentItem({ text }, { settings: effectiveAudio });
     }, 120);
 
     return () => clearTimeout(tt);
-  }, [unitId, qIndex, correctItem, done, isRtl]);
+  }, [unitId, qIndex, correctItem, done, isRtl, effectiveAudio]);
 
   // -----------------------------------------
   // Render
@@ -273,7 +277,7 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                   stopTTS();
 
                   const text = getSpeakTextForItem(correctItem, isRtl);
-                  speakContentItem({ text });
+                  speakContentItem({ text }, { settings: effectiveAudio });
                 }}
                 disabled={!correctItem}
                 style={styles.bigBtn}

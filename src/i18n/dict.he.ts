@@ -558,5 +558,9 @@ export const DICT_HE: Record<string, string> = {
   'parent.pin.error.currentWrongToClear': 'כדי לאפס צריך להזין קוד נוכחי נכון',
   'parent.pin.error.newTooShort': 'הקוד החדש חייב להיות לפחות 4 ספרות',
   'parent.pin.error.confirmMismatch': 'האישור לא תואם לקוד החדש',
+  'learn.common.ok': 'אישור',
+  'learn.common.cancel': 'ביטול',
+  'learn.common.confirm': 'אישור',
+  'learn.learn.confirmExitTitle': 'רגע לפני שיוצאים…',
 
 };

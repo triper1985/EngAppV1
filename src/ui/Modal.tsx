@@ -8,21 +8,26 @@ type Props = {
   children: ReactNode;
   onClose: () => void;
   widthPx?: number;
+
+  /** Optional: align header for RTL screens */
+  dir?: 'ltr' | 'rtl';
 };
 
-export function Modal({ open, title, children, onClose, widthPx = 420 }: Props) {
+export function Modal({ open, title, children, onClose, widthPx = 420, dir }: Props) {
   if (!open) return null;
 
+  const isRtl = dir === 'rtl';
+
   return (
-    <RNModal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <RNModal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={[styles.card, { maxWidth: widthPx }]} onPress={(e) => e.stopPropagation()}>
-          {title ? <Text style={styles.title}>{title}</Text> : null}
+        <Pressable
+          style={[styles.card, { maxWidth: widthPx }]}
+          onPress={(e) => e.stopPropagation()}
+        >
+          {title ? (
+            <Text style={[styles.title, isRtl && styles.rtlTitle]}>{title}</Text>
+          ) : null}
           {children}
         </Pressable>
       </Pressable>
@@ -52,5 +57,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 8,
   },
-  title: { fontWeight: '900', fontSize: 18, marginBottom: 12 },
+  title: { fontWeight: '900', fontSize: 18, marginBottom: 12, textAlign: 'left' },
+  rtlTitle: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });

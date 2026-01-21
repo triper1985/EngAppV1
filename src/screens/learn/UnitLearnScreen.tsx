@@ -14,8 +14,13 @@ import {
 import { getBeginnerProgress } from '../../tracks/beginnerProgress';
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
-// ✅ V11.1: audio layer
-import { playFx, speakContentItem, stopTTS } from '../../audio';
+// ✅ audio layer
+import {
+  playFx,
+  speakContentItem,
+  stopTTS,
+  getEffectiveAudioSettings,
+} from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
 
@@ -36,9 +41,9 @@ type Props = {
   onStartQuiz?: (unitId: UnitId) => void; // ✅ V10 behavior (go to quiz)
 };
 
-function getItemSpeakText(it: ContentItem, isRtl: boolean): string {
-  // same rule you used for displayText
-  const txt = isRtl ? it.he ?? it.en : it.en ?? it.he;
+function getItemSpeakText(it: ContentItem, _isRtl: boolean): string {
+  // V1LearnTest decision: TTS is always English.
+  const txt = it.en ?? it.he;
   return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
 }
 
@@ -51,6 +56,9 @@ export function UnitLearnScreen({
 }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
+
+  // ✅ Effective audio settings for THIS child (global + child override)
+  const effectiveAudio = useMemo(() => getEffectiveAudioSettings(child), [child]);
 
   const catalog = useMemo(() => {
     const packs = ensureRequiredSelected(child.selectedPackIds ?? []);
@@ -116,17 +124,15 @@ export function UnitLearnScreen({
     const tt = setTimeout(() => {
       stopTTS();
 
-      // ✅ IMPORTANT:
-      // Your speakContentItem expects SpeakItemLike { text: string }
-      // NOT a ContentItem.
+      // speakContentItem expects SpeakItemLike { text: string }
       const text = getItemSpeakText(current, isRtl);
-      speakContentItem({ text });
+      speakContentItem({ text }, { settings: effectiveAudio });
 
       setHeardThisItem(true);
     }, 120);
 
     return () => clearTimeout(tt);
-  }, [index, unitItems, child, isRtl]);
+  }, [index, unitItems, isRtl, effectiveAudio]);
 
   function persistChild(updated: ChildProfile) {
     ChildrenStore.upsert(updated);
@@ -186,8 +192,16 @@ export function UnitLearnScreen({
           t('learn.learn.confirmExitTitle') || t('learn.common.confirm'),
           t('learn.learn.confirmExit'),
           [
-            { text: t('learn.common.cancel'), style: 'cancel', onPress: () => resolve(false) },
-            { text: t('learn.common.ok'), style: 'default', onPress: () => resolve(true) },
+            {
+              text: t('learn.common.cancel'),
+              style: 'cancel',
+              onPress: () => resolve(false),
+            },
+            {
+              text: t('learn.common.ok'),
+              style: 'default',
+              onPress: () => resolve(true),
+            },
           ]
         );
       });
@@ -382,7 +396,7 @@ export function UnitLearnScreen({
                   stopTTS();
 
                   const text = getItemSpeakText(current, isRtl);
-                  speakContentItem({ text });
+                  speakContentItem({ text }, { settings: effectiveAudio });
 
                   setHeardThisItem(true);
                   showToast(t('learn.learn.toastHeard'));
@@ -442,7 +456,12 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center' },
 
   doneTitle: { fontWeight: '900', fontSize: 30, textAlign: 'center' },
-  doneSubtitle: { marginTop: 8, fontSize: 16, opacity: 0.85, textAlign: 'center' },
+  doneSubtitle: {
+    marginTop: 8,
+    fontSize: 16,
+    opacity: 0.85,
+    textAlign: 'center',
+  },
   doneButtons: { marginTop: 16, gap: 10, alignSelf: 'stretch' },
 
   cardContent: { gap: 12 },

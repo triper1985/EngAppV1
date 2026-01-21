@@ -57,13 +57,13 @@ export function ChildHubScreen({
     onChildUpdated(latest);
   }
 
+  const arrow = isRtl ? '←' : '→';
+  const changeIconLabel = `${iconToDisplay(child.iconId)} ${t(
+    'childHub.changeIcon'
+  )} • ${iconPanelOpen ? t('childHub.hide') : t('childHub.show')} ${arrow}`;
+
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { alignItems: 'stretch' },
-      ]}
-    >
+    <ScrollView contentContainerStyle={[styles.container, { alignItems: 'stretch' }]}>
       <TopBar title={t('childHub.title')} onBack={onBack} dir={dir} />
 
       <View style={{ marginTop: 14 }}>
@@ -72,10 +72,10 @@ export function ChildHubScreen({
         </Text>
 
         <View style={styles.toastWrap}>
-          {!!toast && <Text style={styles.toastText}>{toast}</Text>}
+          {!!toast && <Text style={[styles.toastText, isRtl && styles.metaRtl]}>{toast}</Text>}
         </View>
 
-        <View style={styles.actionsRow}>
+        <View style={[styles.actionsRow, isRtl && styles.rowRtl]}>
           <Button variant="primary" onClick={onStartLearn}>
             {t('childHub.startLearning')}
           </Button>
@@ -105,20 +105,7 @@ export function ChildHubScreen({
             onClick={() => setIconPanelOpen((v) => !v)}
             style={styles.fullWidthBtn}
           >
-            <View style={[styles.changeIconRow, isRtl && styles.rowRtl]}>
-              <View style={[styles.changeIconLeft, isRtl && styles.rowRtl]}>
-                <Text style={styles.changeIconEmoji}>
-                  {iconToDisplay(child.iconId)}
-                </Text>
-                <Text style={styles.changeIconText}>
-                  {t('childHub.changeIcon')}
-                </Text>
-              </View>
-
-              <Text style={styles.changeIconHint}>
-                {iconPanelOpen ? t('childHub.hide') : t('childHub.show')} →
-              </Text>
-            </View>
+            {changeIconLabel}
           </Button>
 
           {iconPanelOpen && (
@@ -128,8 +115,7 @@ export function ChildHubScreen({
                   value={child.iconId}
                   unlockedIconIds={unlockedIconIds}
                   onPick={(iconId: string) => {
-                    // NOTE: project currently uses setSelectedIcon in old file
-                    // Keep same API call.
+                    // support both APIs (older/newer)
                     const ok = (ChildrenStore as any).setSelectedIcon
                       ? (ChildrenStore as any).setSelectedIcon(child.id, iconId)
                       : (ChildrenStore as any).setActiveIcon
@@ -168,24 +154,17 @@ const styles = StyleSheet.create({
   toastWrap: { marginTop: 10, minHeight: 22, justifyContent: 'center' },
   toastText: { fontSize: 16 },
 
-  actionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 10 },
+  actionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 10,
+  },
+
+  rowRtl: { flexDirection: 'row-reverse' as const },
 
   fullWidthBtn: { alignSelf: 'stretch' },
 
-  changeIconRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  changeIconLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-
-  changeIconEmoji: { fontSize: 22 },
-  changeIconText: { fontWeight: '900' },
-  changeIconHint: { opacity: 0.7, fontWeight: '700' },
-
-  rowRtl: { flexDirection: 'row-reverse' },
-
   rtl: { textAlign: 'right' as const },
+  metaRtl: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });
