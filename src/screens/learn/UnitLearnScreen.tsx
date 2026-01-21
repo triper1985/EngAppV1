@@ -79,6 +79,9 @@ export function UnitLearnScreen({
   const [heardThisItem, setHeardThisItem] = useState(false);
   const lastSpeakAtRef = useRef(0);
 
+  // ✅ play end-of-learn FX once when DONE screen is reached
+  const doneFxPlayedRef = useRef(false);
+
   useEffect(() => {
     return () => {
       stopTTS();
@@ -96,6 +99,7 @@ export function UnitLearnScreen({
     if (total === 0) {
       setIndex(0);
       setHeardThisItem(false);
+      doneFxPlayedRef.current = false;
       clearToast();
       return;
     }
@@ -110,10 +114,11 @@ export function UnitLearnScreen({
 
     setIndex(startIndex);
     setHeardThisItem(false);
+    doneFxPlayedRef.current = false; // ✅ reset for this entry
     clearToast();
   }, [unitId, unitItems.length, child.id, clearToast]);
 
-  // ✅ Auto speak current item (V10-like delay, now via audio)
+  // ✅ Auto speak current item (delay increased to avoid tap overlap feel)
   useEffect(() => {
     if (!unitItems.length) return;
     if (index >= unitItems.length) return;
@@ -124,12 +129,11 @@ export function UnitLearnScreen({
     const tt = setTimeout(() => {
       stopTTS();
 
-      // speakContentItem expects SpeakItemLike { text: string }
       const text = getItemSpeakText(current, isRtl);
       speakContentItem({ text }, { settings: effectiveAudio });
 
       setHeardThisItem(true);
-    }, 120);
+    }, 280); // ✅ was 120
 
     return () => clearTimeout(tt);
   }, [index, unitItems, isRtl, effectiveAudio]);
@@ -192,16 +196,8 @@ export function UnitLearnScreen({
           t('learn.learn.confirmExitTitle') || t('learn.common.confirm'),
           t('learn.learn.confirmExit'),
           [
-            {
-              text: t('learn.common.cancel'),
-              style: 'cancel',
-              onPress: () => resolve(false),
-            },
-            {
-              text: t('learn.common.ok'),
-              style: 'default',
-              onPress: () => resolve(true),
-            },
+            { text: t('learn.common.cancel'), style: 'cancel', onPress: () => resolve(false) },
+            { text: t('learn.common.ok'), style: 'default', onPress: () => resolve(true) },
           ]
         );
       });
@@ -235,18 +231,12 @@ export function UnitLearnScreen({
     );
   }
 
-  // ✅ i18n title for this unit
   const unitTitle = unit.titleKey ? t(unit.titleKey) : unit.title;
 
   if (unitItems.length === 0) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={unitTitle}
-          onBack={onBack}
-        />
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={unitTitle} onBack={onBack} />
 
         <View style={{ marginTop: 14 }}>
           <Card>
@@ -262,16 +252,15 @@ export function UnitLearnScreen({
     );
   }
 
-  // ✅ DONE screen (V10) + Go to Quiz button
   if (index >= total) {
+    if (!doneFxPlayedRef.current) {
+      doneFxPlayedRef.current = true;
+      playFx('learn_complete');
+    }
+
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={unitTitle}
-          onBack={onBack}
-        />
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={unitTitle} onBack={onBack} />
 
         <View style={{ marginTop: 14 }}>
           <Card>
@@ -288,9 +277,12 @@ export function UnitLearnScreen({
                 <Button
                   fullWidth
                   onClick={() => {
+                    playFx('tap');
+                    stopTTS();
                     setIndex(0);
                     setHeardThisItem(false);
                     clearToast();
+                    doneFxPlayedRef.current = false;
                   }}
                 >
                   {t('learn.learn.buttonReview')}
@@ -300,13 +292,24 @@ export function UnitLearnScreen({
                   <Button
                     variant="primary"
                     fullWidth
-                    onClick={() => onStartQuiz(unitId)}
+                    onClick={() => {
+                      playFx('tap');
+                      stopTTS();
+                      onStartQuiz(unitId);
+                    }}
                   >
                     {t('learn.learn.buttonGoQuiz')}
                   </Button>
                 )}
 
-                <Button fullWidth onClick={onBack}>
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    playFx('tap');
+                    stopTTS();
+                    onBack();
+                  }}
+                >
                   {t('learn.learn.buttonBackToUnits')}
                 </Button>
               </View>
@@ -319,15 +322,9 @@ export function UnitLearnScreen({
 
   const current = unitItems[Math.min(index, total - 1)];
   if (!current) {
-    // should not happen, but keeps TS happy and prevents crashes
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={unitTitle}
-          onBack={onBack}
-        />
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={unitTitle} onBack={onBack} />
         <View style={{ marginTop: 14 }}>
           <Card>
             <Text style={[styles.title18, isRtl && styles.rtl]}>
@@ -342,14 +339,9 @@ export function UnitLearnScreen({
   const isLast = index >= total - 1;
   const progressText = `${Math.min(index + 1, total)} / ${total}`;
 
-  // ✅ NEW: avoid duplicate line when visual is same as text (numbers/letters)
   const displayText = isRtl ? current.he ?? current.en : current.en ?? current.he;
-
   const visualText = current.visual.kind === 'text' ? current.visual.he : null;
 
-  // ✅ NEW RULE:
-  // - If visual is a number (e.g. "1", "12") -> hide the text line always
-  // - Else hide only if it duplicates the same text (letters case)
   const isNumericVisual = !!visualText && /^[0-9]+$/.test(visualText.trim());
 
   const hideTextLine =
@@ -376,14 +368,10 @@ export function UnitLearnScreen({
             </View>
 
             {!hideTextLine && (
-              <Text style={[styles.wordLine, isRtl && styles.rtl]}>
-                {displayText}
-              </Text>
+              <Text style={[styles.wordLine, isRtl && styles.rtl]}>{displayText}</Text>
             )}
 
-            <Text style={[styles.toastLine, isRtl && styles.rtl]}>
-              {toast ? toast : ''}
-            </Text>
+            <Text style={[styles.toastLine, isRtl && styles.rtl]}>{toast ? toast : ''}</Text>
 
             <View style={styles.actions}>
               <Button
@@ -392,9 +380,7 @@ export function UnitLearnScreen({
                   if (now - lastSpeakAtRef.current < 300) return;
                   lastSpeakAtRef.current = now;
 
-                  playFx('tap');
                   stopTTS();
-
                   const text = getItemSpeakText(current, isRtl);
                   speakContentItem({ text }, { settings: effectiveAudio });
 
@@ -410,10 +396,13 @@ export function UnitLearnScreen({
                 variant="primary"
                 disabled={!heardThisItem}
                 onClick={() => {
+                  playFx('tap');
+                  stopTTS();
+
                   markSeen(current.id);
 
                   if (isLast) {
-                    setIndex(total); // ✅ go to Done
+                    setIndex(total);
                     return;
                   }
 
@@ -427,9 +416,7 @@ export function UnitLearnScreen({
               </Button>
             </View>
 
-            <Text style={[styles.tip, isRtl && styles.rtl]}>
-              {t('learn.learn.tip')}
-            </Text>
+            <Text style={[styles.tip, isRtl && styles.rtl]}>{t('learn.learn.tip')}</Text>
           </View>
         </Card>
       </View>

@@ -6,8 +6,11 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useI18n } from '../../i18n/I18nContext';
 
 import { TopBar } from '../../ui/TopBar';
-import { Card } from '../../ui/Card';
+import { PressableCard } from '../../ui/PressableCard';
 import { Button } from '../../ui/Button';
+
+import { ContentVisual } from '../../ui/ContentVisual';
+import { getVisual } from '../../visuals/contentVisualRegistry';
 
 import { getLearnHomeVM_A } from './learnNavigationA';
 
@@ -52,12 +55,28 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
             ? '⭐'
             : '•';
 
+          const v = getVisual('layer', `layer${layerId}`);
+
           return (
-            <Card key={layerId}>
-              <View style={styles.cardStack}>
-                <Text style={[styles.title, isRtl && styles.rtl]}>
-                  {statusLabel} {header} — {t(layerTitleKey)}
-                </Text>
+            <PressableCard
+              key={layerId}
+              disabled={layer.isLocked}
+              onPress={() => {
+                if (!layer.isLocked) onEnterLayer(layerId);
+              }}
+            >
+              <View style={styles.cardRow}>
+                <ContentVisual
+                  size={60}
+                  image={v?.image}
+                  emoji={v?.emoji}
+                  label={header}
+                />
+
+                <View style={styles.cardStack}>
+                  <Text style={[styles.title, isRtl && styles.rtl]}>
+                    {statusLabel} {header} — {t(layerTitleKey)}
+                  </Text>
 
                 <Text style={[styles.meta, isRtl && styles.metaRtl]}>
                   {t('learn.groups.progressLabel')} {layer.progressPct}%
@@ -75,28 +94,29 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
                   </Text>
                 )}
 
-                <View style={[styles.actions, isRtl && styles.rowRtl]}>
-                  <Text style={[styles.lockedText, isRtl && styles.metaRtl]}>
-                    {layer.isLocked
-                      ? t('learn.groups.locked.layer', {
-                          layer: String(layerId),
-                        })
-                      : ' '}
-                  </Text>
+                  <View style={[styles.actions, isRtl && styles.rowRtl]}>
+                    <Text style={[styles.lockedText, isRtl && styles.metaRtl]}>
+                      {layer.isLocked
+                        ? t('learn.groups.locked.layer', {
+                            layer: String(layerId),
+                          })
+                        : ' '}
+                    </Text>
 
-                  <Button
-                    disabled={layer.isLocked}
-                    onClick={() => {
-                      if (!layer.isLocked) onEnterLayer(layerId);
-                    }}
-                  >
-                    {layer.isLocked
-                      ? t('learn.groups.buttonLocked')
-                      : t('learn.groups.buttonEnter')}
-                  </Button>
+                    <Button
+                      disabled={layer.isLocked}
+                      onClick={() => {
+                        if (!layer.isLocked) onEnterLayer(layerId);
+                      }}
+                    >
+                      {layer.isLocked
+                        ? t('learn.groups.buttonLocked')
+                        : t('learn.groups.buttonEnter')}
+                    </Button>
+                  </View>
                 </View>
               </View>
-            </Card>
+            </PressableCard>
           );
         })}
       </View>
@@ -116,7 +136,8 @@ const styles = StyleSheet.create({
   subtitle: { marginTop: 10, opacity: 0.9 },
 
   stack: { marginTop: 14, gap: 12 },
-  cardStack: { gap: 10 },
+  cardRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  cardStack: { flex: 1, gap: 10 },
 
   title: { fontWeight: '900', fontSize: 16 },
   meta: { fontSize: 13, opacity: 0.85 },

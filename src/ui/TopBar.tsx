@@ -36,9 +36,11 @@ export function TopBar({ title, onBack, right, backLabel, dir }: Props) {
       </View>
 
       {/* CENTER: title */}
-      <Text style={styles.title} numberOfLines={1}>
-        {title}
-      </Text>
+      <View style={styles.titleWrap}>
+        <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+          {title}
+        </Text>
+      </View>
 
       {/* RIGHT SIDE: back button (always) */}
       <View style={[styles.side, styles.rightSide]}>
@@ -64,10 +66,19 @@ const styles = StyleSheet.create({
   leftSide: { alignItems: 'flex-start' },
   rightSide: { alignItems: 'flex-end' },
 
-  title: {
+  // ✅ important: allows title to shrink and wrap properly between fixed sides
+  titleWrap: {
     flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  title: {
     fontWeight: '900',
     fontSize: 18,
     textAlign: 'center',
+    flexShrink: 1,
+    lineHeight: 22,
   },
 });

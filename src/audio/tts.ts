@@ -1,176 +1,137 @@
 // src/audio/tts.ts
-// RN-safe TTS layer:
-// - Web: window.speechSynthesis
-// - Native (Expo): expo-speech
-//
-// Product decision (V1LearnTest):
-// ✅ TTS language is ALWAYS English (en-US) regardless of UI locale.
-
-import { Platform } from 'react-native';
 import * as Speech from 'expo-speech';
-
 import type { AudioSettings } from './settings';
 import { getAudioSettings } from './settings';
-
-export type SpeakContext = {
-  /** Kept for compatibility, but ignored: language is always English. */
-  lang?: string;
-
-  /** Optional: effective settings (global + child override). If provided, it wins. */
-  settings?: AudioSettings;
-};
-
+import { notifyTtsStart, notifyTtsStop } from './fx';
+import { resetOnceScope } from './once';
 
 export type SpeakItemLike = {
   text: string;
-  lang?: string;
 };
 
-const AUDIO_LANG = 'en-US';
+export type SpeakContext = {
+  /**
+   * Optional per-call override. If omitted we use global settings.
+   * Many screens already pass: { settings: effectiveAudio }
+   */
+  settings?: AudioSettings;
+  /**
+   * Optional "once" scope key: allow speakItemOnce per-session/per-key usage
+   */
+  onceKey?: string;
+};
 
-function clampRateFromSpeed(speed: AudioSettings['ttsSpeed']): number {
-  // expo-speech rate differs per platform; keep it conservative.
-  return speed === 'slow' ? 0.8 : 1.0;
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
 }
 
-function getWebSynth(): SpeechSynthesis | null {
-  try {
-    const w = globalThis as any;
-    return w?.speechSynthesis ?? null;
-  } catch {
-    return null;
-  }
+/**
+ * Translate app speed to expo-speech rate.
+ * expo-speech rate is typically ~0.1..2.0 (platform dependent).
+ */
+function rateFromSettings(settings: AudioSettings): number {
+  const speed = (settings as any).speed ?? 'normal';
+
+  if (speed === 'slow') return 0.85;
+  if (speed === 'fast') return 1.15;
+  return 1.0;
 }
 
-function resolveWebVoice(voiceId?: string): SpeechSynthesisVoice | null {
-  if (!voiceId) return null;
-  const synth = getWebSynth();
-  if (!synth?.getVoices) return null;
-
-  const voices = synth.getVoices() ?? [];
-  for (const v of voices) {
-    const id = (v as any)?.voiceURI || v.name;
-    if (id === voiceId) return v;
-  }
-  return null;
+function resolveSettings(ctx?: SpeakContext): AudioSettings {
+  const global = getAudioSettings();
+  const override = ctx?.settings;
+  return override ? { ...global, ...override } : global;
 }
 
-export function stopTTS() {
-  // Web
-  try {
-    const synth = getWebSynth();
-    synth?.cancel?.();
-  } catch {
-    // ignore
-  }
+function resolveVoice(settings: AudioSettings): string | undefined {
+  // your AudioSettings likely has voiceId?: string
+  const vid = (settings as any).voiceId as string | undefined;
+  return vid || undefined;
+}
 
-  // Native
+/**
+ * Stop any in-flight speech immediately.
+ */
+export function stopTTS(): void {
   try {
+    notifyTtsStop();
     Speech.stop();
   } catch {
     // ignore
   }
 }
 
-export function speakText(text: string, _ctx?: SpeakContext) {
-  const s = _ctx?.settings ?? getAudioSettings();
-  if (!s.ttsEnabled) return;
+/**
+ * Lowest-level speak (text).
+ * Cancels previous speech to keep UX crisp.
+ */
+export function speakText(text: string, ctx?: SpeakContext): void {
+  const t = (text ?? '').trim();
+  if (!t) return;
 
-  const clean = String(text ?? '').trim();
-  if (!clean) return;
+  const settings = resolveSettings(ctx);
+  const ttsEnabled = (settings as any).ttsEnabled ?? true;
+  if (!ttsEnabled) return;
 
-  // Always stop previous first
+  // ✅ ensure no overlap
   stopTTS();
 
-  // ---------- Native (Expo) ----------
-  if (Platform.OS !== 'web') {
-    try {
-      Speech.speak(clean, {
-        rate: clampRateFromSpeed(s.ttsSpeed),
-        pitch: 1.0,
-        voice: s.voiceId ?? undefined,
-        language: AUDIO_LANG,
-      });
-    } catch {
-      // ignore
-    }
-    return;
-  }
+  // ✅ duck tap FX while speech is starting/playing
+  notifyTtsStart(1200);
 
-  // ---------- Web ----------
-  const synth = getWebSynth();
-  if (!synth) return;
+  const rate = clamp(rateFromSettings(settings), 0.6, 1.4);
+  const voice = resolveVoice(settings);
 
   try {
-    const u = new SpeechSynthesisUtterance(clean);
-    u.lang = AUDIO_LANG;
-    u.rate = s.ttsSpeed === 'slow' ? 0.8 : 1.0;
-
-    const v = resolveWebVoice(s.voiceId);
-    if (v) u.voice = v;
-
-    synth.speak(u);
+    Speech.speak(t, {
+      rate,
+      voice,
+      onDone: () => notifyTtsStop(),
+      onStopped: () => notifyTtsStop(),
+      onError: () => notifyTtsStop(),
+    });
   } catch {
-    // ignore
+    // if speech fails, release ducking
+    notifyTtsStop();
   }
-}
-
-export function speakItem(item: SpeakItemLike, ctx?: SpeakContext) {
-  // ctx/lang kept for compatibility but ignored.
-  speakText(item?.text ?? '', ctx);
-}
-
-export function speakContentItem(item: SpeakItemLike, ctx?: SpeakContext) {
-  speakItem(item, ctx);
-}
-
-// “Once” behavior is handled by once.ts; here we just keep API
-export function speakItemOnce(item: SpeakItemLike, ctx?: SpeakContext) {
-  speakItem(item, ctx);
 }
 
 /**
- * Returns voices list best-effort.
- * Note: We FILTER to English voices only.
+ * Speak item wrapper.
  */
-export async function listAvailableVoices(): Promise<
-  Array<{ id: string; name: string; language?: string }>
-> {
-  // Native
-  if (Platform.OS !== 'web') {
-    try {
-      const v = await Speech.getAvailableVoicesAsync();
-      const arr = Array.isArray(v) ? v : [];
-      return arr
-        .map((x: any) => {
-          const id = String(
-            x?.identifier ?? x?.id ?? x?.voiceURI ?? x?.name ?? x?.language ?? ''
-          );
-          const name = String(x?.name ?? x?.identifier ?? id);
-          const language = x?.language ? String(x.language) : undefined;
-          return id ? { id, name, language } : null;
-        })
-        .filter(Boolean)
-        .filter((x: any) => String(x.language ?? '').toLowerCase().startsWith('en')) as any;
-    } catch {
-      return [];
-    }
-  }
+export function speakItem(item: SpeakItemLike, ctx?: SpeakContext): void {
+  speakText(item.text, ctx);
+}
 
-  // Web
-  const synth = getWebSynth();
-  if (!synth?.getVoices) return [];
-  try {
-    return (synth.getVoices() ?? [])
-      .map((v) => {
-        const id = String((v as any)?.voiceURI || v.name || '');
-        const name = String(v.name || id);
-        const language = v.lang ? String(v.lang) : undefined;
-        return id ? { id, name, language } : null;
-      })
-      .filter(Boolean)
-      .filter((x: any) => String(x.language ?? '').toLowerCase().startsWith('en')) as any;
-  } catch {
-    return [];
-  }
+/**
+ * Compatibility: some screens call speakContentItem({text}, {settings})
+ */
+export function speakContentItem(item: SpeakItemLike, ctx?: SpeakContext): void {
+  speakText(item.text, ctx);
+}
+
+/**
+ * Speak only once per "onceKey" within a session.
+ * Uses resetOnceScope() / internal once.ts mechanism you already have.
+ */
+const onceSpoken = new Set<string>();
+
+export function speakItemOnce(item: SpeakItemLike, ctx?: SpeakContext): void {
+  const key = ctx?.onceKey ?? item.text;
+  if (!key) return;
+
+  if (onceSpoken.has(key)) return;
+  onceSpoken.add(key);
+
+  speakText(item.text, ctx);
+}
+
+/**
+ * Allow external reset (e.g., on unit enter).
+ * Your project already exports resetOnceScope from './once'
+ * We'll also clear our local cache when that is called.
+ */
+export function resetLocalOnceCache(): void {
+  onceSpoken.clear();
+  resetOnceScope();
 }

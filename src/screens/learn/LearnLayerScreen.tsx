@@ -8,7 +8,11 @@ import { useI18n } from '../../i18n/I18nContext';
 
 import { TopBar } from '../../ui/TopBar';
 import { Card } from '../../ui/Card';
+import { PressableCard } from '../../ui/PressableCard';
 import { Button } from '../../ui/Button';
+
+import { ContentVisual } from '../../ui/ContentVisual';
+import { getVisual } from '../../visuals/contentVisualRegistry';
 
 import { getLearnLayerVM_A } from './learnNavigationA';
 
@@ -95,13 +99,28 @@ export function LearnLayerScreen({
             const title = groupTitle(g, t);
             const desc = groupDesc(g, t);
 
+            const v = getVisual('pack', gvm.groupId);
+
             return (
-              <Card key={gvm.groupId}>
-                <View style={styles.cardStack}>
-                  <Text style={[styles.title, isRtl && styles.rtl]}>
-                    {statusLabel} {g.emoji ? g.emoji + ' ' : ''}
-                    {title}
-                  </Text>
+              <PressableCard
+                key={gvm.groupId}
+                disabled={gvm.isLocked}
+                onPress={() => {
+                  if (!gvm.isLocked) onEnterGroup(gvm.groupId);
+                }}
+              >
+                <View style={styles.cardRow}>
+                  <ContentVisual
+                    size={56}
+                    image={v?.image}
+                    emoji={v?.emoji ?? g.emoji}
+                    label={title}
+                  />
+
+                  <View style={styles.cardStack}>
+                    <Text style={[styles.title, isRtl && styles.rtl]}>
+                      {statusLabel} {title}
+                    </Text>
 
                   <Text style={[styles.meta, isRtl && styles.metaRtl]}>
                     {t('learn.groups.progressLabel')} {gvm.progressPct}% •{' '}
@@ -113,20 +132,21 @@ export function LearnLayerScreen({
                     <Text style={[styles.desc, isRtl && styles.rtl]}>{desc}</Text>
                   )}
 
-                  <View style={styles.actionsEnd}>
-                    <Button
-                      disabled={gvm.isLocked}
-                      onClick={() => {
-                        if (!gvm.isLocked) onEnterGroup(gvm.groupId);
-                      }}
-                    >
-                      {gvm.isLocked
-                        ? t('learn.groups.buttonLocked')
-                        : t('learn.groups.buttonEnter')}
-                    </Button>
+                    <View style={styles.actionsEnd}>
+                      <Button
+                        disabled={gvm.isLocked}
+                        onClick={() => {
+                          if (!gvm.isLocked) onEnterGroup(gvm.groupId);
+                        }}
+                      >
+                        {gvm.isLocked
+                          ? t('learn.groups.buttonLocked')
+                          : t('learn.groups.buttonEnter')}
+                      </Button>
+                    </View>
                   </View>
                 </View>
-              </Card>
+              </PressableCard>
             );
           })}
         </View>
@@ -147,7 +167,8 @@ const styles = StyleSheet.create({
   layerDesc: { marginTop: 10, opacity: 0.9 },
 
   stack: { marginTop: 14, gap: 12 },
-  cardStack: { gap: 10 },
+  cardRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  cardStack: { flex: 1, gap: 10 },
 
   title: { fontWeight: '900', fontSize: 16 },
   meta: { fontSize: 13, opacity: 0.85 },

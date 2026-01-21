@@ -126,6 +126,9 @@ export function UnitQuizScreen({
   const [finished, setFinished] = useState<null | { score: number; passed: boolean }>(null);
   const [persisted, setPersisted] = useState(false);
 
+  // ✅ ensure result FX plays once per run
+  const resultFxPlayedRef = useRef(false);
+
   useEffect(() => {
     return () => stopTTS();
   }, []);
@@ -142,6 +145,7 @@ export function UnitQuizScreen({
     setFinished(null);
     setPersisted(false);
     lastAutoSpeakKey.current = '';
+    resultFxPlayedRef.current = false; // ✅ reset
     clearToast();
   }, [unitId, clearToast]);
 
@@ -192,6 +196,18 @@ export function UnitQuizScreen({
   useEffect(() => {
     if (!finished) return;
     if (persisted) return;
+
+    // ✅ FX: play exactly once when result is determined
+    if (!resultFxPlayedRef.current) {
+      resultFxPlayedRef.current = true;
+
+      if (finished.passed) {
+        const isRetrySuccess = attempts > 0;
+        playFx(isRetrySuccess ? 'quiz_retry_success' : 'quiz_success');
+      } else {
+        playFx('quiz_fail');
+      }
+    }
 
     saveScoreAndDailyState(finished.score, finished.passed);
 
@@ -361,11 +377,7 @@ export function UnitQuizScreen({
         dir={dir}
         title={topTitle}
         onBack={onBack}
-        right={
-          <Text style={styles.progressText}>
-            {qIndex + 1}/{questions.length}
-          </Text>
-        }
+        right={<Text style={styles.progressText}>{qIndex + 1}/{questions.length}</Text>}
       />
 
       <View style={{ marginTop: 14 }}>
@@ -393,7 +405,7 @@ export function UnitQuizScreen({
                   if (now - lastSpeakAtRef.current < 300) return;
                   lastSpeakAtRef.current = now;
 
-                  playFx('tap');
+                  // ✅ no tap FX here — keep the word clean
                   stopTTS();
 
                   const text = getSpeakTextForItem(correctItem);
@@ -430,6 +442,9 @@ export function UnitQuizScreen({
                     style={tileStyle}
                     onPress={() => {
                       if (locked) return;
+
+                      // ✅ micro FX for choice tap
+                      playFx('tap');
 
                       setSelected(id);
                       setLocked(true);

@@ -21,6 +21,9 @@ import { TopBar } from '../../ui/TopBar';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { useToast } from '../../ui/useToast';
+import { ContentVisual } from '../../ui/ContentVisual';
+
+import { getVisual } from '../../visuals/contentVisualRegistry';
 
 import { useI18n } from '../../i18n/I18nContext';
 import { getPackById } from '../../content/registry';
@@ -106,9 +109,20 @@ export function LearnUnitsScreen({
             meta.lockedToday ||
             meta.status === 'learn';
 
+          const vUnit = getVisual('unit', u.id);
+          const vPack = getVisual('pack', groupId);
+          const emojiFallback = vUnit?.emoji ?? vPack?.emoji ?? '📘';
+
           return (
             <Card key={u.id} style={{ opacity: lockedByLayer ? 0.75 : 1 }}>
               <View style={styles.unitRow}>
+                <ContentVisual
+                  size={54}
+                  image={vUnit?.image ?? vPack?.image}
+                  emoji={emojiFallback}
+                  label={u.titleKey ? t(u.titleKey) : u.title}
+                />
+
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.unitTitle, isRtl && styles.rtl]}>
                     {u.titleKey ? t(u.titleKey) : u.title}

@@ -5,21 +5,12 @@ import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
 
-import {
-  BEGINNER_UNITS,
-  resolveUnitItems,
-  type UnitDef,
-} from '../../tracks/beginnerTrack';
+import { BEGINNER_UNITS, resolveUnitItems, type UnitDef } from '../../tracks/beginnerTrack';
 
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
 // ✅ audio layer
-import {
-  playFx,
-  speakContentItem,
-  stopTTS,
-  getEffectiveAudioSettings,
-} from '../../audio';
+import { playFx, speakContentItem, stopTTS, getEffectiveAudioSettings } from '../../audio';
 
 import { getFailedIdsToday } from '../../tracks/beginnerProgress';
 
@@ -112,6 +103,9 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
   const lastAutoSpeakKey = useRef<string>('');
   const lastSpeakAtRef = useRef(0);
 
+  // ✅ play "complete" FX once when done screen is reached
+  const doneFxPlayedRef = useRef(false);
+
   useEffect(() => {
     return () => stopTTS();
   }, []);
@@ -122,6 +116,7 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
     setSelected(null);
     setLocked(false);
     lastAutoSpeakKey.current = '';
+    doneFxPlayedRef.current = false; // ✅ reset
   }, [unitId]);
 
   const focusedAvailable = useMemo(
@@ -152,6 +147,15 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
     return () => clearTimeout(tt);
   }, [unitId, qIndex, correctItem, done, isRtl, effectiveAudio]);
 
+  // ✅ when done becomes true, play "complete" once
+  useEffect(() => {
+    if (!done) return;
+    if (doneFxPlayedRef.current) return;
+    doneFxPlayedRef.current = true;
+
+    playFx('complete');
+  }, [done]);
+
   // -----------------------------------------
   // Render
   // -----------------------------------------
@@ -179,12 +183,7 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
   if (unitItems.length === 0 || questions.length === 0) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <TopBar
-          backLabel={t('learn.common.back')}
-          dir={dir}
-          title={topTitle}
-          onBack={onBack}
-        />
+        <TopBar backLabel={t('learn.common.back')} dir={dir} title={topTitle} onBack={onBack} />
         <View style={{ marginTop: 14 }}>
           <Card>
             <Text style={styles.h1}>{t('learn.practice.notEnoughTitle')}</Text>
@@ -224,12 +223,27 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
 
               <View style={styles.doneButtons}>
                 {onStartQuiz && (
-                  <Button variant="primary" fullWidth onClick={() => onStartQuiz(unitId)}>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => {
+                      playFx('tap');
+                      onStartQuiz(unitId);
+                    }}
+                  >
                     {t('learn.practice.buttonTryQuiz')}
                   </Button>
                 )}
 
-                <Button fullWidth onClick={onBack}>{t('learn.common.backOk')}</Button>
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    playFx('tap');
+                    onBack();
+                  }}
+                >
+                  {t('learn.common.backOk')}
+                </Button>
               </View>
             </View>
           </Card>
@@ -249,7 +263,11 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
         dir={dir}
         title={topTitle}
         onBack={onBack}
-        right={<Text style={styles.progressText}>{qIndex + 1}/{questions.length}</Text>}
+        right={
+          <Text style={styles.progressText}>
+            {qIndex + 1}/{questions.length}
+          </Text>
+        }
       />
 
       <View style={{ marginTop: 14 }}>
@@ -273,7 +291,7 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                   if (now - lastSpeakAtRef.current < 300) return;
                   lastSpeakAtRef.current = now;
 
-                  playFx('tap');
+                  // ✅ no tap FX here — keep the word clean
                   stopTTS();
 
                   const text = getSpeakTextForItem(correctItem, isRtl);
@@ -309,6 +327,8 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                   style={tileStyle}
                   onPress={() => {
                     if (locked) return;
+
+                    playFx('tap');
 
                     setSelected(id);
                     setLocked(true);
