@@ -1,6 +1,7 @@
 // src/components/IconShop.tsx
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions, Pressable } from 'react-native';
+import type { DimensionValue } from 'react-native';
 
 import { ICONS, iconToDisplay } from '../data/icons';
 import { getIconPrice, isIconFree } from '../data/iconShop';
@@ -136,7 +137,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
               const need = Math.max(0, price - coins);
 
               return (
-                <View key={ic.id} style={[styles.cell, { width: cellWidthPct }]}>
+                <View key={ic.id} style={[styles.cell, { width: cellWidthPct as unknown as DimensionValue}]}>
                   <View style={styles.itemCard}>
                     <View style={styles.itemTop}>
                       <Text style={styles.itemEmoji}>{iconToDisplay(ic.id)}</Text>

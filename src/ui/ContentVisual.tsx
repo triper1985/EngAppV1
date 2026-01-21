@@ -54,7 +54,7 @@ export const ContentVisual = memo(function ContentVisual({
           {emoji}
         </Text>
       ) : (
-        <View style={styles.dot} />
+        <View style={styles.fallbackDot} />
       )}
     </View>
   );

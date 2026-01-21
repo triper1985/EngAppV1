@@ -21,7 +21,7 @@ try {
 
 function hasWebLocalStorage(): boolean {
   try {
-    // @ts-expect-error - global may exist on web only
+    // @ts-ignore - global may exist on web only
     return typeof localStorage !== 'undefined' && !!localStorage?.getItem;
   } catch {
     return false;
@@ -57,7 +57,7 @@ function scheduleHydrateIfNeeded() {
   // Web: localStorage sync
   if (hasWebLocalStorage()) {
     try {
-      // @ts-expect-error - web only
+      // @ts-ignore - web only
       const raw = localStorage.getItem(LS_KEY);
       cache = parseStore(raw);
     } catch {
@@ -96,7 +96,7 @@ function persist(store: Store) {
   // Web
   if (hasWebLocalStorage()) {
     try {
-      // @ts-expect-error - web only
+      // @ts-ignore - web only
       localStorage.setItem(LS_KEY, JSON.stringify(store));
     } catch {
       // ignore
