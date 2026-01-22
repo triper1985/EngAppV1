@@ -1,6 +1,6 @@
 // src/components/IconShop.tsx
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions, Pressable } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { DimensionValue } from 'react-native';
 
 import { ICONS, iconToDisplay } from '../data/icons';

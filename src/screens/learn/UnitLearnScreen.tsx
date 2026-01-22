@@ -17,6 +17,8 @@ import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCat
 // ✅ audio layer
 import {
   playFx,
+  playFxAndWait,
+  stopAllFx,
   speakContentItem,
   stopTTS,
   getEffectiveAudioSettings,
@@ -77,7 +79,9 @@ export function UnitLearnScreen({
 
   const [index, setIndex] = useState(0);
   const [heardThisItem, setHeardThisItem] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
   const lastSpeakAtRef = useRef(0);
+  const lastAutoSpeakKey = useRef<string>('');
 
   // ✅ play end-of-learn FX once when DONE screen is reached
   const doneFxPlayedRef = useRef(false);
@@ -118,13 +122,18 @@ export function UnitLearnScreen({
     clearToast();
   }, [unitId, unitItems.length, child.id, clearToast]);
 
-  // ✅ Auto speak current item (delay increased to avoid tap overlap feel)
+  // ✅ Auto speak current item (delay increased to avoid FX overlap)
   useEffect(() => {
     if (!unitItems.length) return;
     if (index >= unitItems.length) return;
 
     const current = unitItems[Math.min(index, unitItems.length - 1)];
     if (!current) return;
+
+    // ✅ prevent re-speaking the same item when unrelated props update
+    const key = `${unitId}:${index}:${current.id}`;
+    if (lastAutoSpeakKey.current === key) return;
+    lastAutoSpeakKey.current = key;
 
     const tt = setTimeout(() => {
       stopTTS();
@@ -133,7 +142,7 @@ export function UnitLearnScreen({
       speakContentItem({ text }, { settings: effectiveAudio });
 
       setHeardThisItem(true);
-    }, 280); // ✅ was 120
+    }, 420);
 
     return () => clearTimeout(tt);
   }, [index, unitItems, isRtl, effectiveAudio]);
@@ -252,10 +261,12 @@ export function UnitLearnScreen({
     );
   }
 
+  // ✅ DONE screen (end-of-flow): NO TAP on any buttons
   if (index >= total) {
     if (!doneFxPlayedRef.current) {
       doneFxPlayedRef.current = true;
-      playFx('learn_complete');
+      // ✅ end-of-unit success
+      playFx('complete');
     }
 
     return (
@@ -277,7 +288,7 @@ export function UnitLearnScreen({
                 <Button
                   fullWidth
                   onClick={() => {
-                    playFx('tap');
+                    stopAllFx();
                     stopTTS();
                     setIndex(0);
                     setHeardThisItem(false);
@@ -293,7 +304,7 @@ export function UnitLearnScreen({
                     variant="primary"
                     fullWidth
                     onClick={() => {
-                      playFx('tap');
+                      stopAllFx();
                       stopTTS();
                       onStartQuiz(unitId);
                     }}
@@ -305,7 +316,7 @@ export function UnitLearnScreen({
                 <Button
                   fullWidth
                   onClick={() => {
-                    playFx('tap');
+                    stopAllFx();
                     stopTTS();
                     onBack();
                   }}
@@ -394,21 +405,31 @@ export function UnitLearnScreen({
 
               <Button
                 variant="primary"
-                disabled={!heardThisItem}
-                onClick={() => {
-                  playFx('tap');
+                disabled={!heardThisItem || advancing}
+                onClick={async () => {
+                  if (advancing) return;
+                  setAdvancing(true);
                   stopTTS();
 
                   markSeen(current.id);
 
+                  // ✅ last card -> go to DONE screen with NO TAP
                   if (isLast) {
                     setIndex(total);
+                    setAdvancing(false);
                     return;
                   }
 
-                  setIndex((i) => i + 1);
-                  setHeardThisItem(false);
-                  showToast(t('learn.learn.toastNext'));
+                  // ✅ normal next card -> wait for tap to finish, THEN advance
+                  try {
+                    await playFxAndWait('tap');
+                    setIndex((i) => i + 1);
+                    setHeardThisItem(false);
+                    showToast(t('learn.learn.toastNext'));
+                  } finally {
+                    // allow clicks again even if FX fails
+                    setAdvancing(false);
+                  }
                 }}
                 style={styles.bigBtn}
               >

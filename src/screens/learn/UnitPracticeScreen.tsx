@@ -10,7 +10,13 @@ import { BEGINNER_UNITS, resolveUnitItems, type UnitDef } from '../../tracks/beg
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
 // ✅ audio layer
-import { playFx, speakContentItem, stopTTS, getEffectiveAudioSettings } from '../../audio';
+import {
+  playFx,
+  speakContentItem,
+  stopTTS,
+  stopAllFx,
+  getEffectiveAudioSettings,
+} from '../../audio';
 
 import { getFailedIdsToday } from '../../tracks/beginnerProgress';
 
@@ -227,7 +233,8 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                     variant="primary"
                     fullWidth
                     onClick={() => {
-                      playFx('tap');
+                      stopAllFx();
+                      stopTTS();
                       onStartQuiz(unitId);
                     }}
                   >
@@ -238,7 +245,8 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                 <Button
                   fullWidth
                   onClick={() => {
-                    playFx('tap');
+                    stopAllFx();
+                    stopTTS();
                     onBack();
                   }}
                 >
@@ -328,18 +336,23 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                   onPress={() => {
                     if (locked) return;
 
-                    playFx('tap');
+                    stopTTS();
 
                     setSelected(id);
                     setLocked(true);
 
-                    if (isCorrect) setCorrectCount((c) => c + 1);
+                    if (isCorrect) {
+                      setCorrectCount((c) => c + 1);
+                      playFx('success');
+                    } else {
+                      playFx('error');
+                    }
 
                     setTimeout(() => {
                       setSelected(null);
                       setLocked(false);
                       setQIndex((i) => i + 1);
-                    }, 700);
+                    }, 520);
                   }}
                 >
                   <ItemVisual item={it as ContentItem} size={78} />
@@ -402,11 +415,11 @@ const styles = StyleSheet.create({
     marginTop: 18,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 14,
     justifyContent: 'space-between',
   },
   optionTile: {
     width: '48%',
+    marginBottom: 14,
     minHeight: 140,
     borderRadius: 18,
     borderWidth: 2,

@@ -7,6 +7,14 @@ export type { SpeakContext, SpeakItemLike } from './tts';
 export { speakText, speakItem, speakContentItem, speakItemOnce, stopTTS } from './tts';
 
 export type { FxEvent } from './fx';
-export { playFx, notifyTtsStart, notifyTtsStop, unloadAllFx } from './fx';
+export {
+  playFx,
+  playFxAndWait,
+  stopAllFx,
+  preloadFx,
+  notifyTtsStart,
+  notifyTtsStop,
+  unloadAllFx,
+} from './fx';
 
 export { resetOnceScope } from './once';

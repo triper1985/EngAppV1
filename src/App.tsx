@@ -1,6 +1,7 @@
 // src/App.tsx
 import { useEffect, useState } from 'react';
 import { Text, View, Pressable } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import type { ChildProfile } from './types';
 import { ChildrenStore } from './storage/childrenStore';
@@ -32,6 +33,7 @@ import { RegisterScreen } from './screens/auth/RegisterScreen';
 
 import { ParentGate } from './ParentGate';
 import { hydrateParentPin } from './parentPin';
+import { preloadFx } from './audio/fx';
 
 type Screen =
   | 'home'
@@ -147,7 +149,23 @@ function AppInner() {
   }
 
   useEffect(() => {
-    syncUsersFromStore(false);
+    let alive = true;
+
+    (async () => {
+      // ✅ Preload FX for the first time UX (no delay)
+      await preloadFx();
+
+      // ✅ Hydrate ChildrenStore (native persistence)
+      await ChildrenStore.hydrate();
+
+      if (alive) {
+        syncUsersFromStore(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -464,15 +482,19 @@ function AppInner() {
       child={activeChild ?? null}
       forcedLocale={isParentScreen(screen) ? parentLocale : undefined}
     >
-      <View style={{ flex: 1, backgroundColor: '#fff' }}>{ui}</View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
+        {ui}
+      </SafeAreaView>
     </I18nProvider>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

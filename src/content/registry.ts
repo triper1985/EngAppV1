@@ -7,18 +7,18 @@ import { listeningPack } from './packs/core/listeningPack';
 import { numbersPack } from './packs/core/numbersPack';
 import { lettersPack } from './packs/core/lettersPack';
 import { colorsPack } from './packs/core/colorsPack';
+import { animalsPack } from './packs/core/animalsPack';
 
 import { spacePack } from './packs/interest/spacePack';
-import { animalsPack } from './packs/interest/animalsPack';
 
 export const BUILT_IN_PACKS: readonly ContentPack[] = [
   foundationsPack,
   listeningPack,
+  colorsPack,
+  animalsPack,
   numbersPack,
   lettersPack,
-  colorsPack,
   spacePack,
-  animalsPack,
 ] as const;
 
 const packsById = new Map<ContentPackId, ContentPack>();

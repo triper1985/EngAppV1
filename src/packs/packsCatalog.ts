@@ -29,9 +29,14 @@ export const REQUIRED_PACK_IDS = new Set<string>([
   'colors',
   'listening',
   'foundations',
+  // ✅ core vocab pack (bridged into beginner track)
+  'animals',
 ]);
 
-const HIDDEN_PACK_IDS = new Set<string>(['animals']);
+// Packs can be hidden from the *selection UI* later, but they must still be
+// available to the Learn/Quiz/Practice flows if they exist in beginnerTrack.
+// (So we no longer filter them out of the learning catalog.)
+export const HIDDEN_PACK_IDS = new Set<string>([]);
 
 export type PackDef = {
   id: string;
@@ -69,7 +74,6 @@ function contentPackToPackDef(p: ContentPack): PackDef {
 // Catalog
 // -------------------------
 const BUILT_IN_CONTENT_PACKS: PackDef[] = listBuiltInPacks()
-  .filter((p) => !HIDDEN_PACK_IDS.has(p.id))
   .map(contentPackToPackDef);
 
 export const packsCatalog: PackDef[] = [

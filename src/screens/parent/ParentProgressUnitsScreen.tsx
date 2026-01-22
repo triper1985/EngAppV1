@@ -46,6 +46,9 @@ export function ParentProgressUnitsScreen({
 
   const [busy, setBusy] = useState(false);
 
+  // ✅ Hooks must run before any early return (lint rule)
+  const units = useMemo(() => getUnitsByGroup(groupId), [groupId]);
+
   // runtime guard (extra safety)
   if (!child) {
     return (
@@ -54,8 +57,6 @@ export function ParentProgressUnitsScreen({
       </View>
     );
   }
-
-  const units = useMemo(() => getUnitsByGroup(groupId), [groupId]);
 
   function toast(msg: string) {
     onToast?.(msg);

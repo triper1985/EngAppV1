@@ -42,9 +42,9 @@ export const DICT_EN: Record<string, string> = {
   'learn.layer.1.desc': 'Follow simple instructions and recognize sounds.',
   'learn.layer.2.title': 'Core Vocabulary',
   'learn.layer.2.desc': 'Build everyday words and start using interest packs.',
-  'learn.layer.3.title': 'Letter ↔ Sound',
-  'learn.layer.3.desc':
-    'Gentle phonics and early mapping between letters and sounds.',
+  // Layer 3 now includes both letters + numbers
+  'learn.layer.3.title': 'Letters & Numbers',
+  'learn.layer.3.desc': 'Upper/lowercase letters + basic numbers.',
   'learn.layer.4.title': 'Early Recognition',
   'learn.layer.4.desc': 'Sight words and early recognition (no free writing).',
 
@@ -242,6 +242,13 @@ export const DICT_EN: Record<string, string> = {
   'content.pack.space.title': 'Space',
   'content.pack.space.desc': 'Space basics: learn words by sound + icons.',
   'content.group.space_basics.title': 'Space – Basics',
+
+  // Animals (Core)
+  'content.pack.animals.title': 'Animals',
+  'content.pack.animals.desc': 'Learn basic animals (farm, sea, jungle).',
+  'content.group.animals_farm.title': 'Animals – Farm',
+  'content.group.animals_sea.title': 'Animals – Sea',
+  'content.group.animals_jungle.title': 'Animals – Jungle',
 
   // -----------------------------------------
   // Beginner Track (Groups & Units)

@@ -80,11 +80,9 @@ function hueToRgb(h: number) {
 }
 
 export function Confetti({ durationMs = 1800, pieces = 24 }: Props) {
-  // --- Web fallback (keeps old behavior, guarded) ---
-  if (Platform.OS === 'web') {
-    return <ConfettiWeb durationMs={durationMs} pieces={pieces} />;
-  }
+  const isWeb = Platform.OS === 'web';
 
+  // ✅ Hooks must always run (no conditional hook calls)
   const { width, height } = useWindowDimensions();
   const [on, setOn] = useState(true);
 
@@ -97,6 +95,8 @@ export function Confetti({ durationMs = 1800, pieces = 24 }: Props) {
   }, [durationMs]);
 
   useEffect(() => {
+    if (isWeb) return;
+
     anims.forEach((a) => a.setValue(0));
     const runs = items.map((p, i) =>
       Animated.timing(anims[i], {
@@ -109,9 +109,14 @@ export function Confetti({ durationMs = 1800, pieces = 24 }: Props) {
     );
     Animated.parallel(runs, { stopTogether: false }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items]);
+  }, [items, isWeb]);
 
   if (!on) return null;
+
+  // Web fallback (keeps old behavior)
+  if (isWeb) {
+    return <ConfettiWeb durationMs={durationMs} pieces={pieces} />;
+  }
 
   const fromY = -30;
   const toY = Math.max(height, 800) + 60;

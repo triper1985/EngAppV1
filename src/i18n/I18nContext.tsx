@@ -32,7 +32,8 @@ export function I18nProvider({
   forcedLocale?: Locale;
   children: React.ReactNode;
 }) {
-  const baseCtx = useMemo(() => resolveLocaleContext(child), [child?.levelId]);
+  // ✅ include full child in deps to match usage inside resolveLocaleContext(child)
+  const baseCtx = useMemo(() => resolveLocaleContext(child), [child]);
 
   const ctx: LocaleContextValue = useMemo(() => {
     if (!forcedLocale) return baseCtx;
@@ -59,10 +60,8 @@ export function I18nProvider({
     };
   }, [tPrimary, tHeFallback, ctx.locale]);
 
-  const value: I18nValue = useMemo(
-    () => ({ ...ctx, t }),
-    [ctx.locale, ctx.dir, ctx.levelId, t]
-  );
+  // ✅ depend on ctx object itself (fixes missing dep warning for ctx)
+  const value: I18nValue = useMemo(() => ({ ...ctx, t }), [ctx, t]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

@@ -59,7 +59,8 @@ const styles = StyleSheet.create({
   },
 
   side: {
-    width: 120,
+    // Keep sides compact so long titles (Layer X – ...) can wrap cleanly.
+    width: 92,
     justifyContent: 'center',
   },
 

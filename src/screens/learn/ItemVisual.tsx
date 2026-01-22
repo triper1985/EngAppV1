@@ -1,7 +1,9 @@
 // src/screens/learn/ItemVisual.tsx
 import type { ContentItem } from '../../content/types';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
+
+import { getItemVisualImage } from '../../visuals/itemVisualRegistry';
 
 type Props = {
   item: ContentItem;
@@ -17,7 +19,7 @@ type Props = {
 
 /**
  * Renders the "no-reading" visual for a content item.
- * ✅ Fix (V1LearnTest): Keep layout stable across visuals.
+ * ✅ Keep layout stable across visuals.
  * Always return a fixed-size container; never let emoji/text change the card height.
  */
 export function ItemVisual({ item, size = 68, style }: Props) {
@@ -28,6 +30,9 @@ export function ItemVisual({ item, size = 68, style }: Props) {
 
   // Keep inner text visually centered and not affecting outer layout.
   const textSize = Math.round(size * 0.95);
+
+  // ✅ NEW: item-level image override (by item.id)
+  const itemImg = getItemVisualImage(item.id);
 
   if (v.kind === 'color') {
     return (
@@ -48,19 +53,36 @@ export function ItemVisual({ item, size = 68, style }: Props) {
     );
   }
 
-  if (v.kind === 'image') {
-    // Until we have real assets, show a neutral placeholder.
+  // ✅ If registry has an image, render it (preferred)
+  if (itemImg) {
     return (
       <View
         accessibilityLabel={item.en}
         style={[
           styles.boxBase,
           styles.imageBox,
-          {
-            width: dim,
-            height: dim,
-            borderRadius: 18,
-          },
+          { width: dim, height: dim, borderRadius: 18 },
+          style as StyleProp<ViewStyle>,
+        ]}
+      >
+        <Image
+          source={itemImg}
+          style={{ width: size, height: size }}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  }
+
+  // Optional: if content ever uses v.kind === 'image' (assetId), keep fallback placeholder for now
+  if (v.kind === 'image') {
+    return (
+      <View
+        accessibilityLabel={item.en}
+        style={[
+          styles.boxBase,
+          styles.imageBox,
+          { width: dim, height: dim, borderRadius: 18 },
           style as StyleProp<ViewStyle>,
         ]}
       >
@@ -82,11 +104,7 @@ export function ItemVisual({ item, size = 68, style }: Props) {
       accessibilityLabel={item.en}
       style={[
         styles.boxBase,
-        {
-          width: dim,
-          height: dim,
-          borderRadius: 18,
-        },
+        { width: dim, height: dim, borderRadius: 18 },
         style as StyleProp<ViewStyle>,
       ]}
     >
@@ -96,12 +114,11 @@ export function ItemVisual({ item, size = 68, style }: Props) {
           styles.textBold,
           {
             fontSize: textSize,
-            // Keep a stable and conservative lineHeight to avoid jumping across emoji glyphs.
             lineHeight: Math.round(textSize * 1.05),
+            paddingHorizontal: 6,
           },
         ]}
-        // Prevent multi-line growth
-        numberOfLines={1}
+        numberOfLines={2}
         adjustsFontSizeToFit
         minimumFontScale={0.7}
       >
@@ -117,21 +134,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     // shadow (best-effort)
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
-  },
-
-  colorBox: {
-    borderWidth: 3,
-    borderColor: '#111',
-  },
-
-  imageBox: {
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+    backgroundColor: '#fff',
     borderWidth: 2,
     borderColor: '#111',
+  },
+
+  colorBox: {},
+
+  imageBox: {
     backgroundColor: '#fff',
   },
 

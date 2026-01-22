@@ -283,7 +283,8 @@ export const numbersPack: ContentPack = {
   policy: {
     packType: 'core',
     levelTag: 'A',
-    minLayer: 2,
+    // Moved to Layer 3 (Symbols) – Numbers sit with letters/symbols rather than World Objects.
+    minLayer: 3,
     maxLayer: 4,
     tags: ['numbers'],
   },
@@ -305,28 +306,28 @@ export const numbersPack: ContentPack = {
       title: 'Numbers 1–5',
       titleKey: 'beginner.unit.numbers_1_5.title',
       itemIds: ['one', 'two', 'three', 'four', 'five'],
-      policy: { minLayer: 2 },
+      policy: { minLayer: 3 },
     },
     {
       id: 'numbers_6_10',
       title: 'Numbers 6–10',
       titleKey: 'beginner.unit.numbers_6_10.title',
       itemIds: ['six', 'seven', 'eight', 'nine', 'ten'],
-      policy: { minLayer: 2 },
+      policy: { minLayer: 3 },
     },
     {
       id: 'numbers_11_15',
       title: 'Numbers 11–15',
       titleKey: 'beginner.unit.numbers_11_15.title',
       itemIds: ['eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen'],
-      policy: { minLayer: 2 },
+      policy: { minLayer: 3 },
     },
     {
       id: 'numbers_16_20',
       title: 'Numbers 16–20',
       titleKey: 'beginner.unit.numbers_16_20.title',
       itemIds: ['sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'],
-      policy: { minLayer: 2 },
+      policy: { minLayer: 3 },
     },
     {
       id: 'numbers_21_25',
@@ -339,7 +340,7 @@ export const numbersPack: ContentPack = {
         'twenty_four',
         'twenty_five',
       ],
-      policy: { minLayer: 2 },
+      policy: { minLayer: 3 },
     },
     {
       id: 'numbers_26_30',
@@ -352,7 +353,7 @@ export const numbersPack: ContentPack = {
         'twenty_nine',
         'thirty',
       ],
-      policy: { minLayer: 2 },
+      policy: { minLayer: 3 },
     },
 
     // ✅ Tens split (V10)

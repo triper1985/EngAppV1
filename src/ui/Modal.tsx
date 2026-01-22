@@ -1,6 +1,6 @@
 // src/ui/Modal.tsx
 import type { ReactNode } from 'react';
-import { Modal as RNModal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal as RNModal, Pressable, StyleSheet, Text } from 'react-native';
 
 type Props = {
   open: boolean;

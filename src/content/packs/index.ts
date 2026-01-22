@@ -4,7 +4,7 @@
 export * from './core/colorsPack';
 export * from './core/numbersPack';
 export * from './core/lettersPack';
+export * from './core/animalsPack';
 
 // Interest packs (optional / motivation)
 export * from './interest/spacePack';
-export * from './interest/animalsPack';

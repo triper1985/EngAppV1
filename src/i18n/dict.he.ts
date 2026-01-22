@@ -41,8 +41,9 @@ export const DICT_HE: Record<string, string> = {
   'learn.layer.1.desc': 'ביצוע הוראות קצרות וזיהוי צלילים.',
   'learn.layer.2.title': 'אוצר מילים בסיסי',
   'learn.layer.2.desc': 'בונים מילים יומיומיות ומתחילים חבילות עניין.',
-  'learn.layer.3.title': 'אות ↔ צליל',
-  'learn.layer.3.desc': 'פוניקס עדין וחיבור ראשוני בין אותיות לצלילים.',
+  // Layer 3 now includes both letters + numbers
+  'learn.layer.3.title': 'אותיות ומספרים',
+  'learn.layer.3.desc': 'אותיות גדולות/קטנות + מספרים בסיסיים.',
   'learn.layer.4.title': 'זיהוי מוקדם',
   'learn.layer.4.desc': 'מילות ראייה וזיהוי מוקדם (ללא כתיבה חופשית).',
 
@@ -231,6 +232,13 @@ export const DICT_HE: Record<string, string> = {
   'content.pack.space.title': 'חלל',
   'content.pack.space.desc': 'יסודות החלל: לומדים מילים לפי שמיעה ואייקונים.',
   'content.group.space_basics.title': 'חלל – בסיס',
+
+  // Animals (Core)
+  'content.pack.animals.title': 'חיות',
+  'content.pack.animals.desc': 'חיות בסיסיות (חווה, ים, ג׳ונגל).',
+  'content.group.animals_farm.title': 'חיות – חווה',
+  'content.group.animals_sea.title': 'חיות – ים',
+  'content.group.animals_jungle.title': 'חיות – ג׳ונגל',
 
   // -----------------------------------------
   // Beginner Track (Groups & Units)

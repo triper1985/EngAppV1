@@ -23,12 +23,12 @@ export function GamesHubScreen({ child, onBack }: Props) {
   const { unlockedLayer } = getUnlockedLayerSnapshotA(child, 'A');
   const allowed = new Set(getAllowedGameTypesForLevelLayer('A', unlockedLayer));
 
-  const games: Array<{
+  const games: {
     type: GameType;
     title: string;
     desc: string;
     minLayer: number;
-  }> = [
+  }[] = [
     {
       type: 'tap_match',
       title: t('gamesHub.game1.title'),
@@ -77,7 +77,10 @@ export function GamesHubScreen({ child, onBack }: Props) {
             <Card key={g.type} style={!isUnlocked ? styles.lockedCard : undefined}>
               <View style={[styles.row, isRtl && styles.rowRtl]}>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[styles.gameTitle, isRtl && styles.rtl]} numberOfLines={1}>
+                  <Text
+                    style={[styles.gameTitle, isRtl && styles.rtl]}
+                    numberOfLines={1}
+                  >
                     {g.title}
                   </Text>
                   <Text style={[styles.gameDesc, isRtl && styles.rtl]}>{g.desc}</Text>

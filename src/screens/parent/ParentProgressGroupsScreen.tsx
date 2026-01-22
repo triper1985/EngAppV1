@@ -25,18 +25,11 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
   const isRtl = dir === 'rtl';
   const textAlign = isRtl ? 'right' : 'left';
 
-  // runtime guard (extra safety)
-  if (!child) {
-    return (
-      <View style={{ marginTop: 14 }}>
-        <Text style={[styles.dim, { textAlign }]}>{t('parent.progress.noChildSelected')}</Text>
-      </View>
-    );
-  }
-
-  const prog = useMemo(() => getBeginnerProgress(child), [child]);
+  // ✅ Hooks must run before any early return (lint rule)
+  const prog = useMemo(() => (child ? getBeginnerProgress(child) : null), [child]);
 
   const groups = useMemo(() => {
+    if (!prog) return [];
     return BEGINNER_GROUPS.map((g) => {
       const units = getUnitsByGroup(g.id);
       let completed = 0;
@@ -48,6 +41,15 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
       return { g, total: units.length, completed };
     });
   }, [prog]);
+
+  // runtime guard (extra safety)
+  if (!child) {
+    return (
+      <View style={{ marginTop: 14 }}>
+        <Text style={[styles.dim, { textAlign }]}>{t('parent.progress.noChildSelected')}</Text>
+      </View>
+    );
+  }
 
   function groupTitle(g: UnitGroupDef) {
     if (!g.titleKey) return g.title;
@@ -107,9 +109,7 @@ export function ParentProgressGroupsScreen({ child, onSelectGroup }: Props) {
               </View>
 
               <View style={{ marginTop: 10 }}>
-                <Button onClick={() => onSelectGroup(g.id)}>
-                  {t('parent.common.open')}
-                </Button>
+                <Button onClick={() => onSelectGroup(g.id)}>{t('parent.common.open')}</Button>
               </View>
             </Card>
           </View>

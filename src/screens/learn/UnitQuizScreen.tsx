@@ -23,7 +23,13 @@ import {
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
 // ✅ audio layer
-import { playFx, speakContentItem, stopTTS, getEffectiveAudioSettings } from '../../audio';
+import {
+  playFx,
+  speakContentItem,
+  stopTTS,
+  stopAllFx,
+  getEffectiveAudioSettings,
+} from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
 import { coinsBonusForQuizPass } from '../../rewards/coins';
@@ -202,10 +208,11 @@ export function UnitQuizScreen({
       resultFxPlayedRef.current = true;
 
       if (finished.passed) {
-        const isRetrySuccess = attempts > 0;
-        playFx(isRetrySuccess ? 'quiz_retry_success' : 'quiz_success');
+        // ✅ end-of-unit success (learn/practice/quiz)
+        playFx('complete');
       } else {
-        playFx('quiz_fail');
+        // ✅ gentle fail for quiz end
+        playFx('fail');
       }
     }
 
@@ -269,11 +276,26 @@ export function UnitQuizScreen({
               <Text style={styles.lockHint}>{t('learn.quiz.lockedTodayHint')}</Text>
 
               <View style={styles.doneButtons}>
-                <Button variant="primary" fullWidth onClick={() => onStartPractice(unitId)}>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={() => {
+                    stopAllFx();
+                    stopTTS();
+                    onStartPractice(unitId);
+                  }}
+                >
                   {t('learn.quiz.buttonPractice')}
                 </Button>
 
-                <Button fullWidth onClick={onBack}>
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    stopAllFx();
+                    stopTTS();
+                    onBack();
+                  }}
+                >
                   {t('learn.common.back')}
                 </Button>
               </View>
@@ -343,18 +365,40 @@ export function UnitQuizScreen({
 
               <View style={styles.doneButtons}>
                 {!passed && (
-                  <Button variant="primary" fullWidth onClick={() => onStartPractice(unitId)}>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => {
+                      stopAllFx();
+                      stopTTS();
+                      onStartPractice(unitId);
+                    }}
+                  >
                     {t('learn.quiz.buttonPracticeWrong')}
                   </Button>
                 )}
 
                 {!passed && !willLock && (
-                  <Button fullWidth onClick={onRetryQuiz}>
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      stopAllFx();
+                      stopTTS();
+                      onRetryQuiz();
+                    }}
+                  >
                     {t('learn.quiz.buttonRetryNow')}
                   </Button>
                 )}
 
-                <Button fullWidth onClick={onBack}>
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    stopAllFx();
+                    stopTTS();
+                    onBack();
+                  }}
+                >
                   {t('learn.common.backOk')}
                 </Button>
               </View>
@@ -443,8 +487,11 @@ export function UnitQuizScreen({
                     onPress={() => {
                       if (locked) return;
 
-                      // ✅ micro FX for choice tap
-                      playFx('tap');
+                      stopTTS();
+
+                      // ✅ choice feedback
+                      // success = correct answer, error = wrong answer
+                      playFx(isCorrect ? 'success' : 'error');
 
                       setSelected(id);
                       setLocked(true);

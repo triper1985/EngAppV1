@@ -58,13 +58,19 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
 
     const name = ui.name.trim();
     if (!name) {
-      setUi({ ...ui, error: tr('parent.users.error.nameRequired', 'Name is required') });
+      setUi({
+        ...ui,
+        error: tr('parent.users.error.nameRequired', 'Name is required'),
+      });
       return;
     }
 
     const added = ChildrenStore.add(name);
     if (!added) {
-      setUi({ ...ui, error: tr('parent.users.error.nameExists', 'Name already exists') });
+      setUi({
+        ...ui,
+        error: tr('parent.users.error.nameExists', 'Name already exists'),
+      });
       return;
     }
 
@@ -77,13 +83,19 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
 
     const name = ui.name.trim();
     if (!name) {
-      setUi({ ...ui, error: tr('parent.users.error.nameRequired', 'Name is required') });
+      setUi({
+        ...ui,
+        error: tr('parent.users.error.nameRequired', 'Name is required'),
+      });
       return;
     }
 
     const ok = ChildrenStore.rename(ui.user.id, name);
     if (!ok) {
-      setUi({ ...ui, error: tr('parent.users.error.nameExists', 'Name already exists') });
+      setUi({
+        ...ui,
+        error: tr('parent.users.error.nameExists', 'Name already exists'),
+      });
       return;
     }
 
@@ -110,32 +122,61 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
     closeUi();
   }
 
+  function submitDevAllUnlocked() {
+    try {
+      ChildrenStore.addDevAllUnlocked();
+      refreshUsers();
+    } catch (e) {
+      console.log('[ParentUsers] addDevAllUnlocked failed:', e);
+    }
+  }
+
   const labelEdit = tr('parent.users.button.edit', isRtl ? 'ערוך' : 'Edit');
   const labelDelete = tr('parent.users.button.delete', isRtl ? 'מחק' : 'Delete');
-  const labelAddUser = tr('parent.users.button.addUser', isRtl ? 'הוסף משתמש' : 'Add user');
+  const labelAddUser = tr(
+    'parent.users.button.addUser',
+    isRtl ? 'הוסף משתמש' : 'Add user'
+  );
 
   const labelCancel = tr('parent.users.button.cancel', isRtl ? 'ביטול' : 'Cancel');
   const labelAdd = tr('parent.users.button.add', isRtl ? 'הוסף' : 'Add');
   const labelSave = tr('parent.users.button.save', isRtl ? 'שמור' : 'Save');
 
   const titleAdd = tr('parent.users.modal.addTitle', isRtl ? 'הוספת משתמש' : 'Add user');
-  const titleRename = tr('parent.users.modal.renameTitle', isRtl ? 'שינוי שם' : 'Rename');
-  const hintAdd = tr('parent.users.modal.addHint', isRtl ? 'הקלד שם לילד' : 'Enter a child name');
+  const titleRename = tr(
+    'parent.users.modal.renameTitle',
+    isRtl ? 'שינוי שם' : 'Rename'
+  );
+  const hintAdd = tr(
+    'parent.users.modal.addHint',
+    isRtl ? 'הקלד שם לילד' : 'Enter a child name'
+  );
   const hintRename = (name: string) =>
-    tr('parent.users.modal.renameHint', isRtl ? `שנה שם עבור ${name}` : `Rename ${name}`, {
+    tr(
+      'parent.users.modal.renameHint',
+      isRtl ? `שנה שם עבור ${name}` : `Rename ${name}`,
+      { name }
+    );
+
+  const phAdd = tr(
+    'parent.users.modal.addPlaceholder',
+    isRtl ? 'שם הילד' : 'Child name'
+  );
+  const phRename = tr(
+    'parent.users.modal.renamePlaceholder',
+    isRtl ? 'שם חדש' : 'New name'
+  );
+
+  const titleDelete = tr(
+    'parent.users.modal.deleteTitle',
+    isRtl ? 'מחיקת משתמש' : 'Delete user'
+  );
+  const hintDelete = (name: string) =>
+    tr('parent.users.modal.deleteHint', isRtl ? `למחוק את ${name}?` : `Delete ${name}?`, {
       name,
     });
 
-  const phAdd = tr('parent.users.modal.addPlaceholder', isRtl ? 'שם הילד' : 'Child name');
-  const phRename = tr('parent.users.modal.renamePlaceholder', isRtl ? 'שם חדש' : 'New name');
-
-  const titleDelete = tr('parent.users.modal.deleteTitle', isRtl ? 'מחיקת משתמש' : 'Delete user');
-  const hintDelete = (name: string) =>
-    tr(
-      'parent.users.modal.deleteHint',
-      isRtl ? `למחוק את ${name}?` : `Delete ${name}?`,
-      { name }
-    );
+  const labelDev = isRtl ? 'DEV: צור משתמש פתוח הכול' : 'DEV: Create unlocked user';
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
@@ -181,10 +222,7 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
                   </View>
 
                   <View style={{ marginStart: isRtl ? 0 : 8, marginEnd: isRtl ? 8 : 0 }}>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setUi({ kind: 'delete', user: u })}
-                    >
+                    <Button variant="secondary" onClick={() => setUi({ kind: 'delete', user: u })}>
                       {labelDelete}
                     </Button>
                   </View>
@@ -195,11 +233,23 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
         )}
       </View>
 
-      {/* Add button */}
-      <View style={{ marginTop: 6, alignItems: isRtl ? 'flex-end' : 'flex-start' }}>
-        <Button onClick={() => setUi({ kind: 'add', name: '' })}>
-          {labelAddUser}
-        </Button>
+      {/* Add + DEV buttons */}
+      <View
+        style={{
+          marginTop: 6,
+          flexDirection: rowDir,
+          alignItems: 'center',
+          justifyContent: isRtl ? 'flex-end' : 'flex-start',
+          gap: 10,
+        }}
+      >
+        <Button onClick={() => setUi({ kind: 'add', name: '' })}>{labelAddUser}</Button>
+
+        {__DEV__ ? (
+          <Button variant="secondary" onClick={submitDevAllUnlocked}>
+            {labelDev}
+          </Button>
+        ) : null}
       </View>
 
       {/* Add / Edit inline form */}
@@ -255,10 +305,7 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
               </View>
 
               <View style={{ flex: 1 }}>
-                <Button
-                  variant="primary"
-                  onClick={ui.kind === 'add' ? submitAdd : submitEdit}
-                >
+                <Button variant="primary" onClick={ui.kind === 'add' ? submitAdd : submitEdit}>
                   {ui.kind === 'add' ? labelAdd : labelSave}
                 </Button>
               </View>

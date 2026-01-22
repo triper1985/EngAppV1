@@ -7,10 +7,26 @@ import {
   isIconFree,
 } from '../data/iconShop';
 
+import { listBuiltInPacks } from '../content/registry';
+import { makeDevMaxBeginnerProgress } from '../tracks/devTools';
+
+// NOTE: On Web we can use localStorage (sync). On React Native, we persist to
+// AsyncStorage (async). To keep the rest of the app simple, we keep a cached
+// in-memory store and write-through in the background.
+//
+// Install (recommended):
+//   npx expo install @react-native-async-storage/async-storage
+
 type SyncStorage = {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+};
+
+type AsyncStorageLike = {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
 };
 
 const memoryStorage = (() => {
@@ -28,10 +44,19 @@ const memoryStorage = (() => {
   return api;
 })();
 
-const storage: SyncStorage =
-  (globalThis as any)?.localStorage
-    ? ((globalThis as any).localStorage as SyncStorage)
-    : memoryStorage;
+const webLocalStorage: SyncStorage | null = (globalThis as any)?.localStorage
+  ? ((globalThis as any).localStorage as SyncStorage)
+  : null;
+
+let asyncStorage: AsyncStorageLike | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  asyncStorage = require('@react-native-async-storage/async-storage').default as AsyncStorageLike;
+} catch {
+  asyncStorage = null;
+}
+
+const storage: SyncStorage = webLocalStorage ?? memoryStorage;
 
 const LS_KEY = 'english_children_v1';
 
@@ -40,7 +65,42 @@ type Store = {
   children: ChildProfile[];
 };
 
+let cachedStore: Store | null = null;
+let hasHydrated = false;
+let hydratePromise: Promise<void> | null = null;
+
+async function hydrateFromAsyncStorage(): Promise<void> {
+  if (!asyncStorage) return;
+  if (hasHydrated) return;
+  if (hydratePromise) return hydratePromise;
+
+  hydratePromise = (async () => {
+    try {
+      const raw = await asyncStorage!.getItem(LS_KEY);
+      if (!raw) {
+        cachedStore = { version: 1, children: [] };
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed?.version === 1 && Array.isArray(parsed.children)) {
+        cachedStore = parsed as Store;
+      } else {
+        cachedStore = { version: 1, children: [] };
+      }
+    } catch {
+      cachedStore = { version: 1, children: [] };
+    } finally {
+      hasHydrated = true;
+    }
+  })();
+
+  return hydratePromise;
+}
+
 function loadStore(): Store {
+  // If we already have an in-memory cache (native or after first save), use it.
+  if (cachedStore) return cachedStore;
+
   const raw = storage.getItem(LS_KEY);
   if (!raw) return { version: 1, children: [] };
 
@@ -55,6 +115,21 @@ function loadStore(): Store {
 }
 
 function saveStore(store: Store) {
+  cachedStore = store;
+
+  // Web: sync localStorage
+  if (webLocalStorage) {
+    webLocalStorage.setItem(LS_KEY, JSON.stringify(store));
+    return;
+  }
+
+  // Native: async write-through (best effort)
+  if (asyncStorage) {
+    void asyncStorage.setItem(LS_KEY, JSON.stringify(store));
+    return;
+  }
+
+  // Fallback: in-memory only
   storage.setItem(LS_KEY, JSON.stringify(store));
 }
 
@@ -202,8 +277,30 @@ function ensureChildDefaults(c: any): { next: ChildProfile; changed: boolean } {
 }
 
 export const ChildrenStore = {
+  /**
+   * ✅ Native persistence
+   * Call once on app start to hydrate from AsyncStorage (RN).
+   * Web does not need this.
+   */
+  async hydrate(): Promise<void> {
+    await hydrateFromAsyncStorage();
+
+    // After hydration, ensure defaults/migrations are applied once.
+    if (cachedStore) {
+      let changed = false;
+      cachedStore.children = cachedStore.children.map((c) => {
+        const res = ensureChildDefaults(c);
+        if (res.changed) changed = true;
+        return res.next;
+      });
+      if (changed) saveStore(cachedStore);
+    }
+  },
+
   list(): ChildProfile[] {
-    return loadStore().children;
+    // Return a new array reference so React state updates reliably
+    // even when the underlying store mutates in-place.
+    return [...loadStore().children];
   },
 
   getById(id: string): ChildProfile | null {
@@ -255,6 +352,46 @@ export const ChildrenStore = {
       coins: 0,
       levelId: 'beginner' as LevelId,
       beginnerProgress: makeEmptyBeginnerProgress(),
+      unlockedIconIds: [...FREE_DEFAULT_ICON_IDS],
+    });
+
+    store.children.push(created);
+    saveStore(store);
+    return created;
+  },
+
+  /**
+   * DEV: create a child that has:
+   * - all built-in packs enabled
+   * - max coins
+   * - all beginner units completed (progress filled)
+   */
+  addDevAllUnlocked(): ChildProfile {
+    const store = loadStore();
+
+    const allPackIds = listBuiltInPacks().map((p) => p.id);
+    const enabled = new Set<string>(allPackIds);
+    enabled.add('basic'); // safety
+
+    const base = 'dev-all';
+    let id = base;
+    let n = 2;
+    while (store.children.some((c) => c.id === id)) {
+      id = `${base}-${n++}`;
+    }
+
+    const enabledIds = Array.from(enabled.values());
+
+    const created = ensureUnlockedIcons({
+      id,
+      name: `DEV All (${store.children.length + 1})`,
+      iconId: FREE_DEFAULT_ICON_IDS[0],
+      selectedPackIds: enabledIds,
+      favoritePackIds: [],
+      activePackId: enabledIds.includes('basic') ? 'basic' : enabledIds[0] ?? 'basic',
+      coins: 9999,
+      levelId: 'beginner' as LevelId,
+      beginnerProgress: makeDevMaxBeginnerProgress(),
       unlockedIconIds: [...FREE_DEFAULT_ICON_IDS],
     });
 
