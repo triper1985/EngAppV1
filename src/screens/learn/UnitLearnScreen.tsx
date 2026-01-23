@@ -1,6 +1,6 @@
 // src/screens/learn/UnitLearnScreen.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
@@ -20,6 +20,7 @@ import {
   playFxAndWait,
   stopAllFx,
   speakContentItem,
+  speakHebrewText,
   stopTTS,
   getEffectiveAudioSettings,
 } from '../../audio';
@@ -34,6 +35,25 @@ import { useToast } from '../../ui/useToast';
 import { useI18n } from '../../i18n/I18nContext';
 
 import { ItemVisual } from './ItemVisual';
+import { getItemVisualImage } from '../../visuals/itemVisualRegistry';
+
+function getSpeakTextHebrew(it: ContentItem): string {
+  const anyIt = it as any;
+  const linkHe = anyIt?.link?.he;
+  if (typeof linkHe === 'string' && linkHe.trim()) return linkHe.trim();
+  return (it.he ?? it.en ?? it.id ?? '').trim() || ' ';
+}
+
+function getLinkSpec(it: ContentItem): { en: string; he?: string; iconId: string } | null {
+  const anyIt = it as any;
+  const link = anyIt?.link;
+  if (!link) return null;
+  const en = typeof link.en === 'string' ? link.en.trim() : '';
+  const iconId = typeof link.iconId === 'string' ? link.iconId.trim() : '';
+  if (!en || !iconId) return null;
+  const he = typeof link.he === 'string' ? link.he.trim() : undefined;
+  return { en, he, iconId };
+}
 
 type Props = {
   child: ChildProfile;
@@ -47,6 +67,91 @@ function getItemSpeakText(it: ContentItem, _isRtl: boolean): string {
   // V1LearnTest decision: TTS is always English.
   const txt = it.en ?? it.he;
   return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
+}
+
+// -------------------------
+// Layer 3 — Letter → Word speech helpers
+// -------------------------
+const LETTER_NAME_HE: Record<string, string> = {
+  A: 'איי',
+  B: 'בי',
+  C: 'סי',
+  D: 'די',
+  E: 'אי',
+  F: 'אף',
+  G: "ג׳י",
+  H: "אייץ׳",
+  I: 'איי',
+  J: "ג׳יי",
+  K: 'קיי',
+  L: 'אל',
+  M: 'אם',
+  N: 'אן',
+  O: 'או',
+  P: 'פי',
+  Q: 'קיו',
+  R: 'אר',
+  S: 'אס',
+  T: 'טי',
+  U: 'יו',
+  V: 'וי',
+  W: 'דאבל-יו',
+  X: 'אקס',
+  Y: 'וואי',
+  Z: 'זי',
+};
+
+function buildLetterWordPhraseEN(letter: string, wordEn: string): string {
+  const L = (letter ?? '').trim();
+  const W = (wordEn ?? '').trim();
+  if (!L) return W;
+  if (!W) return L;
+  return `${L} as in ${W}.`;
+}
+
+function buildLetterWordPhraseHE(letter: string, wordEn: string, wordHe: string): string {
+  const L = (letter ?? '').trim().toUpperCase();
+  const WEN = (wordEn ?? '').trim();
+  const WHE = (wordHe ?? '').trim();
+  const letterNameHe = LETTER_NAME_HE[L] ?? L;
+  if (WEN && WHE) return `${WEN} זה ${WHE}. ${WEN} מתחיל ב־${letterNameHe}.`;
+  if (WHE) return WHE;
+  if (WEN) return `${WEN} מתחיל ב־${letterNameHe}.`;
+  return letterNameHe;
+}
+
+import { speakText } from '../../audio';
+
+function speakHebrew(text: string) {
+  const t = (text ?? '').trim();
+  if (!t) return;
+  stopTTS();
+  speakHebrewText(t);
+}
+
+
+function speakCurrentEN(it: any, isRtl: boolean, effectiveAudio: any) {
+  const link = it?.link;
+  if (link?.en) {
+    const phrase = buildLetterWordPhraseEN(it?.en ?? '', link.en);
+    stopTTS();
+    speakContentItem({ text: phrase }, { settings: effectiveAudio });
+    return;
+  }
+  const text = getItemSpeakText(it as ContentItem, isRtl);
+  stopTTS();
+  speakContentItem({ text }, { settings: effectiveAudio });
+}
+
+function speakCurrentHE(it: any) {
+  const link = it?.link;
+  if (link?.en && link?.he) {
+    const phrase = buildLetterWordPhraseHE(it?.en ?? '', link.en, link.he);
+    speakHebrew(phrase);
+    return;
+  }
+  const he = (it?.he ?? it?.en ?? '').trim();
+  speakHebrew(he);
 }
 
 export function UnitLearnScreen({
@@ -136,10 +241,7 @@ export function UnitLearnScreen({
     lastAutoSpeakKey.current = key;
 
     const tt = setTimeout(() => {
-      stopTTS();
-
-      const text = getItemSpeakText(current, isRtl);
-      speakContentItem({ text }, { settings: effectiveAudio });
+      speakCurrentEN(current as any, isRtl, effectiveAudio);
 
       setHeardThisItem(true);
     }, 420);
@@ -375,7 +477,45 @@ export function UnitLearnScreen({
         <Card>
           <View style={styles.cardContent}>
             <View style={styles.visualWrap}>
-              <ItemVisual item={current as ContentItem} size={160} />
+              {(() => {
+                const link = getLinkSpec(current as ContentItem);
+                if (!link) {
+                  return <ItemVisual item={current as ContentItem} size={160} />;
+                }
+
+                const img = getItemVisualImage(link.iconId);
+
+                return (
+                  <View style={styles.linkRow}>
+                    <View style={styles.linkCell}>
+                      <ItemVisual item={current as ContentItem} size={110} />
+                    </View>
+
+                    <Text style={styles.linkArrow}>➜</Text>
+
+                    <View style={styles.linkCell}>
+                      {img ? (
+                        <View style={styles.linkIconBox}>
+                          <Image source={img} style={{ width: 96, height: 96 }} resizeMode="contain" />
+                        </View>
+                      ) : (
+                        <ItemVisual
+                          item={
+                            {
+                              id: link.iconId,
+                              en: link.en,
+                              he: link.he,
+                              visual: { kind: 'image', assetId: link.iconId } as any,
+                            } as any
+                          }
+                          size={110}
+                        />
+                      )}
+                      <Text style={[styles.linkWord, isRtl && styles.rtl]}>{link.en}</Text>
+                    </View>
+                  </View>
+                );
+              })()}
             </View>
 
             {!hideTextLine && (
@@ -391,9 +531,7 @@ export function UnitLearnScreen({
                   if (now - lastSpeakAtRef.current < 300) return;
                   lastSpeakAtRef.current = now;
 
-                  stopTTS();
-                  const text = getItemSpeakText(current, isRtl);
-                  speakContentItem({ text }, { settings: effectiveAudio });
+                  speakCurrentEN(current as any, isRtl, effectiveAudio);
 
                   setHeardThisItem(true);
                   showToast(t('learn.learn.toastHeard'));
@@ -401,6 +539,24 @@ export function UnitLearnScreen({
                 style={styles.bigBtn}
               >
                 {t('learn.learn.buttonHear')}
+              </Button>
+
+              <Button
+                onClick={() => {
+                  const now = Date.now();
+                  if (now - lastSpeakAtRef.current < 300) return;
+                  lastSpeakAtRef.current = now;
+
+                  stopTTS();
+                  const text = getSpeakTextHebrew(current as ContentItem);
+                  speakHebrewText(text, { settings: effectiveAudio });
+
+                  // counts as "heard" for gating Next
+                  setHeardThisItem(true);
+                }}
+                style={styles.bigBtn}
+              >
+                {t('learn.learn.buttonHearHe')}
               </Button>
 
               <Button
@@ -474,6 +630,26 @@ const styles = StyleSheet.create({
 
   cardContent: { gap: 12 },
   visualWrap: { alignItems: 'center' },
+
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  linkCell: { alignItems: 'center', justifyContent: 'center' },
+  linkArrow: { fontSize: 26, fontWeight: '900' },
+  linkIconBox: {
+    width: 132,
+    height: 132,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#111',
+  },
+  linkWord: { marginTop: 8, fontSize: 18, fontWeight: '800', textAlign: 'center' },
 
   wordLine: { fontSize: 28, fontWeight: '900', textAlign: 'center' },
   toastLine: { marginTop: 4, opacity: 0.75, textAlign: 'center', minHeight: 20 },

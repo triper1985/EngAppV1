@@ -4,7 +4,14 @@ export type { TTSSpeed, VoiceId, AudioSettings } from './settings';
 export { getAudioSettings, setAudioSettings, getEffectiveAudioSettings } from './settings';
 
 export type { SpeakContext, SpeakItemLike } from './tts';
-export { speakText, speakItem, speakContentItem, speakItemOnce, stopTTS } from './tts';
+export {
+  speakText,
+  speakHebrewText,
+  speakItem,
+  speakContentItem,
+  speakItemOnce,
+  stopTTS,
+} from './tts';
 
 export type { FxEvent } from './fx';
 export {

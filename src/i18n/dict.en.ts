@@ -44,7 +44,7 @@ export const DICT_EN: Record<string, string> = {
   'learn.layer.2.desc': 'Build everyday words and start using interest packs.',
   // Layer 3 now includes both letters + numbers
   'learn.layer.3.title': 'Letters & Numbers',
-  'learn.layer.3.desc': 'Upper/lowercase letters + basic numbers.',
+  'learn.layer.3.desc': 'Upper letters + basic numbers.',
   'learn.layer.4.title': 'Early Recognition',
   'learn.layer.4.desc': 'Sight words and early recognition (no free writing).',
 
@@ -590,5 +590,43 @@ export const DICT_EN: Record<string, string> = {
   'learn.common.cancel': 'Cancel',
   'learn.common.confirm': 'Confirm',
   'learn.learn.confirmExitTitle': 'Exit learning?',
+
+
+  // -----------------------------------------
+  // Layer 2 — Core Vocabulary (New)
+  // -----------------------------------------
+  'content.pack.home.title': 'Home',
+  'content.pack.home.desc': 'Everyday things at home.',
+  'content.group.home.title': 'Home',
+  'content.pack.clothes.title': 'Clothes',
+  'content.pack.clothes.desc': 'Basic clothes you wear.',
+  'content.group.clothes.title': 'Clothes',
+  'content.pack.food.title': 'Food',
+  'content.pack.food.desc': 'Simple food and drinks.',
+  'content.group.food.title': 'Food',
+  'content.pack.transport.title': 'Transport',
+  'content.pack.transport.desc': 'Ways to move around.',
+  'content.group.transport.title': 'Transport',
+  'content.pack.toys.title': 'Toys',
+  'content.pack.toys.desc': 'Fun toys and games.',
+  'content.group.toys.title': 'Toys',
+
+    // =========================
+  // Layer 3 — Letter → Word
+  // =========================
+  'content.pack.letter_words.title': 'Letter → Word',
+  'content.group.letter_words.title': 'Letter → Word',
+  'unit.letter_words.learn.title': 'Letter → Word',
+
+'learn.learn.buttonHearHe': '🇮🇱 Hebrew',
+'learn.quiz.buttonHearHe': '🇮🇱 Hebrew',
+
+'content.pack.letter_words.desc': 'Match a letter to a word (A → Apple).',
+
+'beginner.unit.letter_words_a_f.title': 'A–F',
+'beginner.unit.letter_words_g_l.title': 'G–L',
+'beginner.unit.letter_words_m_r.title': 'M–R',
+'beginner.unit.letter_words_s_z.title': 'S–Z',
+
 
 };

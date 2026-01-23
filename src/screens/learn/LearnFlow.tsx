@@ -126,8 +126,8 @@ export function LearnFlow({ child, onBack, onChildUpdated }: Props) {
         onBack={() => setMode('units')}
         onStartQuiz={(unitId) => {
           setActiveUnitId(unitId);
-          setMode('quiz')}
-        }
+          setMode('quiz');
+        }}
       />
     );
   }

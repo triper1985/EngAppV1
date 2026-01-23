@@ -89,7 +89,10 @@ export function ItemVisual({ item, size = 68, style }: Props) {
         <Text
           style={[
             styles.centerText,
-            { fontSize: Math.round(size * 0.55), lineHeight: Math.round(size * 0.6) },
+            {
+              fontSize: Math.round(size * 0.55),
+              lineHeight: Math.round(size * 0.6),
+            },
           ]}
         >
           🖼️
@@ -99,6 +102,20 @@ export function ItemVisual({ item, size = 68, style }: Props) {
   }
 
   // v.kind === 'text'
+  const textVal = v.he;
+  const isNumeric = /^\d+$/.test(textVal.trim());
+  const digits = textVal.trim().length;
+
+  // For multi-digit numbers, shrink more aggressively to avoid clipping (11→1 issue).
+  const numericFontSize =
+    digits <= 1
+      ? textSize
+      : digits === 2
+        ? Math.round(textSize * 0.85)
+        : digits === 3
+          ? Math.round(textSize * 0.72)
+          : Math.round(textSize * 0.62);
+
   return (
     <View
       accessibilityLabel={item.en}
@@ -113,16 +130,16 @@ export function ItemVisual({ item, size = 68, style }: Props) {
           styles.centerText,
           styles.textBold,
           {
-            fontSize: textSize,
-            lineHeight: Math.round(textSize * 1.05),
-            paddingHorizontal: 6,
+            fontSize: isNumeric ? numericFontSize : textSize,
+            lineHeight: Math.round((isNumeric ? numericFontSize : textSize) * 1.05),
+            paddingHorizontal: isNumeric ? 2 : 6,
           },
         ]}
-        numberOfLines={2}
+        numberOfLines={isNumeric ? 1 : 2}
         adjustsFontSizeToFit
-        minimumFontScale={0.7}
+        minimumFontScale={isNumeric ? 0.45 : 0.7}
       >
-        {v.he}
+        {textVal}
       </Text>
     </View>
   );

@@ -50,10 +50,10 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
           const statusLabel = layer.isLocked
             ? '🔒'
             : layer.isDone
-            ? '✅'
-            : layer.isCurrent
-            ? '⭐'
-            : '•';
+              ? '✅'
+              : layer.isCurrent
+                ? '⭐'
+                : '•';
 
           const v = getVisual('layer', `layer${layerId}`);
 
@@ -78,21 +78,21 @@ export function LearnHomeScreen({ child, onBack, onEnterLayer }: Props) {
                     {statusLabel} {header} — {t(layerTitleKey)}
                   </Text>
 
-                <Text style={[styles.meta, isRtl && styles.metaRtl]}>
-                  {t('learn.groups.progressLabel')} {layer.progressPct}%
-                </Text>
-
-                <Text style={[styles.desc, isRtl && styles.rtl]}>
-                  {t(layerDescKey)}
-                </Text>
-
-                {layer.isCurrent && (
-                  <Text style={[styles.currentNote, isRtl && styles.metaRtl]}>
-                    {t('learn.groups.currentLayer', {
-                      layer: String(layerId),
-                    })}
+                  <Text style={[styles.meta, isRtl && styles.metaRtl]}>
+                    {t('learn.groups.progressLabel')} {layer.progressPct}%
                   </Text>
-                )}
+
+                  <Text style={[styles.desc, isRtl && styles.rtl]}>
+                    {t(layerDescKey)}
+                  </Text>
+
+                  {layer.isCurrent && (
+                    <Text style={[styles.currentNote, isRtl && styles.metaRtl]}>
+                      {t('learn.groups.currentLayer', {
+                        layer: String(layerId),
+                      })}
+                    </Text>
+                  )}
 
                   <View style={[styles.actions, isRtl && styles.rowRtl]}>
                     <Text style={[styles.lockedText, isRtl && styles.metaRtl]}>

@@ -134,17 +134,17 @@ export function LearnUnitsScreen({
                           layer: String(unitRequiredLayer),
                         })
                       : meta.status === 'learn'
-                      ? t('learn.units.status.learnProgress', {
-                          seen: String(meta.seenCount),
-                          total: String(meta.totalCount),
-                        })
-                      : meta.status === 'quiz'
-                      ? t('learn.units.status.readyForQuiz', {
-                          pass: String(QUIZ_PASS_SCORE),
-                        })
-                      : t('learn.units.status.completedBest', {
-                          best: String(meta.bestQuizScore ?? 0),
-                        })}
+                        ? t('learn.units.status.learnProgress', {
+                            seen: String(meta.seenCount),
+                            total: String(meta.totalCount),
+                          })
+                        : meta.status === 'quiz'
+                          ? t('learn.units.status.readyForQuiz', {
+                              pass: String(QUIZ_PASS_SCORE),
+                            })
+                          : t('learn.units.status.completedBest', {
+                              best: String(meta.bestQuizScore ?? 0),
+                            })}
                   </Text>
                 </View>
 
@@ -223,4 +223,3 @@ const styles = StyleSheet.create({
   rtl: { textAlign: 'right' as const },
   metaRtl: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });
- 

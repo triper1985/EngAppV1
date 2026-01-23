@@ -1,6 +1,7 @@
 // src/screens/learn/UnitQuizScreen.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import * as Speech from 'expo-speech';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
@@ -26,6 +27,7 @@ import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCat
 import {
   playFx,
   speakContentItem,
+  speakHebrewText,
   stopTTS,
   stopAllFx,
   getEffectiveAudioSettings,
@@ -39,9 +41,17 @@ import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { useToast } from '../../ui/useToast';
 
+import { Confetti } from '../../components/Confetti';
+
 import { useI18n } from '../../i18n/I18nContext';
 import { ItemVisual } from './ItemVisual';
-import { Confetti } from '../../components/Confetti';
+
+function getSpeakTextHebrew(it: ContentItem): string {
+  const anyIt = it as any;
+  const linkHe = typeof anyIt?.link?.he === 'string' ? anyIt.link.he : '';
+  if (linkHe && linkHe.trim()) return linkHe.trim();
+  return (it.he ?? it.en ?? it.id ?? '').trim() || ' ';
+}
 
 import { shuffle, sampleDistinct } from './learnUtils';
 
@@ -63,6 +73,69 @@ function getSpeakTextForItem(it: ContentItem): string {
   // V1LearnTest decision: TTS is always English.
   const txt = it.en ?? it.he;
   return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
+}
+
+// -------------------------
+// Layer 3 — Letter → Word speech helpers
+// -------------------------
+const LETTER_NAME_HE: Record<string, string> = {
+  A: 'איי', B: 'בי', C: 'סי', D: 'די', E: 'אי', F: 'אף',
+  G: "ג׳י", H: "אייץ׳", I: 'איי', J: "ג׳יי", K: 'קיי', L: 'אל',
+  M: 'אם', N: 'אן', O: 'או', P: 'פי', Q: 'קיו', R: 'אר',
+  S: 'אס', T: 'טי', U: 'יו', V: 'וי', W: 'דאבל-יו', X: 'אקס', Y: 'וואי', Z: 'זי',
+};
+
+function buildLetterWordPhraseEN(letter: string, wordEn: string): string {
+  const L = (letter ?? '').trim();
+  const W = (wordEn ?? '').trim();
+  if (!L) return W;
+  if (!W) return L;
+  return `${L} as in ${W}.`;
+}
+
+function buildLetterWordPhraseHE(letter: string, wordEn: string, wordHe: string): string {
+  const L = (letter ?? '').trim().toUpperCase();
+  const WEN = (wordEn ?? '').trim();
+  const WHE = (wordHe ?? '').trim();
+  const letterNameHe = LETTER_NAME_HE[L] ?? L;
+  if (WEN && WHE) return `${WEN} זה ${WHE}. ${WEN} מתחיל ב־${letterNameHe}.`;
+  if (WHE) return WHE;
+  if (WEN) return `${WEN} מתחיל ב־${letterNameHe}.`;
+  return letterNameHe;
+}
+
+function speakHebrew(text: string) {
+  const t = (text ?? '').trim();
+  if (!t) return;
+  stopTTS();
+  try {
+    Speech.speak(t, { language: 'he-IL', rate: 1.0 });
+  } catch {
+    // ignore
+  }
+}
+
+function speakPromptEN(it: any, effectiveAudio: any) {
+  const link = it?.link;
+  if (link?.en) {
+    const phrase = buildLetterWordPhraseEN(it?.en ?? '', link.en);
+    stopTTS();
+    speakContentItem({ text: phrase }, { settings: effectiveAudio });
+    return;
+  }
+  const text = getSpeakTextForItem(it as ContentItem);
+  stopTTS();
+  speakContentItem({ text }, { settings: effectiveAudio });
+}
+
+function speakPromptHE(it: any) {
+  const link = it?.link;
+  if (link?.en && link?.he) {
+    speakHebrew(buildLetterWordPhraseHE(it?.en ?? '', link.en, link.he));
+    return;
+  }
+  const he = (it?.he ?? it?.en ?? '').trim();
+  speakHebrew(he);
 }
 
 export function UnitQuizScreen({
@@ -173,9 +246,8 @@ export function UnitQuizScreen({
       if (lockedToday) return;
       if (finished) return;
 
-      const text = getSpeakTextForItem(correctItem);
-      speakContentItem({ text }, { settings: effectiveAudio });
-    }, 120);
+      speakPromptEN(correctItem as any, effectiveAudio);
+}, 120);
 
     return () => clearTimeout(tt);
   }, [unitId, qIndex, q, correctItem, lockedToday, finished, effectiveAudio]);
@@ -439,7 +511,7 @@ export function UnitQuizScreen({
           <View style={styles.centerBlock}>
             <Text style={styles.promptTitle}>{t('learn.quiz.hearAndChoose')}</Text>
 
-            <View style={{ marginTop: 10 }}>
+            <View style={[styles.hearRow, { marginTop: 10 }]}>
               <Button
                 variant="primary"
                 onClick={() => {
@@ -450,15 +522,30 @@ export function UnitQuizScreen({
                   lastSpeakAtRef.current = now;
 
                   // ✅ no tap FX here — keep the word clean
-                  stopTTS();
-
-                  const text = getSpeakTextForItem(correctItem);
-                  speakContentItem({ text }, { settings: effectiveAudio });
-                }}
+                  speakPromptEN(correctItem as any, effectiveAudio);
+}}
                 disabled={!correctItem}
-                style={styles.bigBtn}
+                style={[styles.bigBtn, styles.hearBtn]}
               >
                 {t('learn.quiz.buttonHear')}
+              </Button>
+
+              <Button
+                onClick={() => {
+                  if (!correctItem) return;
+
+                  const now = Date.now();
+                  if (now - lastSpeakAtRef.current < 300) return;
+                  lastSpeakAtRef.current = now;
+
+                  stopTTS();
+                  const text = getSpeakTextHebrew(correctItem);
+                  speakHebrewText(text, { settings: effectiveAudio });
+                }}
+                disabled={!correctItem}
+                style={[styles.bigBtn, styles.hearBtn]}
+              >
+                {t('learn.quiz.buttonHearHe')}
               </Button>
             </View>
           </View>
@@ -576,6 +663,10 @@ const styles = StyleSheet.create({
   centerBlock: { marginTop: 16, alignItems: 'center' },
 
   promptTitle: { fontWeight: '900', fontSize: 22, textAlign: 'center' },
+
+  hearRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' },
+  hearBtn: { minWidth: 140 },
+
   bigBtn: { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14 },
 
   // ✅ Stable 2×2 grid without gap (Android safe)

@@ -59,6 +59,29 @@ https://www.flaticon.com/free-icons/animals
 Space exploration icons created by Dewi Sari - Flaticon
 https://www.flaticon.com/free-icons/space-exploration
 
+## home icons (home / home.png)
+Home icons created by Freepik - Flaticon  
+https://www.flaticon.com/free-icons/home
+
+## clothing icons (clothes / clothes.png)
+Clothing icons created by Wichai.wi - Flaticon  
+https://www.flaticon.com/free-icons/clothing
+
+## fast food icons (food / food.png)
+Fast food icons created by Freepik - Flaticon  
+https://www.flaticon.com/free-icons/fast-food
+
+## transport icons (transport / transport.png)
+Transport icons created by geotatah - Flaticon  
+https://www.flaticon.com/free-icons/transport
+
+## toys icons (toys / toys.png)
+Toys icons created by wanicon - Flaticon  
+https://www.flaticon.com/free-icons/toys
+
+## letter → word icons (letter_words / letter_a.png)
+Letter a icons created by Smashicons - Flaticon  
+https://www.flaticon.com/free-icons/letter-a
 
 
 # Credits
@@ -211,3 +234,133 @@ and are used under the Flaticon Free License (attribution required).
 
 - Snake icon — created by Freepik  
   https://www.flaticon.com/free-icons/snake
+
+
+### Home
+
+- Bed icon — created by Freepik  
+  https://www.flaticon.com/free-icons/bed
+
+- Chair icon — created by rsetiawan  
+  https://www.flaticon.com/free-icons/chair
+
+- Table icon — created by Payungkead  
+  https://www.flaticon.com/free-icons/table
+
+- Door icon — created by Freepik  
+  https://www.flaticon.com/free-icons/door
+
+- Window icon — created by Freepik  
+  https://www.flaticon.com/free-icons/window
+
+### Clothes
+
+- Shirt icon — created by AmethystDesign  
+  https://www.flaticon.com/free-icons/shirt
+
+- Pants icon — created by Freepik  
+  https://www.flaticon.com/free-icons/pants
+
+- Shoes icon — created by Smashicons  
+  https://www.flaticon.com/free-icons/shoes
+
+- Hat icon — created by Freepik  
+  https://www.flaticon.com/free-icons/hat
+
+
+### Food
+
+- Apple icon — created by Freepik  
+  https://www.flaticon.com/free-icons/apple
+
+- Banana icon — created by Eucalyp  
+  https://www.flaticon.com/free-icons/banana-juice
+
+- Bread icon — created by Freepik  
+  https://www.flaticon.com/free-icons/bread
+
+- Milk icon — created by Freepik  
+  https://www.flaticon.com/free-icons/milk
+
+- Water bottle icon — created by Freepik  
+  https://www.flaticon.com/free-icons/bottle
+
+
+### Transport
+
+- Car icon — created by Konkapp  
+  https://www.flaticon.com/free-icons/car
+
+- Bus icon — created by Assia Benkerroum  
+  https://www.flaticon.com/free-icons/school
+
+- Train icon — created by Smashicons  
+  https://www.flaticon.com/free-icons/train
+
+- Bike (bicycle) icon — created by Freepik  
+  https://www.flaticon.com/free-icons/bike
+
+
+### Toys
+
+- Ball (soccer) icon — created by mavadee  
+  https://www.flaticon.com/free-icons/soccer
+
+- Doll icon — created by Freepik  
+  https://www.flaticon.com/free-icons/doll
+
+- Teddy bear icon — created by amonrat rungreangfangsai  
+  https://www.flaticon.com/free-icons/doll
+
+- Blocks / Toy icon — created by Darius Dan  
+  https://www.flaticon.com/free-icons/toy
+
+### Letter → Word
+
+- Egg icon — created by Those Icons  
+  https://www.flaticon.com/free-icons/egg
+
+- Ice cream icon — created by Freepik  
+  https://www.flaticon.com/free-icons/ice-cream
+
+- Juice icon — created by Freepik  
+  https://www.flaticon.com/free-icons/juice
+
+- Kite icon — created by Freepik  
+  https://www.flaticon.com/free-icons/kite
+
+- Moon icon — created by Freepik  
+  https://www.flaticon.com/free-icons/sleep
+
+- Nose icon — created by Freepik  
+  https://www.flaticon.com/free-icons/nose
+
+- Orange icon — created by monkik  
+  https://www.flaticon.com/free-icons/orange
+
+- Queen icon — created by Smashicons  
+  https://www.flaticon.com/free-icons/queen
+
+- Robot icon — created by Freepik  
+  https://www.flaticon.com/free-icons/robot
+
+- Sun icon — created by Freepik  
+  https://www.flaticon.com/free-icons/smile
+
+- Tree icon — created by Freepik  
+  https://www.flaticon.com/free-icons/joshua-tree
+
+- Umbrella icon — created by Freepik  
+  https://www.flaticon.com/free-icons/umbrella
+
+- Van icon — created by Konkapp  
+  https://www.flaticon.com/free-icons/van
+
+- Xylophone icon — created by Freepik  
+  https://www.flaticon.com/free-icons/xylophone
+
+- Yo-yo icon — created by iconixar  
+  https://www.flaticon.com/free-icons/yoyo
+
+  Cat icons created by Flat Icons - Flaticon  
+  https://www.flaticon.com/free-icons/cat

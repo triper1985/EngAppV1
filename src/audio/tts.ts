@@ -97,6 +97,45 @@ export function speakText(text: string, ctx?: SpeakContext): void {
 }
 
 /**
+ * Speak Hebrew text (Beginner helper)
+ * ---------------------------------
+ * Some selected voices may not support Hebrew. For Beginner we allow
+ * a dedicated Hebrew speak button that forces a Hebrew language hint.
+ *
+ * We intentionally do NOT force a specific voiceId here, because voice ids
+ * are platform/device specific. Setting `language: 'he-IL'` usually selects
+ * a Hebrew-capable voice when available.
+ */
+export function speakHebrewText(text: string, ctx?: SpeakContext): void {
+  const t = (text ?? '').trim();
+  if (!t) return;
+
+  const settings = resolveSettings(ctx);
+  const ttsEnabled = (settings as any).ttsEnabled ?? true;
+  if (!ttsEnabled) return;
+
+  // ✅ ensure no overlap
+  stopTTS();
+
+  // ✅ duck tap FX while speech is starting/playing
+  notifyTtsStart(1200);
+
+  const rate = clamp(rateFromSettings(settings), 0.6, 1.4);
+
+  try {
+    Speech.speak(t, {
+      rate,
+      language: 'he-IL',
+      onDone: () => notifyTtsStop(),
+      onStopped: () => notifyTtsStop(),
+      onError: () => notifyTtsStop(),
+    } as any);
+  } catch {
+    notifyTtsStop();
+  }
+}
+
+/**
  * Speak item wrapper.
  */
 export function speakItem(item: SpeakItemLike, ctx?: SpeakContext): void {
@@ -135,3 +174,5 @@ export function resetLocalOnceCache(): void {
   onceSpoken.clear();
   resetOnceScope();
 }
+
+

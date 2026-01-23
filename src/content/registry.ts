@@ -9,6 +9,13 @@ import { lettersPack } from './packs/core/lettersPack';
 import { colorsPack } from './packs/core/colorsPack';
 import { animalsPack } from './packs/core/animalsPack';
 
+import { homePack } from './packs/core/homePack';
+import { clothesPack } from './packs/core/clothesPack';
+import { foodPack } from './packs/core/foodPack';
+import { transportPack } from './packs/core/transportPack';
+import { toysPack } from './packs/core/toysPack';
+import { letterWordsPack } from './packs/core/letterWordsPack';
+
 import { spacePack } from './packs/interest/spacePack';
 
 export const BUILT_IN_PACKS: readonly ContentPack[] = [
@@ -16,6 +23,12 @@ export const BUILT_IN_PACKS: readonly ContentPack[] = [
   listeningPack,
   colorsPack,
   animalsPack,
+  homePack,
+  clothesPack,
+  letterWordsPack,
+  foodPack,
+  transportPack,
+  toysPack,
   numbersPack,
   lettersPack,
   spacePack,
@@ -80,3 +93,5 @@ export function listVisibleInterestPacks(): readonly ContentPack[] {
 export function listBeginnerBridgePacks(): readonly ContentPack[] {
   return BUILT_IN_PACKS.filter(isBeginnerBridgePack);
 }
+
+

@@ -87,10 +87,10 @@ export function LearnLayerScreen({
             const statusLabel = gvm.isLocked
               ? '🔒'
               : gvm.isDone
-              ? '✅'
-              : gvm.isCurrentLayer
-              ? '⭐'
-              : '•';
+                ? '✅'
+                : gvm.isCurrentLayer
+                  ? '⭐'
+                  : '•';
 
             const lockedSuffix = gvm.lockedSuffixKey
               ? ` • ${t(gvm.lockedSuffixKey, gvm.lockedSuffixVars)}`
@@ -122,15 +122,17 @@ export function LearnLayerScreen({
                       {statusLabel} {title}
                     </Text>
 
-                  <Text style={[styles.meta, isRtl && styles.metaRtl]}>
-                    {t('learn.groups.progressLabel')} {gvm.progressPct}% •{' '}
-                    {gvm.completed}/{gvm.total}
-                    {lockedSuffix}
-                  </Text>
+                    <Text style={[styles.meta, isRtl && styles.metaRtl]}>
+                      {t('learn.groups.progressLabel')} {gvm.progressPct}% •{' '}
+                      {gvm.completed}/{gvm.total}
+                      {lockedSuffix}
+                    </Text>
 
-                  {desc && (
-                    <Text style={[styles.desc, isRtl && styles.rtl]}>{desc}</Text>
-                  )}
+                    {desc && (
+                      <Text style={[styles.desc, isRtl && styles.rtl]}>
+                        {desc}
+                      </Text>
+                    )}
 
                     <View style={styles.actionsEnd}>
                       <Button

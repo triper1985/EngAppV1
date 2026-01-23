@@ -43,7 +43,7 @@ export const DICT_HE: Record<string, string> = {
   'learn.layer.2.desc': 'בונים מילים יומיומיות ומתחילים חבילות עניין.',
   // Layer 3 now includes both letters + numbers
   'learn.layer.3.title': 'אותיות ומספרים',
-  'learn.layer.3.desc': 'אותיות גדולות/קטנות + מספרים בסיסיים.',
+  'learn.layer.3.desc': 'אותיות גדולות + מספרים בסיסיים.',
   'learn.layer.4.title': 'זיהוי מוקדם',
   'learn.layer.4.desc': 'מילות ראייה וזיהוי מוקדם (ללא כתיבה חופשית).',
 
@@ -570,5 +570,42 @@ export const DICT_HE: Record<string, string> = {
   'learn.common.cancel': 'ביטול',
   'learn.common.confirm': 'אישור',
   'learn.learn.confirmExitTitle': 'רגע לפני שיוצאים…',
+
+
+  // -----------------------------------------
+  // Layer 2 — Core Vocabulary (New)
+  // -----------------------------------------
+  'content.pack.home.title': 'בבית',
+  'content.pack.home.desc': 'דברים נפוצים בבית.',
+  'content.group.home.title': 'בבית',
+  'content.pack.clothes.title': 'בגדים',
+  'content.pack.clothes.desc': 'בגדים בסיסיים.',
+  'content.group.clothes.title': 'בגדים',
+  'content.pack.food.title': 'אוכל',
+  'content.pack.food.desc': 'אוכל ושתייה בסיסיים.',
+  'content.group.food.title': 'אוכל',
+  'content.pack.transport.title': 'תחבורה',
+  'content.pack.transport.desc': 'דרכים לנוע ממקום למקום.',
+  'content.group.transport.title': 'תחבורה',
+  'content.pack.toys.title': 'צעצועים',
+  'content.pack.toys.desc': 'צעצועים ומשחקים.',
+  'content.group.toys.title': 'צעצועים',
+
+    // =========================
+  // שכבה 3 — אות → מילה
+  // =========================
+  'content.pack.letter_words.title': 'אות → מילה',
+
+  'content.group.letter_words.title': 'אות → מילה',
+  'unit.letter_words.learn.title': 'אות → מילה',
+'learn.learn.buttonHearHe': '🇮🇱 בעברית',
+'learn.quiz.buttonHearHe': '🇮🇱 בעברית',
+
+'content.pack.letter_words.desc': 'חיבור בין אות למילה (A → Apple).',
+
+'beginner.unit.letter_words_a_f.title': 'A–F',
+'beginner.unit.letter_words_g_l.title': 'G–L',
+'beginner.unit.letter_words_m_r.title': 'M–R',
+'beginner.unit.letter_words_s_z.title': 'S–Z',
 
 };

@@ -87,6 +87,15 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     emoji: '🔤',
     image: require('../assets/content/packs/letters.png'),
   },
+
+  // ===== Layer 3 — NEW =====
+  letter_words: {
+    kind: 'pack',
+    id: 'letter_words',
+    emoji: '🔗',
+    image: require('../assets/content/packs/letter_a.png'),
+  },
+
   colors: {
     kind: 'pack',
     id: 'colors',
@@ -99,6 +108,36 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     emoji: '🐾',
     image: require('../assets/content/packs/animals.png'),
   },
+  home: {
+    kind: 'pack',
+    id: 'home',
+    emoji: '🏠',
+    image: require('../assets/content/packs/home.png'),
+  },
+  clothes: {
+    kind: 'pack',
+    id: 'clothes',
+    emoji: '👕',
+    image: require('../assets/content/packs/clothes.png'),
+  },
+  food: {
+    kind: 'pack',
+    id: 'food',
+    emoji: '🍎',
+    image: require('../assets/content/packs/food.png'),
+  },
+  transport: {
+    kind: 'pack',
+    id: 'transport',
+    emoji: '🚗',
+    image: require('../assets/content/packs/transport.png'),
+  },
+  toys: {
+    kind: 'pack',
+    id: 'toys',
+    emoji: '🧸',
+    image: require('../assets/content/packs/toys.png'),
+  },
   space: {
     kind: 'pack',
     id: 'space',
@@ -106,7 +145,6 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     image: require('../assets/content/packs/space.png'),
   },
 };
-
 
 // -----------------
 // Units (optional)

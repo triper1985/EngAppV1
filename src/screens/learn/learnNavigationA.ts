@@ -108,6 +108,21 @@ export function getLearnHomeVM_A(args: {
   };
 }
 
+/**
+ * Layer 3 pedagogical order:
+ * - letters
+ * - numbers
+ * - letter_words
+ *
+ * Only affects layerId === 3.
+ * All other layers keep their original BEGINNER_GROUPS idx order.
+ */
+const LAYER3_GROUP_ORDER: Record<string, number> = {
+  letters: 10,
+  numbers: 20,
+  letter_words: 30,
+};
+
 export function getLearnLayerVM_A(args: {
   child: ChildProfile;
   layerId: number;
@@ -121,7 +136,19 @@ export function getLearnLayerVM_A(args: {
     return { g, idx, requiredLayer };
   })
     .filter((x) => x.requiredLayer === layerId)
-    .sort((a, b) => a.idx - b.idx);
+    .sort((a, b) => {
+      // ✅ Special sort only for Layer 3
+      if (layerId === 3) {
+        const ao = LAYER3_GROUP_ORDER[a.g.id] ?? 999;
+        const bo = LAYER3_GROUP_ORDER[b.g.id] ?? 999;
+        if (ao !== bo) return ao - bo;
+        // fallback stable ordering
+        return a.idx - b.idx;
+      }
+
+      // default: keep original order
+      return a.idx - b.idx;
+    });
 
   const groupVMs: GroupCardVM[] = groupsInLayer.map(({ g, requiredLayer }) => {
     const s = summarizeGroup(child, g.id);

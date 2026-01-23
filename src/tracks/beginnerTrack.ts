@@ -129,6 +129,37 @@ export const BEGINNER_UNITS: UnitDef[] = [];
 })();
 
 // ------------------------------------------------------------
+// ✅ Cross-pack gating for bridged packs
+// If you finish pack A, pack B unlocks (based on registry order).
+// Works with multi-group packs (colors_basics -> colors_neutrals, etc.).
+// ------------------------------------------------------------
+(function chainBridgedPacks() {
+  const packs = listBuiltInPacks().filter(isBeginnerBridgePack);
+
+  let prevLastUnitId: UnitId | null = null;
+
+  for (const p of packs) {
+    const gs = (p.groups ?? []).map((g) => g.id);
+    const effectiveGroupIds = gs.length > 0 ? gs : [p.id];
+
+    const firstUnitId = effectiveGroupIds[0];
+    const lastUnitId = effectiveGroupIds[effectiveGroupIds.length - 1];
+
+    if (prevLastUnitId) {
+      const firstUnit = BEGINNER_UNITS.find((u) => u.id === firstUnitId);
+      if (firstUnit) {
+        // Only add if not already present (preserve in-pack prereqs)
+        if (!firstUnit.prereqUnitIds.includes(prevLastUnitId)) {
+          firstUnit.prereqUnitIds = [prevLastUnitId, ...firstUnit.prereqUnitIds];
+        }
+      }
+    }
+
+    prevLastUnitId = lastUnitId;
+  }
+})();
+
+// ------------------------------------------------------------
 // ✅ Group ordering (source of truth)
 // Order = bridged packs in registry order, then built-in groups
 // ------------------------------------------------------------
