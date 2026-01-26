@@ -20,11 +20,21 @@ export const homePack: ContentPack = {
   meta: { tags: ['core', 'beginnerBridge'] },
 
   items: [
-    { id: 'home_bed', en: 'bed', he: 'מיטה', visual: { kind: 'text', he: '🛏️' } },
-    { id: 'home_chair', en: 'chair', he: 'כיסא', visual: { kind: 'text', he: '🪑' } },
-    { id: 'home_table', en: 'table', he: 'שולחן', visual: { kind: 'text', he: '🪑' } },
-    { id: 'home_door', en: 'door', he: 'דלת', visual: { kind: 'text', he: '🚪' } },
-    { id: 'home_window', en: 'window', he: 'חלון', visual: { kind: 'text', he: '🪟' } },
+    { id: 'home_bed', en: 'bed', he: 'מיטה',
+      heNiqqud: 'מִטָּה',
+    visual: { kind: 'text', he: '🛏️' } },
+    { id: 'home_chair', en: 'chair', he: 'כיסא',
+      heNiqqud: 'כִּסֵּא',
+    visual: { kind: 'text', he: '🪑' } },
+    { id: 'home_table', en: 'table', he: 'שולחן',
+      heNiqqud: 'שֻׁלְחָן',
+    visual: { kind: 'text', he: '🪑' } },
+    { id: 'home_door', en: 'door', he: 'דלת',
+      heNiqqud: 'דֶּלֶת',
+    visual: { kind: 'text', he: '🚪' } },
+    { id: 'home_window', en: 'window', he: 'חלון',
+      heNiqqud: 'חַלּוֹן',
+    visual: { kind: 'text', he: '🪟' } },
   ],
 
   // Keep as a single group (bridge fallback will treat pack as one unit)

@@ -20,11 +20,21 @@ export const foodPack: ContentPack = {
   meta: { tags: ['core', 'beginnerBridge'] },
 
   items: [
-    { id: 'food_apple', en: 'apple', he: 'תפוח', visual: { kind: 'text', he: '🍎' } },
-    { id: 'food_banana', en: 'banana', he: 'בננה', visual: { kind: 'text', he: '🍌' } },
-    { id: 'food_bread', en: 'bread', he: 'לחם', visual: { kind: 'text', he: '🍞' } },
-    { id: 'food_milk', en: 'milk', he: 'חלב', visual: { kind: 'text', he: '🥛' } },
-    { id: 'food_water', en: 'water', he: 'מים', visual: { kind: 'text', he: '💧' } },
+    { id: 'food_apple', en: 'apple', he: 'תפוח',
+      heNiqqud: 'תַּפּוּחַ',
+    visual: { kind: 'text', he: '🍎' } },
+    { id: 'food_banana', en: 'banana', he: 'בננה',
+      heNiqqud: 'בָּנָנָה',
+    visual: { kind: 'text', he: '🍌' } },
+    { id: 'food_bread', en: 'bread', he: 'לחם',
+      heNiqqud: 'לֶחֶם',
+    visual: { kind: 'text', he: '🍞' } },
+    { id: 'food_milk', en: 'milk', he: 'חלב',
+      heNiqqud: 'חָלָב',
+    visual: { kind: 'text', he: '🥛' } },
+    { id: 'food_water', en: 'water', he: 'מים',
+      heNiqqud: 'מַיִם',
+    visual: { kind: 'text', he: '💧' } },
   ],
 
   // Keep as a single group (bridge fallback will treat pack as one unit)

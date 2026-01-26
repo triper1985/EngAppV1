@@ -20,10 +20,18 @@ export const clothesPack: ContentPack = {
   meta: { tags: ['core', 'beginnerBridge'] },
 
   items: [
-    { id: 'clothes_shirt', en: 'shirt', he: 'חולצה', visual: { kind: 'text', he: '👕' } },
-    { id: 'clothes_pants', en: 'pants', he: 'מכנסיים', visual: { kind: 'text', he: '👖' } },
-    { id: 'clothes_shoes', en: 'shoes', he: 'נעליים', visual: { kind: 'text', he: '👟' } },
-    { id: 'clothes_hat', en: 'hat', he: 'כובע', visual: { kind: 'text', he: '🧢' } },
+    { id: 'clothes_shirt', en: 'shirt', he: 'חולצה',
+      heNiqqud: 'חוּלְצָה',
+    visual: { kind: 'text', he: '👕' } },
+    { id: 'clothes_pants', en: 'pants', he: 'מכנסיים',
+      heNiqqud: 'מִכְנָסַיִם',
+    visual: { kind: 'text', he: '👖' } },
+    { id: 'clothes_shoes', en: 'shoes', he: 'נעליים',
+      heNiqqud: 'נַעֲלַיִם',
+    visual: { kind: 'text', he: '👟' } },
+    { id: 'clothes_hat', en: 'hat', he: 'כובע',
+      heNiqqud: 'כּוֹבָע',
+    visual: { kind: 'text', he: '🧢' } },
   ],
 
   // Keep as a single group (bridge fallback will treat pack as one unit)

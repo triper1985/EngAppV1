@@ -1,0 +1,216 @@
+// src/i18n/dict.heNiqqud.ts
+/**
+ * Hebrew with Niqqud (child-only override)
+ * ----------------------------------------
+ * This dictionary is used ONLY in child UI (Beginner), to ensure readable Hebrew.
+ * Parent UI never uses niqqud (even in Hebrew).
+ *
+ * Add keys gradually as you verify they look and sound right.
+ */
+export const DICT_HE_NIQQUD: Record<string, string> = {
+  // Common (child-facing)
+  'learn.common.back': 'חֲזָרָה',
+  'learn.common.backOk': '✅ חֲזָרָה',
+  'learn.common.cancel': 'בִּטּוּל',
+  'learn.common.confirm': 'אִישּׁוּר',
+  'learn.common.next': 'הַבָּא',
+  'learn.common.start': 'הַתְחָלָה',
+  'learn.common.ok': 'אוֹקֵיי',
+  'learn.common.childLabel': 'מִשְׁתַּמֵּשׁ:',
+  'learn.common.unitNotFound': 'הַיְּחִידָה לֹא נִמְצְאָה',
+  // Learn (unit screen)
+  'learn.learn.buttonHear': '🎤 שְׁמַע',
+  'learn.learn.buttonHearHe': '🇮🇱 בְּעִבְרִית',
+  'learn.learn.buttonNext': 'הַבָּא ➡️',
+  'learn.learn.tip': 'טִיפּ: אֶפְשָׁר לִלְחֹץ "שְׁמַע" שׁוּב אִם רוֹצִים.',
+
+
+  // Child Hub
+  'childHub.title': 'מֶרְכַּז הַיֶּלֶד',
+  'childHub.greeting': 'הַיֵּי {name} 👋',
+  'childHub.startLearning': '📚 הַתְחֵל לִלְמוֹד',
+  'childHub.games': '🎮 מִשְׂחָקִים',
+  'childHub.iconShop': '🛍️ חֲנוּת אִיקוֹנִים',
+  'childHub.specialPacks': '✨ חֲבִילוֹת מְיֻחָדוֹת',
+  'childHub.changeIcon': 'שַׁנֵּה אִיקוֹן',
+  'childHub.show': 'הַצֵּג',
+  'childHub.hide': 'הַסְתֵּר',
+  'childHub.iconSelected': 'הָאִיקוֹן נִבְחַר!',
+  'childHub.iconNotUnlocked': 'הָאִיקוֹן הַזֶּה עֲדַיִן לֹא פָּתוּחַ.',
+
+  // Learn / Layers
+  'learn.groups.title': 'לִמּוּדֵי בָּסִיס',
+  'learn.groups.subtitle': 'בּוֹחֲרִים נוֹשֵׂא, וְאָז רוֹאִים בִּפְנִים מָה פָּתוּחַ וּמָה נָעוּל.',
+  'learn.groups.progressLabel': 'הִתְקַדְּמוּת:',
+  'learn.groups.unitsLabel': 'יְחִידוֹת לִמּוּד',
+
+  // Learn Units
+  'learn.units.title': 'יְחִידוֹת לִמּוּד',
+  'learn.units.subtitle':
+    'בְּחַר יְחִידָה לִלְמוֹד. אַחֲרֵי שֶׁסִּיַּמְתָּ לִרְאוֹת אֶת כָּל הַפְּרִיטִים — הַבֹּחַן נִפְתָּח.',
+  'learn.units.tipLockedToday': 'טִיפּ: אֶפְשָׁר לִלְחוֹץ "שְׁמַע" שׁוּב אִם רוֹצִים.',
+  'learn.units.tooltip.learnLocked': 'צָרִיךְ לְהַשְׁלִים יְחִידוֹת קוֹדְמוֹת לִפְנֵי לִמּוּד',
+  'learn.units.tooltip.lockedByLayer': 'נִפְתָּח הַחֵל מִשְּׁכָבָה {layer}',
+  'learn.units.tooltip.quizDailyLimit': 'הַבֹּחַן נִנְעָל אַחֲרֵי 3 נִסָּיוֹנוֹת עַד מָחָר',
+  'learn.units.toast.quizLockedToday': '🔒 הַבֹּחַן נָעוּל עַד סוֹף הַיּוֹם',
+  'learn.units.toast.lockedByLayer': '🔒 נִפְתָּח הַחֵל מִשְּׁכָבָה {layer}',
+  'learn.units.toast.quizOpensAfterLearn': '🧠 הַבֹּחַן נִפְתָּח אַחֲרֵי שֶׁמְּסַיְּמִים לִמּוּד',
+  'learn.units.toast.unitLocked': '🔒 הַיְּחִידָה עֲדַיִן נָעוּלָה',
+  'learn.units.learn.start': '▶️ הַתְחֵל לִמּוּד',
+  'learn.units.learn.continue': '⏩ הַמְשֵׁךְ לִמּוּד',
+  'learn.units.learn.review': '🔁 חֲזֹר עַל לִמּוּד',
+  'learn.units.learn.lockedByLayer': '🔒 נָעוּל',
+  'learn.units.quiz.start': '🧠 הַתְחֵל בֹּחַן',
+  'learn.units.quiz.retry': '🏁 בֹּחַן חוֹזֵר',
+  'learn.units.quiz.lockedToday': '🔒 בֹּחַן נָעוּל הַיּוֹם',
+  'learn.units.quiz.locked': '🔒 נָעוּל',
+  'learn.units.quiz.finishLearnFirst': '🔒 בֹּחַן (סַיֵּם לִמּוּד קוֹדֶם)',
+  'learn.units.quiz.lockedByLayer': '🔒 נָעוּל (נִפְתָּח מִשְּׁכָבָה {layer})',
+  'learn.units.status.locked': '🔒 נָעוּל (צָרִיךְ לְהַשְׁלִים יְחִידוֹת קוֹדְמוֹת)',
+  'learn.units.status.lockedByLayer': '🔒 נָעוּל עַד שְׁכָבָה {layer}',
+  'learn.units.status.learnProgress': '📚 לִמּוּד: {seen}/{total}',
+  'learn.units.status.quizLockedToday': '🔒 בֹּחַן נָעוּל הַיּוֹם',
+  'learn.units.status.readyForQuiz': '🧠 מוּכָן לַבֹּחַן (PASS {pass}%+)',
+  'learn.units.status.completedBest': '🏁 הוּשְׁלַם • Best: {best}%',
+  'learn.units.locked.layerTitle': 'נָעוּל לְפִי שְׁכָבָה',
+  'learn.units.locked.layerDesc': 'הַיְּחִידָה תִּפָּתַח כְּשֶׁתַּגִּיעַ לַשְּׁכָבָה הַנְּכוֹנָה.',
+  'learn.groups.noUnitsYet': 'אֵין יְחִידוֹת עֲדַיִן.',
+  'learn.groups.buttonLocked': 'נָעוּל',
+  'learn.groups.buttonEnter': 'כְּנִיסָה →',
+  'learn.groups.locked.noUnits': 'אֵין יְחִידוֹת עֲדַיִן.',
+  'learn.groups.locked.prereq': 'הַשְּׁלֵם יְחִידוֹת קוֹדְמוֹת כְּדֵי לִפְתֹּחַ.',
+  'learn.groups.locked.layer': 'נָעוּל עַד שֶׁתַּסִּיֵּם אֶת שְׁכָבָה {n}.',
+  'learn.groups.partial.layer': 'כִּמְעַט! הַמְשֵׁךְ בְּשְׁכָבָה {n}.',
+  'learn.groups.currentLayer': 'זוֹ הַשְּׁכָבָה הַנּוֹכְחִית שֶׁלְּךָ.',
+
+  'learn.layer.header': 'שְׁכָבָה {n}',
+  'learn.layer.empty.noContent': 'אֵין יְחִידוֹת עֲדַיִן.',
+
+  'learn.layer.0.title': 'הִתְמַצְּאוּת וּרְגָשׁוֹת',
+  'learn.layer.0.desc': 'הַכָּרוּת רִאשׁוֹנִית: בְּרָכוֹת פְּשׁוּטוֹת וְזִהוּי רְגָשׁוֹת.',
+  'learn.layer.1.title': 'הַקְשָׁבָה וּצְלִילִים',
+  'learn.layer.1.desc': 'בִּצּוּעַ הוֹרָאוֹת קְצָרוֹת וְזִהוּי צְלִילִים.',
+  'learn.layer.2.title': 'אוֹצַר מִלִּים בְּסִיסִי',
+  'learn.layer.2.desc': 'בּוֹנִים מִלִּים יוֹמְיוֹמִיּוֹת וּמַתְחִילִים חֲבִילוֹת עִנְיָן.',
+  'learn.layer.3.title': 'אוֹתִיּוֹת וּמִסְפָּרִים',
+  'learn.layer.3.desc': 'אוֹתִיּוֹת גְּדוֹלוֹת + מִסְפָּרִים בְּסִיסִיִּים.',
+  'learn.layer.4.title': 'זִהוּי מֻקְדָּם',
+  'learn.layer.4.desc': 'מִלּוֹת רְאִיָּה וְזִהוּי מֻקְדָּם (לְלֹא כְּתִיבָה חָפְשִׁית).',
+
+  // Units list
+  // Quiz
+  'learn.quiz.titleShort': 'בֹּחַן',
+  'learn.quiz.titleFallback': 'בֹּחַן',
+  'learn.quiz.unitLabel': 'יְחִידָה: {title}',
+  'learn.quiz.hearAndChoose': '🎧 שְׁמַע וּבְחַר',
+  'learn.quiz.buttonHear': '🔊 שְׁמַע',
+  'learn.quiz.buttonHearHe': '🇮🇱 בְּעִבְרִית',
+  'learn.quiz.buttonPractice': '🧩 תִּרְגּוּל',
+  'learn.quiz.buttonPracticeWrong': '🧩 תִּרְגּוּל עַל מַה שֶׁטָּעִיתִי',
+  'learn.quiz.buttonRetryNow': '🔁 נַסֵּה שׁוּב עַכְשָׁיו',
+  'learn.quiz.failedTitle': '💪 כִּמְעַט!',
+  'learn.quiz.failedSubtitle': 'בּוֹא נִתְרַגֵּל אוֹ נְנַסֶּה שׁוּב 🙂',
+  'learn.quiz.passedTitle': '🎉 אַלּוּפִים!',
+  'learn.quiz.toastCoins': 'כָּל הַכָּבוֹד! קִבַּלְתָּ {bonus} מַטְבֵּעוֹת',
+  'learn.quiz.attemptsToday': 'נִסָּיוֹנוֹת הַיּוֹם: {attempts}/3{willLock}',
+  'learn.quiz.willLockSuffix': ' • הַבֹּחַן נִנְעָל לְהַיּוֹם',
+  'learn.quiz.lockedTodayTitle': '🔒 הַבֹּחַן נָעוּל לְהַיּוֹם',
+  'learn.quiz.lockedTodayAttempts': 'עָשִׂיתָ כְּבָר {attempts}/3 נִסָּיוֹנוֹת הַיּוֹם',
+  'learn.quiz.lockedTodayHint':
+    'אֶפְשָׁר לְתַרְגֵּל אֶת מַה שֶׁטָּעִיתָ בּוֹ, וְלְנַסּוֹת שׁוּב מָחָר (אוֹ שֶׁהוֹרֶה יִפְתַּח).',
+  'learn.quiz.notEnoughItemsTitle': 'אֵין מַסְפִּיק פְּרִיטִים',
+  'learn.quiz.notEnoughItemsSubtitle':
+    'אֵין מַסְפִּיק פְּרִיטִים לַבֹּחַן (אוֹ שֶׁחֲסֵרִים בַּקָּטָלוֹג).',
+
+  // Practice
+  'learn.practice.titleShort': 'תִּרְגּוּל',
+  'learn.practice.titleFallback': 'תִּרְגּוּל',
+  'learn.practice.subtitleGeneral': 'נְתַרְגֵּל אֶת הַיְּחִידָה',
+  'learn.practice.subtitleFocused': 'נְתַרְגֵּל אֶת מַה שֶׁטָּעִיתָ בּוֹ הַיּוֹם',
+  'learn.practice.buttonTryQuiz': '🧠 נַסֵּה בֹּחַן',
+  'learn.practice.correctLine': '{correct}/{total} נָכוֹן',
+  'learn.practice.doneTitle': '🧩 סִיַּמְנוּ תִּרְגּוּל!',
+  'learn.practice.doneGeneral': 'תִּרְגַּלְנוּ אֶת הַיְּחִידָה ✅',
+  'learn.practice.doneFocused': 'תִּרְגַּלְנוּ בְּעִקָּר אֶת מַה שֶׁטָּעִיתָ בּוֹ הַיּוֹם ✅',
+  'learn.practice.notEnoughTitle': 'אֵין עֲדַיִן מַסְפִּיק פְּרִיטִים לְתִרְגּוּל',
+  'learn.practice.notEnoughSubtitle': 'אֵין מַסְפִּיק פְּרִיטִים כְּדֵי לִיצֹר תִּרְגּוּל כָּרֶגַע.',
+
+  // Packs / Groups (child-facing) — with Niqqud
+  'content.pack.animals.title': 'חַיּוֹת',
+  'content.pack.animals.desc': 'חַיּוֹת בְּסִיסִיּוֹת (חַוָה, יָם, ג׳וּנְגֶל).',
+
+  'content.pack.clothes.title': 'בְּגָדִים',
+  'content.pack.clothes.desc': 'בְּגָדִים בְּסִיסִיִּים.',
+
+  'content.pack.colors.title': 'צְבָעִים',
+  'content.pack.colors.desc':
+    'צְבָעִים לְרָמַת Beginner: תְּשׁוּבוֹת חֲזוּתִיּוֹת בִּלְבַד, לְלֹא צוֹרֶךְ בִּקְרִיאָה בְּאַנְגְּלִית.',
+
+  'content.pack.early_recognition.title': 'זִיהוּי מֻקְדָּם',
+  'content.pack.early_recognition.desc': 'זִיהוּי מָהִיר וְהַתְאָמָה חֲזוּתִית.',
+
+  'content.pack.food.title': 'אֹכֶל',
+  'content.pack.food.desc': 'אֹכֶל וּשְׁתִיָּה בְּסִיסִיִּים.',
+
+  'content.pack.foundations.title': 'יְסוֹדוֹת',
+  'content.pack.foundations.desc':
+    'הַמִּלִּים הָרִאשׁוֹנוֹת: שָׁלוֹם/בַּיי, כֵּן/לֹא, וּרְגָשׁוֹת בְּסִיסִיִּים.',
+
+  'content.pack.home.title': 'בַּבַּיִת',
+  'content.pack.home.desc': 'דְּבָרִים נְפוּצִים בַּבַּיִת.',
+
+  'content.pack.letter_words.title': 'אוֹת → מִלָּה',
+  'content.pack.letter_words.desc': 'חִבּוּר בֵּין אוֹת לְמִלָּה (A → Apple).',
+
+  'content.pack.listening.title': 'הַקְשָׁבָה וְצְלִילִים',
+  'content.pack.listening.desc': 'הַקְשֵׁב וְהַגֵּב: פְּעוּלוֹת פְּשׁוּטוֹת וּמִלּוֹת קֶשֶׁב.',
+
+  'content.pack.numbers.title': 'מִסְפָּרִים',
+  'content.pack.numbers.desc': 'לוֹמְדִים לוֹמַר וּלְזַהוֹת מִסְפָּרִים (שְׁמִיעָה → סִימָן).',
+
+  'content.pack.space.title': 'חָלָל',
+  'content.pack.space.desc': 'יְסוֹדוֹת הֶחָלָל: לוֹמְדִים מִלִּים לְפִי שְׁמִיעָה וְאִיקוֹנִים.',
+
+  'content.pack.toys.title': 'צַעֲצוּעִים',
+  'content.pack.toys.desc': 'צַעֲצוּעִים וּמִשְׂחָקִים.',
+
+  'content.pack.transport.title': 'תַּחְבּוּרָה',
+  'content.pack.transport.desc': 'דְּרָכִים לָנוּעַ מִמָּקוֹם לְמָקוֹם.',
+
+  'content.group.animals_farm.title': 'חַיּוֹת – חַוָה',
+  'content.group.animals_jungle.title': 'חַיּוֹת – ג׳וּנְגֶל',
+  'content.group.animals_sea.title': 'חַיּוֹת – יָם',
+
+  'content.group.classroom_attention.title': 'קֶשֶׁב',
+  'content.group.clothes.title': 'בְּגָדִים',
+
+  'content.group.colors_basics.title': 'צְבָעִים – בָּסִיס',
+  'content.group.colors_fun.title': 'צְבָעִים – כֵּיף',
+  'content.group.colors_neutrals.title': 'צְבָעִים – נֵיטְרָלִי',
+
+  'content.group.early_recognition_directions.title': 'כִּוּוּנִים',
+  'content.group.early_recognition_faces.title': 'פָּנִים',
+  'content.group.early_recognition_shapes.title': 'צוּרוֹת דּוֹמוֹת',
+
+  'content.group.emotions.title': 'רְגָשׁוֹת',
+  'content.group.food.title': 'אֹכֶל',
+  'content.group.home.title': 'בַּבַּיִת',
+  'content.group.letter_words.title': 'אוֹת → מִלָּה',
+  'content.group.orientation.title': 'הִכָּרוּת',
+  'content.group.sounds_actions.title': 'פְּעוּלוֹת',
+  'content.group.space_basics.title': 'חָלָל – בָּסִיס',
+  'content.group.toys.title': 'צַעֲצוּעִים',
+  'content.group.transport.title': 'תַּחְבּוּרָה',
+  // Added: Units/Buttons/Beginner unit titles
+  'learn.learn.tooltipNeedHear': 'קֹדֶם נִשְׁמַע לְפָחוֹת פַּעַם אַחַת 😊',
+  'beginner.unit.letters_a_f.title': 'אוֹתִיּוֹת A–F',
+  'beginner.unit.letters_g_l.title': 'אוֹתִיּוֹת G–L',
+  'beginner.unit.letters_m_r.title': 'אוֹתִיּוֹת M–R',
+  'beginner.unit.letters_s_z.title': 'אוֹתִיּוֹת S–Z',
+  'beginner.unit.numbers_1_5.title': 'מִסְפָּרִים 1–5',
+  'beginner.unit.numbers_6_10.title': 'מִסְפָּרִים 6–10',
+  'beginner.unit.numbers_11_15.title': 'מִסְפָּרִים 11–15',
+  'beginner.unit.numbers_16_20.title': 'מִסְפָּרִים 16–20',
+  'beginner.unit.numbers_21_25.title': 'מִסְפָּרִים 21–25',
+
+};

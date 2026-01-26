@@ -20,10 +20,18 @@ export const toysPack: ContentPack = {
   meta: { tags: ['core', 'beginnerBridge'] },
 
   items: [
-    { id: 'toys_ball', en: 'ball', he: 'כדור', visual: { kind: 'text', he: '⚽' } },
-    { id: 'toys_doll', en: 'doll', he: 'בובה', visual: { kind: 'text', he: '🪆' } },
-    { id: 'toys_teddy', en: 'teddy bear', he: 'דובי', visual: { kind: 'text', he: '🧸' } },
-    { id: 'toys_blocks', en: 'blocks', he: 'קוביות', visual: { kind: 'text', he: '🧱' } },
+    { id: 'toys_ball', en: 'ball', he: 'כדור',
+      heNiqqud: 'כַּדּוּר',
+    visual: { kind: 'text', he: '⚽' } },
+    { id: 'toys_doll', en: 'doll', he: 'בובה',
+      heNiqqud: 'בּוּבָּה',
+    visual: { kind: 'text', he: '🪆' } },
+    { id: 'toys_teddy', en: 'teddy bear', he: 'דובי',
+      heNiqqud: 'דֹּבִי',
+    visual: { kind: 'text', he: '🧸' } },
+    { id: 'toys_blocks', en: 'blocks', he: 'קוביות',
+      heNiqqud: 'קֻבִּיּוֹת',
+    visual: { kind: 'text', he: '🧱' } },
   ],
 
   // Keep as a single group (bridge fallback will treat pack as one unit)

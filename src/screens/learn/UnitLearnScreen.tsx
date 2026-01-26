@@ -15,15 +15,7 @@ import { getBeginnerProgress } from '../../tracks/beginnerProgress';
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
 
 // ✅ audio layer
-import {
-  playFx,
-  playFxAndWait,
-  stopAllFx,
-  speakContentItem,
-  speakHebrewText,
-  stopTTS,
-  getEffectiveAudioSettings,
-} from '../../audio';
+import { playFx, playFxAndWait, stopAllFx, speakContentItem, speakHebrewItemLike, stopTTS, getEffectiveAudioSettings, speakLetterWordEN, speakLetterWordHE } from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
 
@@ -36,6 +28,11 @@ import { useI18n } from '../../i18n/I18nContext';
 
 import { ItemVisual } from './ItemVisual';
 import { getItemVisualImage } from '../../visuals/itemVisualRegistry';
+
+function getHebrewLabel(it: any): string {
+  return (it?.heNiqqud ?? it?.he ?? '').toString();
+}
+
 
 function getSpeakTextHebrew(it: ContentItem): string {
   const anyIt = it as any;
@@ -109,33 +106,27 @@ function buildLetterWordPhraseEN(letter: string, wordEn: string): string {
   return `${L} as in ${W}.`;
 }
 
-function buildLetterWordPhraseHE(letter: string, wordEn: string, wordHe: string): string {
+function buildLetterWordPhraseHE(letter: string, wordEn: string): string {
   const L = (letter ?? '').trim().toUpperCase();
   const WEN = (wordEn ?? '').trim();
-  const WHE = (wordHe ?? '').trim();
   const letterNameHe = LETTER_NAME_HE[L] ?? L;
-  if (WEN && WHE) return `${WEN} זה ${WHE}. ${WEN} מתחיל ב־${letterNameHe}.`;
-  if (WHE) return WHE;
-  if (WEN) return `${WEN} מתחיל ב־${letterNameHe}.`;
-  return letterNameHe;
+  // Product decision (Hebrew): "איי כמו אפל" (EN word as a Hebrew-friendly loanword)
+  return WEN ? `${letterNameHe} כמו ${WEN}.` : letterNameHe;
 }
 
-import { speakText } from '../../audio';
 
-function speakHebrew(text: string) {
-  const t = (text ?? '').trim();
-  if (!t) return;
+function speakHebrewItem(it: any, effectiveAudio?: any) {
+  if (!it) return;
   stopTTS();
-  speakHebrewText(t);
+  speakHebrewItemLike(it as any, effectiveAudio ? { settings: effectiveAudio } : undefined);
 }
 
 
 function speakCurrentEN(it: any, isRtl: boolean, effectiveAudio: any) {
   const link = it?.link;
   if (link?.en) {
-    const phrase = buildLetterWordPhraseEN(it?.en ?? '', link.en);
     stopTTS();
-    speakContentItem({ text: phrase }, { settings: effectiveAudio });
+    speakLetterWordEN(it?.en ?? '', link.en, { settings: effectiveAudio });
     return;
   }
   const text = getItemSpeakText(it as ContentItem, isRtl);
@@ -143,15 +134,16 @@ function speakCurrentEN(it: any, isRtl: boolean, effectiveAudio: any) {
   speakContentItem({ text }, { settings: effectiveAudio });
 }
 
-function speakCurrentHE(it: any) {
+function speakCurrentHE(it: any, effectiveAudio: any) {
   const link = it?.link;
-  if (link?.en && link?.he) {
-    const phrase = buildLetterWordPhraseHE(it?.en ?? '', link.en, link.he);
-    speakHebrew(phrase);
+  if (link?.en) {
+    stopTTS();
+    speakLetterWordHE(it?.en ?? '', link.en, { settings: effectiveAudio });
     return;
   }
-  const he = (it?.he ?? it?.en ?? '').trim();
-  speakHebrew(he);
+
+  stopTTS();
+  speakHebrewItemLike(it as any, { settings: effectiveAudio });
 }
 
 export function UnitLearnScreen({
@@ -452,7 +444,7 @@ export function UnitLearnScreen({
   const isLast = index >= total - 1;
   const progressText = `${Math.min(index + 1, total)} / ${total}`;
 
-  const displayText = isRtl ? current.he ?? current.en : current.en ?? current.he;
+  const displayText = isRtl ? ((current as any).heNiqqud ?? current.he ?? current.en) : (current.en ?? current.he);
   const visualText = current.visual.kind === 'text' ? current.visual.he : null;
 
   const isNumericVisual = !!visualText && /^[0-9]+$/.test(visualText.trim());
@@ -548,8 +540,14 @@ export function UnitLearnScreen({
                   lastSpeakAtRef.current = now;
 
                   stopTTS();
-                  const text = getSpeakTextHebrew(current as ContentItem);
-                  speakHebrewText(text, { settings: effectiveAudio });
+                  const anyCur = current as any;
+                  const isLetterWord = Array.isArray(anyCur?.tags) && anyCur.tags.includes('letterWord');
+                  const linkEn = anyCur?.link?.en;
+                  if (isLetterWord && typeof linkEn === 'string' && linkEn.trim()) {
+                    speakLetterWordHE(anyCur?.en ?? '', linkEn, { settings: effectiveAudio });
+                  } else {
+                    speakHebrewItemLike(current as any, { settings: effectiveAudio });
+                  }
 
                   // counts as "heard" for gating Next
                   setHeardThisItem(true);

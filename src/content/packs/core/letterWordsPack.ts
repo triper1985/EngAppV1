@@ -27,51 +27,51 @@ function lw(
 }
 
 const items: (ContentItem & { link: LetterWordLink })[] = [
-  lw('lw_a', 'A', { en: 'Apple', he: 'תפוח', iconId: 'lw_apple_icon' }),
-  lw('lw_b', 'B', { en: 'Ball', he: 'כדור', iconId: 'lw_ball_icon' }),
+  lw('lw_a', 'A', { en: 'Apple', he: 'תַּפּוּחַ', iconId: 'lw_apple_icon' }),
+  lw('lw_b', 'B', { en: 'Ball', he: 'כַּדּוּר', iconId: 'lw_ball_icon' }),
 
   // ✅ FIX: Cat should use the icon that lives under items/letter_words/cat.png
   // So iconId must match the file name: cat.png → "cat"
-  lw('lw_c', 'C', { en: 'Cat', he: 'חתול', iconId: 'cat' }),
+  lw('lw_c', 'C', { en: 'Cat', he: 'חָתוּל', iconId: 'cat' }),
 
-  lw('lw_d', 'D', { en: 'Dog', he: 'כלב', iconId: 'lw_dog_icon' }),
-  lw('lw_e', 'E', { en: 'Egg', he: 'ביצה', iconId: 'lw_egg_icon' }),
-  lw('lw_f', 'F', { en: 'Fish', he: 'דג', iconId: 'lw_fish_icon' }),
+  lw('lw_d', 'D', { en: 'Dog', he: 'כֶּלֶב', iconId: 'lw_dog_icon' }),
+  lw('lw_e', 'E', { en: 'Egg', he: 'בֵּיצָה', iconId: 'lw_egg_icon' }),
+  lw('lw_f', 'F', { en: 'Fish', he: 'דָּג', iconId: 'lw_fish_icon' }),
 
-  lw('lw_g', 'G', { en: 'Goat', he: 'עז', iconId: 'lw_goat_icon' }),
-  lw('lw_h', 'H', { en: 'Hat', he: 'כובע', iconId: 'lw_hat_icon' }),
+  lw('lw_g', 'G', { en: 'Goat', he: 'עֵז', iconId: 'lw_goat_icon' }),
+  lw('lw_h', 'H', { en: 'Hat', he: 'כּוֹבָע', iconId: 'lw_hat_icon' }),
   lw('lw_i', 'I', {
     en: 'Ice cream',
-    he: 'גלידה',
+    he: 'גְּלִידָה',
     iconId: 'lw_icecream_icon',
   }),
-  lw('lw_j', 'J', { en: 'Juice', he: 'מיץ', iconId: 'lw_juice_icon' }),
-  lw('lw_k', 'K', { en: 'Kite', he: 'עפיפון', iconId: 'lw_kite_icon' }),
-  lw('lw_l', 'L', { en: 'Lion', he: 'אריה', iconId: 'lw_lion_icon' }),
+  lw('lw_j', 'J', { en: 'Juice', he: 'מִיץ', iconId: 'lw_juice_icon' }),
+  lw('lw_k', 'K', { en: 'Kite', he: 'עֲפִיפוֹן', iconId: 'lw_kite_icon' }),
+  lw('lw_l', 'L', { en: 'Lion', he: 'אַרְיֵה', iconId: 'lw_lion_icon' }),
 
-  lw('lw_m', 'M', { en: 'Moon', he: 'ירח', iconId: 'lw_moon_icon' }),
-  lw('lw_n', 'N', { en: 'Nose', he: 'אף', iconId: 'lw_nose_icon' }),
-  lw('lw_o', 'O', { en: 'Orange', he: 'תפוז', iconId: 'lw_orange_icon' }),
-  lw('lw_p', 'P', { en: 'Pig', he: 'חזיר', iconId: 'lw_pig_icon' }),
-  lw('lw_q', 'Q', { en: 'Queen', he: 'מלכה', iconId: 'lw_queen_icon' }),
-  lw('lw_r', 'R', { en: 'Robot', he: 'רובוט', iconId: 'lw_robot_icon' }),
+  lw('lw_m', 'M', { en: 'Moon', he: 'יָרֵחַ', iconId: 'lw_moon_icon' }),
+  lw('lw_n', 'N', { en: 'Nose', he: 'אַף', iconId: 'lw_nose_icon' }),
+  lw('lw_o', 'O', { en: 'Orange', he: 'תַּפּוּז', iconId: 'lw_orange_icon' }),
+  lw('lw_p', 'P', { en: 'Pig', he: 'חֲזִיר', iconId: 'lw_pig_icon' }),
+  lw('lw_q', 'Q', { en: 'Queen', he: 'מַלְכָּה', iconId: 'lw_queen_icon' }),
+  lw('lw_r', 'R', { en: 'Robot', he: 'רוֹבּוֹט', iconId: 'lw_robot_icon' }),
 
-  lw('lw_s', 'S', { en: 'Sun', he: 'שמש', iconId: 'lw_sun_icon' }),
-  lw('lw_t', 'T', { en: 'Tree', he: 'עץ', iconId: 'lw_tree_icon' }),
+  lw('lw_s', 'S', { en: 'Sun', he: 'שֶׁמֶשׁ', iconId: 'lw_sun_icon' }),
+  lw('lw_t', 'T', { en: 'Tree', he: 'עֵץ', iconId: 'lw_tree_icon' }),
   lw('lw_u', 'U', {
     en: 'Umbrella',
-    he: 'מטרייה',
+    he: 'מִטְרִיָּה',
     iconId: 'lw_umbrella_icon',
   }),
-  lw('lw_v', 'V', { en: 'Van', he: 'ואן', iconId: 'lw_van_icon' }),
-  lw('lw_w', 'W', { en: 'Whale', he: 'לוויתן', iconId: 'lw_whale_icon' }),
+  lw('lw_v', 'V', { en: 'Van', he: 'וָאן', iconId: 'lw_van_icon' }),
+  lw('lw_w', 'W', { en: 'Whale', he: 'לִוְיָתָן', iconId: 'lw_whale_icon' }),
   lw('lw_x', 'X', {
     en: 'Xylophone',
-    he: 'קסילופון',
+    he: 'קְסִילוֹפוֹן',
     iconId: 'lw_xylophone_icon',
   }),
-  lw('lw_y', 'Y', { en: 'Yo-yo', he: 'יו-יו', iconId: 'lw_yoyo_icon' }),
-  lw('lw_z', 'Z', { en: 'Zebra', he: 'זברה', iconId: 'lw_zebra_icon' }),
+  lw('lw_y', 'Y', { en: 'Yo-yo', he: 'יוֹ-יוֹ', iconId: 'lw_yoyo_icon' }),
+  lw('lw_z', 'Z', { en: 'Zebra', he: 'זֶבְרָה', iconId: 'lw_zebra_icon' }),
 ];
 
 export const letterWordsPack: ContentPack = {

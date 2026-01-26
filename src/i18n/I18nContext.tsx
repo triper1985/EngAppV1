@@ -26,13 +26,10 @@ export function I18nProvider({
   children,
 }: {
   child: ChildOrNull;
-  /**
-   * When set, overrides locale/dir (used for Parent Mode UI)
-   */
+  /** When set, overrides locale/dir (used for Parent Mode UI) */
   forcedLocale?: Locale;
   children: React.ReactNode;
 }) {
-  // ✅ include full child in deps to match usage inside resolveLocaleContext(child)
   const baseCtx = useMemo(() => resolveLocaleContext(child), [child]);
 
   const ctx: LocaleContextValue = useMemo(() => {
@@ -44,8 +41,19 @@ export function I18nProvider({
     };
   }, [baseCtx, forcedLocale]);
 
-  const tPrimary = useMemo(() => makeT(ctx.locale), [ctx.locale]);
-  const tHeFallback = useMemo(() => makeT('he'), []);
+  // ✅ Child UI only: Niqqud ON. Parent Mode (forcedLocale) => Niqqud OFF.
+  const useNiqqud = !forcedLocale;
+
+  const tPrimary = useMemo(
+    () => makeT(ctx.locale, { niqqud: useNiqqud }),
+    [ctx.locale, useNiqqud]
+  );
+
+  // Hebrew fallback should follow the same Niqqud rule (child screens get niqqud)
+  const tHeFallback = useMemo(
+    () => makeT('he', { niqqud: useNiqqud }),
+    [useNiqqud]
+  );
 
   const t: TranslateFn = useMemo(() => {
     return (key, vars) => {
@@ -60,7 +68,6 @@ export function I18nProvider({
     };
   }, [tPrimary, tHeFallback, ctx.locale]);
 
-  // ✅ depend on ctx object itself (fixes missing dep warning for ctx)
   const value: I18nValue = useMemo(() => ({ ...ctx, t }), [ctx, t]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -68,19 +75,20 @@ export function I18nProvider({
 
 export function useI18n(): I18nValue {
   const v = useContext(I18nContext);
-  if (!v) {
-    // Safe fallback (should not happen): English LTR + HE fallback protection
-    const fallback = resolveLocaleContext(null);
-    const tPrimary = makeT(fallback.locale);
-    const tHeFallback = makeT('he');
-    const t: TranslateFn = (key, vars) => {
-      const primary = tPrimary(key, vars);
-      if (primary === key && fallback.locale !== 'he') {
-        return tHeFallback(key, vars);
-      }
-      return primary;
-    };
-    return { ...fallback, t };
-  }
-  return v;
+  if (v) return v;
+
+  // Safe fallback (should not happen): assume child-like defaults (niqqud ON)
+  const fallback = resolveLocaleContext(null);
+  const tPrimary = makeT(fallback.locale, { niqqud: true });
+  const tHeFallback = makeT('he', { niqqud: true });
+
+  const t: TranslateFn = (key, vars) => {
+    const primary = tPrimary(key, vars);
+    if (primary === key && fallback.locale !== 'he') {
+      return tHeFallback(key, vars);
+    }
+    return primary;
+  };
+
+  return { ...fallback, t };
 }

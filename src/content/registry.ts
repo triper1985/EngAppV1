@@ -15,6 +15,7 @@ import { foodPack } from './packs/core/foodPack';
 import { transportPack } from './packs/core/transportPack';
 import { toysPack } from './packs/core/toysPack';
 import { letterWordsPack } from './packs/core/letterWordsPack';
+import { earlyRecognitionPack } from './packs/core/earlyRecognitionPack';
 
 import { spacePack } from './packs/interest/spacePack';
 
@@ -31,6 +32,7 @@ export const BUILT_IN_PACKS: readonly ContentPack[] = [
   toysPack,
   numbersPack,
   lettersPack,
+  earlyRecognitionPack,
   spacePack,
 ] as const;
 

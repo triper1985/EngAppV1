@@ -608,4 +608,12 @@ export const DICT_HE: Record<string, string> = {
 'beginner.unit.letter_words_m_r.title': 'M–R',
 'beginner.unit.letter_words_s_z.title': 'S–Z',
 
+
+  // Early Recognition (Layer 4)
+  'content.pack.early_recognition.title': 'זיהוי מוקדם',
+  'content.pack.early_recognition.desc': 'זיהוי מהיר והתאמה חזותית.',
+  'content.group.early_recognition_directions.title': 'כיוונים',
+  'content.group.early_recognition_shapes.title': 'צורות דומות',
+  'content.group.early_recognition_faces.title': 'פנים',
+
 };

@@ -89,6 +89,12 @@ export interface ContentItem {
   /** תמיכה בעברית (Beginner fallback) */
   he?: string;
 
+  /**
+   * Hebrew with Niqqud for CHILD UI (Beginner).
+   * When present, child-facing screens should prefer this over `he`.
+   */
+  heNiqqud?: string;
+
   /** איך מציגים את האופציה בתשובות (לא טקסט אנגלי) */
   visual: VisualSpec;
 

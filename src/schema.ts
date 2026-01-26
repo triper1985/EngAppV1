@@ -1,3 +1,4 @@
+//src/schema.ts
 export type PackType = 'basic' | 'interest';
 
 export interface ContentPack {

@@ -6,6 +6,7 @@ export * from './core/numbersPack';
 export * from './core/lettersPack';
 export * from './core/animalsPack';
 export * from './core/letterWordsPack';
+export * from './core/earlyRecognitionPack';
 
 // ✅ Layer 2 — Core Vocabulary (new)
 export * from './core/homePack';

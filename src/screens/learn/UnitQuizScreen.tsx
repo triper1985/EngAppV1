@@ -27,10 +27,11 @@ import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCat
 import {
   playFx,
   speakContentItem,
-  speakHebrewText,
+  speakHebrewItemLike,
   stopTTS,
   stopAllFx,
   getEffectiveAudioSettings,
+  speakLetterWordEN, speakLetterWordHE,
 } from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
@@ -55,6 +56,11 @@ function getSpeakTextHebrew(it: ContentItem): string {
 
 import { shuffle, sampleDistinct } from './learnUtils';
 
+function getHebrewLabel(it: any): string {
+  return (it?.heNiqqud ?? it?.he ?? '').toString();
+}
+
+
 type Props = {
   child: ChildProfile;
   unitId: UnitId;
@@ -69,11 +75,6 @@ type Question = {
   optionIds: string[];
 };
 
-function getSpeakTextForItem(it: ContentItem): string {
-  // V1LearnTest decision: TTS is always English.
-  const txt = it.en ?? it.he;
-  return (txt ?? '').trim() || (it.en ?? it.he ?? it.id ?? '').trim() || ' ';
-}
 
 // -------------------------
 // Layer 3 — Letter → Word speech helpers
@@ -93,49 +94,70 @@ function buildLetterWordPhraseEN(letter: string, wordEn: string): string {
   return `${L} as in ${W}.`;
 }
 
-function buildLetterWordPhraseHE(letter: string, wordEn: string, wordHe: string): string {
+function buildLetterWordPhraseHE(letter: string, _wordEn: string, wordHe: string): string {
   const L = (letter ?? '').trim().toUpperCase();
-  const WEN = (wordEn ?? '').trim();
   const WHE = (wordHe ?? '').trim();
   const letterNameHe = LETTER_NAME_HE[L] ?? L;
-  if (WEN && WHE) return `${WEN} זה ${WHE}. ${WEN} מתחיל ב־${letterNameHe}.`;
-  if (WHE) return WHE;
-  if (WEN) return `${WEN} מתחיל ב־${letterNameHe}.`;
+
+  // Product decision: Hebrew speaks the LETTER NAME + Hebrew word
+  // Example: "איי כמו תפוח"
+  if (WHE) return `${letterNameHe} כמו ${WHE}.`;
   return letterNameHe;
 }
 
-function speakHebrew(text: string) {
-  const t = (text ?? '').trim();
-  if (!t) return;
-  stopTTS();
-  try {
-    Speech.speak(t, { language: 'he-IL', rate: 1.0 });
-  } catch {
-    // ignore
+function isHebrewVoiceId(voiceId?: string): boolean {
+  const v = (voiceId ?? '').toLowerCase();
+  return v.includes('he') || v.includes('heb') || v.includes('iw') || v.includes('israel');
+}
+
+function prefersHebrewTts(effectiveAudio: any): boolean {
+  return isHebrewVoiceId(effectiveAudio?.voiceId);
+}
+
+function getSpeakTextForItem(it: ContentItem, effectiveAudio?: any): string {
+  if (prefersHebrewTts(effectiveAudio)) {
+    return (it as any).heNiqqud ?? it.he ?? it.en ?? it.id ?? ' ';
   }
+  return it.en ?? it.he ?? it.id ?? ' ';
 }
 
 function speakPromptEN(it: any, effectiveAudio: any) {
   const link = it?.link;
+
   if (link?.en) {
-    const phrase = buildLetterWordPhraseEN(it?.en ?? '', link.en);
     stopTTS();
-    speakContentItem({ text: phrase }, { settings: effectiveAudio });
+    if (prefersHebrewTts(effectiveAudio)) {
+      speakLetterWordHE(it?.en ?? '', link.en, { settings: effectiveAudio });
+    } else {
+      speakLetterWordEN(it?.en ?? '', link.en, { settings: effectiveAudio });
+    }
     return;
   }
-  const text = getSpeakTextForItem(it as ContentItem);
+
   stopTTS();
+
+  if (prefersHebrewTts(effectiveAudio)) {
+    speakHebrewItemLike(
+      { ...(it as any), he: (it as any).heNiqqud ?? (it as any).he },
+      { settings: effectiveAudio }
+    );
+    return;
+  }
+
+  const text = getSpeakTextForItem(it as ContentItem, effectiveAudio);
   speakContentItem({ text }, { settings: effectiveAudio });
 }
 
-function speakPromptHE(it: any) {
+function speakPromptHE(it: any, effectiveAudio: any) {
   const link = it?.link;
-  if (link?.en && link?.he) {
-    speakHebrew(buildLetterWordPhraseHE(it?.en ?? '', link.en, link.he));
+  if (link?.en) {
+    stopTTS();
+    speakLetterWordHE(it?.en ?? '', link.en, { settings: effectiveAudio });
     return;
   }
-  const he = (it?.he ?? it?.en ?? '').trim();
-  speakHebrew(he);
+
+  stopTTS();
+  speakHebrewItemLike(it as any, { settings: effectiveAudio });
 }
 
 export function UnitQuizScreen({
@@ -538,9 +560,7 @@ export function UnitQuizScreen({
                   if (now - lastSpeakAtRef.current < 300) return;
                   lastSpeakAtRef.current = now;
 
-                  stopTTS();
-                  const text = getSpeakTextHebrew(correctItem);
-                  speakHebrewText(text, { settings: effectiveAudio });
+                  speakPromptHE(correctItem as any, effectiveAudio);
                 }}
                 disabled={!correctItem}
                 style={[styles.bigBtn, styles.hearBtn]}

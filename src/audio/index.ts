@@ -7,6 +7,10 @@ export type { SpeakContext, SpeakItemLike } from './tts';
 export {
   speakText,
   speakHebrewText,
+  getHebrewSpeakText,
+  speakHebrewItemLike,
+  speakLetterWordEN,
+  speakLetterWordHE,
   speakItem,
   speakContentItem,
   speakItemOnce,

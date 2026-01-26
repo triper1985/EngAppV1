@@ -629,4 +629,12 @@ export const DICT_EN: Record<string, string> = {
 'beginner.unit.letter_words_s_z.title': 'S–Z',
 
 
+
+  // Early Recognition (Layer 4)
+  'content.pack.early_recognition.title': 'Early Recognition',
+  'content.pack.early_recognition.desc': 'Fast recognition and visual matching.',
+  'content.group.early_recognition_directions.title': 'Directions',
+  'content.group.early_recognition_shapes.title': 'Similar Shapes',
+  'content.group.early_recognition_faces.title': 'Faces',
+
 };

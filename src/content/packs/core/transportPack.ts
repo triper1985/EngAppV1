@@ -20,10 +20,18 @@ export const transportPack: ContentPack = {
   meta: { tags: ['core', 'beginnerBridge'] },
 
   items: [
-    { id: 'transport_car', en: 'car', he: 'מכונית', visual: { kind: 'text', he: '🚗' } },
-    { id: 'transport_bus', en: 'bus', he: 'אוטובוס', visual: { kind: 'text', he: '🚌' } },
-    { id: 'transport_train', en: 'train', he: 'רכבת', visual: { kind: 'text', he: '🚆' } },
-    { id: 'transport_bike', en: 'bike', he: 'אופניים', visual: { kind: 'text', he: '🚲' } },
+    { id: 'transport_car', en: 'car', he: 'מכונית',
+      heNiqqud: 'מְכוֹנִית',
+    visual: { kind: 'text', he: '🚗' } },
+    { id: 'transport_bus', en: 'bus', he: 'אוטובוס',
+      heNiqqud: 'אוֹטוֹבּוּס',
+    visual: { kind: 'text', he: '🚌' } },
+    { id: 'transport_train', en: 'train', he: 'רכבת',
+      heNiqqud: 'רַכֶּבֶת',
+    visual: { kind: 'text', he: '🚆' } },
+    { id: 'transport_bike', en: 'bike', he: 'אופניים',
+      heNiqqud: 'אוֹפַנַּיִם',
+    visual: { kind: 'text', he: '🚲' } },
   ],
 
   // Keep as a single group (bridge fallback will treat pack as one unit)

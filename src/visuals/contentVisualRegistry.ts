@@ -144,6 +144,34 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     emoji: '🚀',
     image: require('../assets/content/packs/space.png'),
   },
+  early_recognition: {
+    kind: 'pack',
+    id: 'early_recognition',
+    emoji: '👀',
+    // Add an optional PNG here later:
+    image: require('../assets/content/packs/early_recognition.png'),
+  },
+
+  // Layer 4 groups (LearnLayerScreen asks `getVisual('pack', groupId)`)
+  early_recognition_directions: {
+    kind: 'pack',
+    id: 'early_recognition_directions',
+    emoji: '🧭',
+    image: require('../assets/content/packs/early_recognition.png'),
+  },
+  early_recognition_shapes: {
+    kind: 'pack',
+    id: 'early_recognition_shapes',
+    emoji: '🔺',
+    image: require('../assets/content/packs/early_recognition.png'),
+  },
+  early_recognition_faces: {
+    kind: 'pack',
+    id: 'early_recognition_faces',
+    emoji: '🙂',
+    image: require('../assets/content/packs/early_recognition.png'),
+  },
+
 };
 
 // -----------------
