@@ -8,16 +8,22 @@ import { numbersPack } from './packs/core/numbersPack';
 import { lettersPack } from './packs/core/lettersPack';
 import { colorsPack } from './packs/core/colorsPack';
 import { animalsPack } from './packs/core/animalsPack';
-
+import { earlyRecognitionPack } from './packs/core/earlyRecognitionPack';
 import { homePack } from './packs/core/homePack';
 import { clothesPack } from './packs/core/clothesPack';
 import { foodPack } from './packs/core/foodPack';
 import { transportPack } from './packs/core/transportPack';
 import { toysPack } from './packs/core/toysPack';
 import { letterWordsPack } from './packs/core/letterWordsPack';
-import { earlyRecognitionPack } from './packs/core/earlyRecognitionPack';
+import { l4_shapesPack } from './packs/core/l4_shapesPack';
+import { l4_directionsPack } from './packs/core/l4_directionsPack';
+import { l4_spatialPack } from './packs/core/l4_spatialPack';
+import { l4_emotionsPack } from './packs/core/l4_emotionsPack';
+import { l4_symbolsPack } from './packs/core/l4_symbolsPack';
+import { l4_patternsPack } from './packs/core/l4_patternsPack';
 
 import { spacePack } from './packs/interest/spacePack';
+import { foodFunPack } from './packs/interest/foodFunPack';
 
 export const BUILT_IN_PACKS: readonly ContentPack[] = [
   foundationsPack,
@@ -32,8 +38,15 @@ export const BUILT_IN_PACKS: readonly ContentPack[] = [
   toysPack,
   numbersPack,
   lettersPack,
-  earlyRecognitionPack,
+  l4_shapesPack,
+  l4_directionsPack,
+  l4_spatialPack,
+  l4_emotionsPack,
+  l4_symbolsPack,
+  l4_patternsPack,
   spacePack,
+  earlyRecognitionPack,
+  foodFunPack,
 ] as const;
 
 const packsById = new Map<ContentPackId, ContentPack>();
@@ -95,5 +108,4 @@ export function listVisibleInterestPacks(): readonly ContentPack[] {
 export function listBeginnerBridgePacks(): readonly ContentPack[] {
   return BUILT_IN_PACKS.filter(isBeginnerBridgePack);
 }
-
 

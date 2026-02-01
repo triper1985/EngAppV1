@@ -9,6 +9,7 @@ import { getIconPrice, isIconFree } from '../data/iconShop';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Card } from '../ui/Card';
+import { useI18n } from '../i18n/I18nContext';
 
 type Props = {
   coins: number;
@@ -18,12 +19,9 @@ type Props = {
 
 type Filter = 'all' | 'canBuy' | 'free';
 
-function priceLabel(price: number) {
-  if (price <= 0) return 'Free';
-  return `${price} coins`;
-}
 
 export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
+  const { t } = useI18n();
   const [filter, setFilter] = useState<Filter>('all');
   const [confirming, setConfirming] = useState<{
     iconId: string;
@@ -88,12 +86,12 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
     <Card style={styles.card}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Icon Shop</Text>
-          <Text style={styles.subtitle}>Unlock new icons with coins</Text>
+          <Text style={styles.title}>{t('rewards.shop.cardTitle')}</Text>
+          <Text style={styles.subtitle}>{t('rewards.shop.cardSubtitle')}</Text>
         </View>
 
         <View style={styles.coinsPill}>
-          <Text style={styles.coinsText}>Coins: {coins}</Text>
+          <Text style={styles.coinsText}>{t('rewards.shop.coinsPill', { coins })}</Text>
         </View>
       </View>
 
@@ -103,7 +101,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
           onClick={() => setFilter('all')}
           style={filter === 'all' ? styles.filterSelected : undefined}
         >
-          All ({lockedIcons.length})
+          {t('rewards.shop.filter.all', { count: lockedIcons.length })}
         </Button>
 
         <Button
@@ -111,7 +109,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
           onClick={() => setFilter('canBuy')}
           style={filter === 'canBuy' ? styles.filterSelected : undefined}
         >
-          Can buy ({canBuyCount})
+          {t('rewards.shop.filter.canBuy', { count: canBuyCount })}
         </Button>
 
         <Button
@@ -125,9 +123,9 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
 
       <View style={{ marginTop: 14 }}>
         {lockedIcons.length === 0 ? (
-          <Text style={styles.info}>🎉 All icons unlocked!</Text>
+          <Text style={styles.info}>{t('rewards.shop.info.allUnlocked')}</Text>
         ) : filteredLockedIcons.length === 0 ? (
-          <Text style={styles.info}>Nothing matches this filter.</Text>
+          <Text style={styles.info}>{t('rewards.shop.info.noMatch')}</Text>
         ) : (
           <View style={styles.gridWrap}>
             {filteredLockedIcons.map((ic) => {
@@ -144,7 +142,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
                       <View style={{ flex: 1 }}>
                         <Text style={styles.itemLabel}>{ic.label}</Text>
                         <Text style={styles.itemMeta}>
-                          Price: <Text style={styles.bold}>{priceLabel(price)}</Text>
+                          {t('rewards.shop.priceLabel')}: <Text style={styles.bold}>{price <= 0 ? t('rewards.shop.price.free') : t('rewards.shop.price.coins', { price })}</Text>
                         </Text>
                       </View>
                     </View>
@@ -154,11 +152,11 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
                       disabled={!canBuy}
                       onClick={() => requestBuy(ic.id, ic.label)}
                     >
-                      {free ? 'Get for free' : canBuy ? 'Buy' : `Need ${need} more`}
+                      {free ? t('rewards.shop.action.getFree') : canBuy ? t('rewards.shop.action.buy') : t('rewards.shop.action.needMore', { need })}
                     </Button>
 
                     {!free && !canBuy ? (
-                      <Text style={styles.notEnough}>Not enough coins.</Text>
+                      <Text style={styles.notEnough}>{t('rewards.shop.info.notEnoughCoins')}</Text>
                     ) : null}
                   </View>
                 </View>
@@ -168,7 +166,7 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
         )}
       </View>
 
-      <Modal open={!!confirming} title="Confirm purchase" onClose={() => setConfirming(null)}>
+      <Modal open={!!confirming} title={t('rewards.shop.confirm.title')} onClose={() => setConfirming(null)}>
         {confirming ? (
           <>
             <View style={styles.confirmRow}>
@@ -176,10 +174,10 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.confirmTitle}>{confirming.label}</Text>
                 <Text style={styles.confirmMeta}>
-                  Price: <Text style={styles.bold}>{confirming.price}</Text> coins
+                  {t('rewards.shop.confirm.price')}: <Text style={styles.bold}>{confirming.price}</Text> {t('rewards.shop.confirm.coinsWord')}
                 </Text>
                 <Text style={styles.confirmMeta}>
-                  After purchase:{' '}
+                  {t('rewards.shop.confirm.afterPurchase')}{' '}
                   <Text style={styles.bold}>{Math.max(0, coins - confirming.price)}</Text>
                 </Text>
               </View>

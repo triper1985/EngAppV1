@@ -152,6 +152,11 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'content.pack.food.title': 'אֹכֶל',
   'content.pack.food.desc': 'אֹכֶל וּשְׁתִיָּה בְּסִיסִיִּים.',
 
+
+  // Interest — Fun Food (New)
+  'content.pack.food_fun.title': 'מַאֲכָלִים טְעִימִים',
+  'content.pack.food_fun.desc': 'מַאֲכָלִים מְפַנְּקִים לְלִמּוּד וּלְזַהוּי.',
+
   'content.pack.foundations.title': 'יְסוֹדוֹת',
   'content.pack.foundations.desc':
     'הַמִּלִּים הָרִאשׁוֹנוֹת: שָׁלוֹם/בַּיי, כֵּן/לֹא, וּרְגָשׁוֹת בְּסִיסִיִּים.',
@@ -194,6 +199,7 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
 
   'content.group.emotions.title': 'רְגָשׁוֹת',
   'content.group.food.title': 'אֹכֶל',
+  'content.group.food_fun_treats.title': 'מַאֲכָלִים מְפַנְּקִים',
   'content.group.home.title': 'בַּבַּיִת',
   'content.group.letter_words.title': 'אוֹת → מִלָּה',
   'content.group.orientation.title': 'הִכָּרוּת',
@@ -213,4 +219,76 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'beginner.unit.numbers_16_20.title': 'מִסְפָּרִים 16–20',
   'beginner.unit.numbers_21_25.title': 'מִסְפָּרִים 21–25',
 
+
+  // -----------------------------------------
+  // Rewards / Icon Shop (Child - Niqqud)
+  // -----------------------------------------
+  'rewards.shop.screenTitle': "חֲנוּת אֵיקוֹנִים",
+  'rewards.shop.childLabel': "יֶלֶד",
+  'rewards.shop.coinsPill': "מַטְבְּעוֹת: {coins}",
+  'rewards.shop.tab.shop': "חֲנוּת",
+  'rewards.shop.tab.owned': "שֶׁלִּי",
+  'rewards.toast.notEnoughCoins': "אֵין מַסְפִּיק מַטְבְּעוֹת.",
+  'rewards.toast.purchaseFailed': "לֹא הִצְלַחְתִּי לְהַשְׁלִים אֶת הַקְּנִיָּה.",
+  'rewards.toast.purchasedFor': "קָנִיתָ {label} בְּ־{price} מַטְבְּעוֹת!",
+  'rewards.toast.unlocked': "פָּתַחְתָּ {label}!",
+  'rewards.toast.notUnlocked': "הָאֵיקוֹן הַזֶּה עֲדַיִן לֹא פָּתוּחַ.",
+  'rewards.toast.changeFailed': "לֹא הִצְלַחְתִּי לְהַחֲלִיף אֵיקוֹן.",
+  'rewards.toast.iconSelected': "הָאֵיקוֹן נִבְחַר!",
+  'rewards.shop.cardTitle': "חֲנוּת אֵיקוֹנִים",
+  'rewards.shop.cardSubtitle': "פּוֹתְחִים אֵיקוֹנִים חֲדָשִׁים עִם מַטְבְּעוֹת",
+  'rewards.shop.filter.all': "הַכֹּל ({count})",
+  'rewards.shop.filter.canBuy': "אֶפְשָׁר לִקְנוֹת ({count})",
+  'rewards.shop.filter.free': "חִנָּם",
+  'rewards.shop.info.allUnlocked': "🎉 כָּל הָאֵיקוֹנִים פְּתוּחִים!",
+  'rewards.shop.info.noMatch': "אֵין מַשֶּׁהוּ שֶׁמַּתְאִים לַסִּנּוּן הַזֶּה.",
+  'rewards.shop.priceLabel': "מְחִיר",
+  'rewards.shop.price.free': "חִנָּם",
+  'rewards.shop.price.coins': "{price} מַטְבְּעוֹת",
+  'rewards.shop.action.getFree': "לָקַחַת חִנָּם",
+  'rewards.shop.action.buy': "לִקְנוֹת",
+  'rewards.shop.action.needMore': "חֲסֵרִים עוֹד {need}",
+  'rewards.shop.info.notEnoughCoins': "אֵין מַסְפִּיק מַטְבְּעוֹת.",
+  'rewards.shop.confirm.title': "אִשּׁוּר קְנִיָּה",
+  'rewards.shop.confirm.price': "מְחִיר",
+  'rewards.shop.confirm.coinsWord': "מַטְבְּעוֹת",
+  'rewards.shop.confirm.afterPurchase': "אַחֲרֵי הַקְּנִיָּה:",
+  'rewards.shop.confirm.cancel': "בִּטּוּל",
+  'rewards.shop.confirm.buy': "קְנִיָּה",
+  'rewards.picker.title': "בְּחִירַת אֵיקוֹן",
+  'rewards.picker.subtitle': "בְּחַר אֵיקוֹן פָּתוּחַ",
+  'rewards.picker.empty': "עֲדַיִן אֵין אֵיקוֹנִים פְּתוּחִים. לֵךְ לַחֲנוּת כְּדֵי לִפְתֹּחַ אֶת הָרִאשׁוֹן.",
+  'rewards.picker.selected': "נִבְחַר:",
+
+
+    // ======================
+  // Layer 4 — Core Expansion
+  // ======================
+  'content.pack.l4_shapes.title': 'צוּרוֹת',
+  'content.pack.l4_shapes.desc': 'זִיּוּי צוּרוֹת בְּסִיסִיּוֹת.',
+  'beginner.unit.l4_shapes_basic.title': 'צוּרוֹת בְּסִיסִיּוֹת',
+  'beginner.unit.l4_shapes_more.title': 'עוֹד צוּרוֹת',
+  'content.pack.l4_directions.title': 'כִּוּוּנִים',
+  'content.pack.l4_directions.desc': 'זִיּוּי כִּוּוּנִים וְחִצִּים.',
+  'beginner.unit.l4_directions_basic.title': 'לְמַעְלָה / לְמַטָּה / יָמִין / שְׂמֹאל',
+  'beginner.unit.l4_directions_diagonal.title': 'אַלְכְּסוֹן',
+  'content.pack.l4_spatial.title': 'יַחֲסֵי מָקוֹם',
+  'content.pack.l4_spatial.desc': 'הֲבָנַת יַחֲסֵי מָקוֹם פְּשׁוּטִים.',
+  'beginner.unit.l4_spatial_inout.title': 'בִּפְנִים / בַּחוּץ',
+  'beginner.unit.l4_spatial_relations.title': 'יַחֲסִים',
+  'content.pack.l4_emotions.title': 'רְגָשׁוֹת',
+  'content.pack.l4_emotions.desc': 'זִיּוּי רְגָשׁוֹת בְּסִיסִיִּים.',
+  'beginner.unit.l4_emotions_basic.title': 'רְגָשׁוֹת בְּסִיסִיִּים',
+  'beginner.unit.l4_emotions_more.title': 'עוֹד רְגָשׁוֹת',
+  'content.pack.l4_symbols.title': 'סְמָלִים',
+  'content.pack.l4_symbols.desc': 'זִיּוּי סְמָלִים נְפוֹצִים.',
+  'beginner.unit.l4_symbols_yesno.title': 'כֵּן / לֹא',
+  'beginner.unit.l4_symbols_controls.title': 'כַּפְתּוֹרִים',
+  'beginner.unit.l4_symbols_math.title': 'פְּלוּס / מִינוּס',
+  'content.pack.l4_patterns.title': 'דְּפוּסִים',
+  'content.pack.l4_patterns.desc': 'מְצִיאַת מָה בָּא אַחֲרֵי בְּדְּפוּס.',
+  'beginner.unit.l4_patterns_ab.title': 'דְּפוּס אַ-ב',
+  'beginner.unit.l4_patterns_aba.title': 'דְּפוּס אַ-ב-אַ',
+  'beginner.unit.l4_patterns_abc.title': 'דְּפוּס אַ-ב-ג',
+  'beginner.unit.l4_patterns_aabb.title': 'דְּפוּס אַ-אַ-ב-ב',
 };

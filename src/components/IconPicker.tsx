@@ -10,6 +10,7 @@ import {
 
 import { ICONS, iconToDisplay } from '../data/icons';
 import { Card } from '../ui/Card';
+import { useI18n } from '../i18n/I18nContext';
 
 type Props = {
   value?: string;
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function IconPicker({ value, unlockedIconIds, onPick }: Props) {
+  const { t } = useI18n();
   const unlocked = useMemo(
     () => new Set<string>(unlockedIconIds ?? []),
     [unlockedIconIds]
@@ -37,13 +39,13 @@ export function IconPicker({ value, unlockedIconIds, onPick }: Props) {
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>🧑‍🎨 Choose icon</Text>
-        <Text style={styles.subtitle}>Pick an unlocked icon</Text>
+        <Text style={styles.title}>🧑‍🎨 {t('rewards.picker.title')}</Text>
+        <Text style={styles.subtitle}>{t('rewards.picker.subtitle')}</Text>
       </View>
 
       {visibleIcons.length === 0 ? (
         <Text style={styles.empty}>
-          No unlocked icons yet. Go to Shop to get your first one.
+          {t('rewards.picker.empty')}
         </Text>
       ) : (
         <>
@@ -69,7 +71,7 @@ export function IconPicker({ value, unlockedIconIds, onPick }: Props) {
           </View>
 
           <Text style={styles.selectedLabel}>
-            Selected:{' '}
+            {t('rewards.picker.selected')}{' '}
             <Text style={styles.selectedEmoji}>
               {selectedId ? iconToDisplay(selectedId) : '—'}
             </Text>

@@ -13,6 +13,7 @@ import { Confetti } from '../../components/Confetti';
 import { Button } from '../../ui/Button';
 import { TopBar } from '../../ui/TopBar';
 import { useToast } from '../../ui/useToast';
+import { useI18n } from '../../i18n/I18nContext';
 
 type Props = {
   child: ChildProfile;
@@ -32,6 +33,8 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
   const [confettiKey, setConfettiKey] = useState(0);
 
   const { toast, showToast } = useToast(1800);
+
+  const { t, dir } = useI18n();
 
   const coins = child.coins ?? 0;
 
@@ -54,15 +57,15 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
       {confettiKey > 0 && <Confetti key={confettiKey} durationMs={900} pieces={70} />}
 
       <ScrollView contentContainerStyle={styles.container}>
-        <TopBar title="Icon Shop" onBack={onBack} />
+        <TopBar title={t('rewards.shop.screenTitle')} onBack={onBack} dir={dir} />
 
         <View style={styles.metaRow}>
           <Text style={styles.metaText}>
-            Child: <Text style={styles.bold}>{child.name}</Text>
+            {t('rewards.shop.childLabel')}: <Text style={styles.bold}>{child.name}</Text>
           </Text>
 
           <View style={styles.coinsPill}>
-            <Text style={styles.coinsText}>Coins: {coins}</Text>
+            <Text style={styles.coinsText}>{t('rewards.shop.coinsPill', { coins })}</Text>
           </View>
         </View>
 
@@ -96,10 +99,10 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
 
                 if (!res.ok) {
                   if (res.reason === 'not_enough_coins') {
-                    showToast('Not enough coins.');
+                    showToast(t('rewards.toast.notEnoughCoins'));
                     return;
                   }
-                  showToast('Could not complete purchase.');
+                  showToast(t('rewards.toast.purchaseFailed'));
                   return;
                 }
 
@@ -107,9 +110,9 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
                 setConfettiKey((k) => k + 1);
 
                 if (res.price > 0) {
-                  showToast(`Purchased ${getIconLabel(iconId)} for ${res.price} coins!`);
+                  showToast(t('rewards.toast.purchasedFor', { label: getIconLabel(iconId), price: res.price }));
                 } else {
-                  showToast(`Unlocked ${getIconLabel(iconId)}!`);
+                  showToast(t('rewards.toast.unlocked', { label: getIconLabel(iconId) }));
                 }
               }}
             />
@@ -122,14 +125,14 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
 
                 if (!res.ok) {
                   if (res.reason === 'not_unlocked') {
-                    showToast('This icon is not unlocked yet.');
+                    showToast(t('rewards.toast.notUnlocked'));
                     return;
                   }
-                  showToast('Could not change icon.');
+                  showToast(t('rewards.toast.changeFailed'));
                   return;
                 }
 
-                showToast('Icon selected!');
+                showToast(t('rewards.toast.iconSelected'));
                 refreshChildFromStore();
               }}
             />

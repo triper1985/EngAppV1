@@ -126,6 +126,12 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     emoji: '🍎',
     image: require('../assets/content/packs/food.png'),
   },
+    food_fun: {
+    kind: 'pack',
+    id: 'food_fun',
+    emoji: '?',
+    image: require('../assets/content/packs/food_fun.png'),
+  },
   transport: {
     kind: 'pack',
     id: 'transport',
@@ -144,10 +150,10 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     emoji: '🚀',
     image: require('../assets/content/packs/space.png'),
   },
-  early_recognition: {
+early_recognition: {
     kind: 'pack',
     id: 'early_recognition',
-    emoji: '👀',
+    emoji: '?',
     // Add an optional PNG here later:
     image: require('../assets/content/packs/early_recognition.png'),
   },
@@ -156,21 +162,60 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
   early_recognition_directions: {
     kind: 'pack',
     id: 'early_recognition_directions',
-    emoji: '🧭',
+    emoji: '?',
     image: require('../assets/content/packs/early_recognition.png'),
   },
   early_recognition_shapes: {
     kind: 'pack',
     id: 'early_recognition_shapes',
-    emoji: '🔺',
+    emoji: '?',
     image: require('../assets/content/packs/early_recognition.png'),
   },
   early_recognition_faces: {
     kind: 'pack',
     id: 'early_recognition_faces',
-    emoji: '🙂',
+    emoji: '?',
     image: require('../assets/content/packs/early_recognition.png'),
   },
+  // ===== Layer 4 — Core Expansion =====
+  l4_shapes: {
+    kind: 'pack',
+    id: 'l4_shapes',
+    emoji: '🔺',
+    image: require('../assets/content/packs/l4_shapes.png'),
+  },
+  l4_directions: {
+    kind: 'pack',
+    id: 'l4_directions',
+    emoji: '🧭',
+    image: require('../assets/content/packs/l4_directions.png'),
+  },
+  l4_spatial: {
+    kind: 'pack',
+    id: 'l4_spatial',
+    emoji: '🧩',
+    image: require('../assets/content/packs/l4_spatial.png'),
+  },
+  l4_emotions: {
+    kind: 'pack',
+    id: 'l4_emotions',
+    emoji: '🙂',
+    image: require('../assets/content/packs/l4_emotions.png'),
+  },
+  l4_symbols: {
+    kind: 'pack',
+    id: 'l4_symbols',
+    emoji: '✔️',
+    image: require('../assets/content/packs/l4_symbols.png'),
+  },
+  l4_patterns: {
+    kind: 'pack',
+    id: 'l4_patterns',
+    emoji: '🔁',
+    image: require('../assets/content/packs/l4_patterns.png'),
+  },
+
+  // Layer 4 groups (LearnLayerScreen asks `getVisual('pack', groupId)`)
 
 };
 

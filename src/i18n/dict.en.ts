@@ -611,6 +611,14 @@ export const DICT_EN: Record<string, string> = {
   'content.pack.toys.desc': 'Fun toys and games.',
   'content.group.toys.title': 'Toys',
 
+
+  // -----------------------------------------
+  // Interest — Fun Food (New)
+  // -----------------------------------------
+  'content.pack.food_fun.title': 'Fun Food',
+  'content.pack.food_fun.desc': 'Tasty treats to learn and recognize.',
+  'content.group.food_fun_treats.title': 'Fun Food – Treats',
+
     // =========================
   // Layer 3 — Letter → Word
   // =========================
@@ -637,4 +645,75 @@ export const DICT_EN: Record<string, string> = {
   'content.group.early_recognition_shapes.title': 'Similar Shapes',
   'content.group.early_recognition_faces.title': 'Faces',
 
+
+  // -----------------------------------------
+  // Rewards / Icon Shop (Child)
+  // -----------------------------------------
+  'rewards.shop.screenTitle': "Icon Shop",
+  'rewards.shop.childLabel': "Child",
+  'rewards.shop.coinsPill': "Coins: {coins}",
+  'rewards.shop.tab.shop': "Shop",
+  'rewards.shop.tab.owned': "Owned",
+  'rewards.toast.notEnoughCoins': "Not enough coins.",
+  'rewards.toast.purchaseFailed': "Could not complete purchase.",
+  'rewards.toast.purchasedFor': "Purchased {label} for {price} coins!",
+  'rewards.toast.unlocked': "Unlocked {label}!",
+  'rewards.toast.notUnlocked': "This icon is not unlocked yet.",
+  'rewards.toast.changeFailed': "Could not change icon.",
+  'rewards.toast.iconSelected': "Icon selected!",
+  'rewards.shop.cardTitle': "Icon Shop",
+  'rewards.shop.cardSubtitle': "Unlock new icons with coins",
+  'rewards.shop.filter.all': "All ({count})",
+  'rewards.shop.filter.canBuy': "Can buy ({count})",
+  'rewards.shop.filter.free': "Free",
+  'rewards.shop.info.allUnlocked': "🎉 All icons unlocked!",
+  'rewards.shop.info.noMatch': "Nothing matches this filter.",
+  'rewards.shop.priceLabel': "Price",
+  'rewards.shop.price.free': "Free",
+  'rewards.shop.price.coins': "{price} coins",
+  'rewards.shop.action.getFree': "Get for free",
+  'rewards.shop.action.buy': "Buy",
+  'rewards.shop.action.needMore': "Need {need} more",
+  'rewards.shop.info.notEnoughCoins': "Not enough coins.",
+  'rewards.shop.confirm.title': "Confirm purchase",
+  'rewards.shop.confirm.price': "Price",
+  'rewards.shop.confirm.coinsWord': "coins",
+  'rewards.shop.confirm.afterPurchase': "After purchase:",
+  'rewards.shop.confirm.cancel': "Cancel",
+  'rewards.shop.confirm.buy': "Buy",
+  'rewards.picker.title': "Choose icon",
+  'rewards.picker.subtitle': "Pick an unlocked icon",
+  'rewards.picker.empty': "No unlocked icons yet. Go to Shop to get your first one.",
+  'rewards.picker.selected': "Selected:",
+
+    // ======================
+  // Layer 4 — Core Expansion
+  // ======================
+  'content.pack.l4_shapes.title': 'Shapes',
+  'content.pack.l4_shapes.desc': 'Recognize basic shapes.',
+  'beginner.unit.l4_shapes_basic.title': 'Basic Shapes',
+  'beginner.unit.l4_shapes_more.title': 'More Shapes',
+  'content.pack.l4_directions.title': 'Directions',
+  'content.pack.l4_directions.desc': 'Recognize arrows and directions.',
+  'beginner.unit.l4_directions_basic.title': 'Up / Down / Left / Right',
+  'beginner.unit.l4_directions_diagonal.title': 'Diagonal',
+  'content.pack.l4_spatial.title': 'Spatial',
+  'content.pack.l4_spatial.desc': 'Understand simple spatial relations.',
+  'beginner.unit.l4_spatial_inout.title': 'In / Out',
+  'beginner.unit.l4_spatial_relations.title': 'Around',
+  'content.pack.l4_emotions.title': 'Emotions',
+  'content.pack.l4_emotions.desc': 'Recognize basic emotions.',
+  'beginner.unit.l4_emotions_basic.title': 'Basic Emotions',
+  'beginner.unit.l4_emotions_more.title': 'More Emotions',
+  'content.pack.l4_symbols.title': 'Symbols',
+  'content.pack.l4_symbols.desc': 'Recognize common symbols.',
+  'beginner.unit.l4_symbols_yesno.title': 'Yes / No',
+  'beginner.unit.l4_symbols_controls.title': 'Controls',
+  'beginner.unit.l4_symbols_math.title': 'Plus / Minus',
+  'content.pack.l4_patterns.title': 'Patterns',
+  'content.pack.l4_patterns.desc': 'Find what comes next in a pattern.',
+  'beginner.unit.l4_patterns_ab.title': 'AB Pattern',
+  'beginner.unit.l4_patterns_aba.title': 'ABA Pattern',
+  'beginner.unit.l4_patterns_abc.title': 'ABC Pattern',
+  'beginner.unit.l4_patterns_aabb.title': 'AABB Pattern',
 };

@@ -591,6 +591,13 @@ export const DICT_HE: Record<string, string> = {
   'content.pack.toys.desc': 'צעצועים ומשחקים.',
   'content.group.toys.title': 'צעצועים',
 
+  // -----------------------------------------
+  // Interest — Fun Food (New)
+  // -----------------------------------------
+  'content.pack.food_fun.title': 'מאכלים טעימים',
+  'content.pack.food_fun.desc': 'מאכלים מפנקים ללמידה וזיהוי.',
+  'content.group.food_fun_treats.title': 'מאכלים מפנקים',
+
     // =========================
   // שכבה 3 — אות → מילה
   // =========================
@@ -616,4 +623,75 @@ export const DICT_HE: Record<string, string> = {
   'content.group.early_recognition_shapes.title': 'צורות דומות',
   'content.group.early_recognition_faces.title': 'פנים',
 
+
+  // -----------------------------------------
+  // Rewards / Icon Shop (Child)
+  // -----------------------------------------
+  'rewards.shop.screenTitle': "חנות אייקונים",
+  'rewards.shop.childLabel': "ילד",
+  'rewards.shop.coinsPill': "מטבעות: {coins}",
+  'rewards.shop.tab.shop': "חנות",
+  'rewards.shop.tab.owned': "שלי",
+  'rewards.toast.notEnoughCoins': "אין מספיק מטבעות.",
+  'rewards.toast.purchaseFailed': "לא הצלחתי להשלים את הקנייה.",
+  'rewards.toast.purchasedFor': "קנית {label} ב־{price} מטבעות!",
+  'rewards.toast.unlocked': "פתחת {label}!",
+  'rewards.toast.notUnlocked': "האייקון הזה עדיין לא פתוח.",
+  'rewards.toast.changeFailed': "לא הצלחתי להחליף אייקון.",
+  'rewards.toast.iconSelected': "האייקון נבחר!",
+  'rewards.shop.cardTitle': "חנות אייקונים",
+  'rewards.shop.cardSubtitle': "פותחים אייקונים חדשים עם מטבעות",
+  'rewards.shop.filter.all': "הכל ({count})",
+  'rewards.shop.filter.canBuy': "אפשר לקנות ({count})",
+  'rewards.shop.filter.free': "חינם",
+  'rewards.shop.info.allUnlocked': "🎉 כל האייקונים פתוחים!",
+  'rewards.shop.info.noMatch': "אין משהו שמתאים לסינון הזה.",
+  'rewards.shop.priceLabel': "מחיר",
+  'rewards.shop.price.free': "חינם",
+  'rewards.shop.price.coins': "{price} מטבעות",
+  'rewards.shop.action.getFree': "לקחת בחינם",
+  'rewards.shop.action.buy': "לקנות",
+  'rewards.shop.action.needMore': "חסרים עוד {need}",
+  'rewards.shop.info.notEnoughCoins': "אין מספיק מטבעות.",
+  'rewards.shop.confirm.title': "אישור קנייה",
+  'rewards.shop.confirm.price': "מחיר",
+  'rewards.shop.confirm.coinsWord': "מטבעות",
+  'rewards.shop.confirm.afterPurchase': "אחרי הקנייה:",
+  'rewards.shop.confirm.cancel': "ביטול",
+  'rewards.shop.confirm.buy': "קנייה",
+  'rewards.picker.title': "בחירת אייקון",
+  'rewards.picker.subtitle': "בחר אייקון פתוח",
+  'rewards.picker.empty': "עדיין אין אייקונים פתוחים. לך לחנות כדי לפתוח את הראשון.",
+  'rewards.picker.selected': "נבחר:",
+
+  // ======================
+  // Layer 4 — Core Expansion
+  // ======================
+  'content.pack.l4_shapes.title': 'צורות',
+  'content.pack.l4_shapes.desc': 'זיהוי צורות בסיסיות.',
+  'beginner.unit.l4_shapes_basic.title': 'צורות בסיסיות',
+  'beginner.unit.l4_shapes_more.title': 'עוד צורות',
+  'content.pack.l4_directions.title': 'כיוונים',
+  'content.pack.l4_directions.desc': 'זיהוי כיוונים וחצים.',
+  'beginner.unit.l4_directions_basic.title': 'למעלה/למטה/ימין/שמאל',
+  'beginner.unit.l4_directions_diagonal.title': 'אלכסון',
+  'content.pack.l4_spatial.title': 'יחסי מקום',
+  'content.pack.l4_spatial.desc': 'הבנת יחסי מקום פשוטים.',
+  'beginner.unit.l4_spatial_inout.title': 'בפנים/בחוץ',
+  'beginner.unit.l4_spatial_relations.title': 'יחסים',
+  'content.pack.l4_emotions.title': 'רגשות',
+  'content.pack.l4_emotions.desc': 'זיהוי רגשות בסיסיים.',
+  'beginner.unit.l4_emotions_basic.title': 'רגשות בסיסיים',
+  'beginner.unit.l4_emotions_more.title': 'עוד רגשות',
+  'content.pack.l4_symbols.title': 'סמלים',
+  'content.pack.l4_symbols.desc': 'זיהוי סמלים נפוצים.',
+  'beginner.unit.l4_symbols_yesno.title': 'כן/לא',
+  'beginner.unit.l4_symbols_controls.title': 'כפתורים',
+  'beginner.unit.l4_symbols_math.title': 'פלוס/מינוס',
+  'content.pack.l4_patterns.title': 'דפוסים',
+  'content.pack.l4_patterns.desc': 'מציאת מה בא אחרי בדפוס.',
+  'beginner.unit.l4_patterns_ab.title': 'דפוס א-ב',
+  'beginner.unit.l4_patterns_aba.title': 'דפוס א-ב-א',
+  'beginner.unit.l4_patterns_abc.title': 'דפוס א-ב-ג',
+  'beginner.unit.l4_patterns_aabb.title': 'דפוס א-א-ב-ב',
 };
