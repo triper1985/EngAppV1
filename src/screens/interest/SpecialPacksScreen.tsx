@@ -40,7 +40,12 @@ export function SpecialPacksScreen({ child, onBack, onOpenPack }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TopBar title={t('specialPacks.title')} onBack={onBack} dir={dir} />
+      <TopBar
+        title={t('specialPacks.title')}
+        onBack={onBack}
+        backLabel={t('learn.common.back')}
+        dir={dir}
+      />
 
       {selectedInterestPacks.length === 0 ? (
         <Card style={{ marginTop: 14 }}>
@@ -166,3 +171,5 @@ const styles = StyleSheet.create({
   mt8: { marginTop: 8 },
   mt16: { marginTop: 16 },
 });
+
+export default SpecialPacksScreen;

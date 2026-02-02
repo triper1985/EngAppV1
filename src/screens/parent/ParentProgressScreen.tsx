@@ -3,10 +3,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import type { ChildProfile } from '../../types';
 
-import type { UnitGroupId } from '../../tracks/beginnerTrack';
+import type { LevelLayer } from '../../content/types';
+import type { UnitGroupDef, UnitGroupId } from '../../tracks/beginnerTrack';
+import { BEGINNER_GROUPS } from '../../tracks/beginnerTrack';
 import { ChildrenStore } from '../../storage/childrenStore';
 
-import { ParentProgressGroupsScreen } from './ParentProgressGroupsScreen';
+import { ParentProgressLayersScreen } from './ParentProgressLayersScreen';
+import { ParentProgressPacksScreen } from './ParentProgressPacksScreen';
 import { ParentProgressUnitsScreen } from './ParentProgressUnitsScreen';
 
 import { TopBar } from '../../ui/TopBar';
@@ -22,7 +25,39 @@ type Props = {
   onBack: () => void;
 };
 
-type ScreenView = 'groups' | 'units';
+type ScreenView = 'layers' | 'packs' | 'units';
+
+function safeT(
+  t: (k: string, vars?: any) => string,
+  key: string,
+  fallback: string,
+  vars?: any
+) {
+  const v = t(key, vars);
+  return v === key ? fallback : v;
+}
+
+function clampLayer(n: number): LevelLayer {
+  if (n <= 0) return 0;
+  if (n === 1) return 1;
+  if (n === 2) return 2;
+  if (n === 3) return 3;
+  return 4;
+}
+
+function layerName(t: (k: string, vars?: any) => string, layer: LevelLayer): string {
+  const key = `beginner.layer.${layer}.title`;
+  const translated = t(key);
+  if (translated !== key) return translated;
+  // fallback: legacy "Layer {n}"
+  return safeT(t, 'parent.progress.layers.layerTitle', `Layer ${layer}`, { layer: String(layer) });
+}
+
+function groupTitle(t: (k: string, vars?: any) => string, g: UnitGroupDef): string {
+  if (!g.titleKey) return g.title;
+  const translated = t(g.titleKey);
+  return translated === g.titleKey ? g.title : translated;
+}
 
 export function ParentProgressScreen({
   users,
@@ -35,7 +70,10 @@ export function ParentProgressScreen({
 
   const scrollRef = useRef<ScrollView | null>(null);
 
-  const [view, setView] = useState<ScreenView>('groups');
+  const [view, setView] = useState<ScreenView>('layers');
+
+  const [packsMode, setPacksMode] = useState<'layer' | 'interest'>('layer');
+  const [activeLayer, setActiveLayer] = useState<LevelLayer>(0);
   const [activeGroupId, setActiveGroupId] = useState<UnitGroupId | null>(null);
 
   const selected = useMemo(() => {
@@ -47,13 +85,13 @@ export function ParentProgressScreen({
     return ChildrenStore.getById(selected.id) ?? selected;
   }, [selected]);
 
-  // jump to top when changing sub-view / selected group / selected child
+  // jump to top when changing sub-view / selection
   useEffect(() => {
     const tt = setTimeout(() => {
       scrollRef.current?.scrollTo({ y: 0, animated: false });
     }, 0);
     return () => clearTimeout(tt);
-  }, [view, activeGroupId, selectedFresh?.id]);
+  }, [view, packsMode, activeLayer, activeGroupId, selectedFresh?.id]);
 
   function refreshUsers() {
     void ChildrenStore.list();
@@ -69,35 +107,46 @@ export function ParentProgressScreen({
     return getLevelARecommendation(selectedFresh);
   }, [selectedFresh]);
 
-  const recommendationText = useMemo(() => {
-    if (!recommendation) return null;
+  const textAlign = isRtl ? 'right' : 'left';
+  const currentLayer = recommendation?.currentLayer ?? null;
 
-    if (recommendation.currentLayer >= 4) return t('parent.progress.reco.complete');
+  const currentLayerName = useMemo(() => {
+    if (currentLayer === null) return null;
+    return layerName(t, clampLayer(currentLayer as number));
+  }, [currentLayer, t]);
 
-    if (recommendation.suggestedNextLayer !== null) {
-      return t('parent.progress.reco.readyForNext', {
-        layer: String(recommendation.suggestedNextLayer),
-      });
+  const backToLayersLabel = safeT(
+    t,
+    'parent.progress.backToLayers',
+    isRtl ? 'חזרה לשכבות' : 'Back to layers'
+  );
+
+  const viewingLine = useMemo(() => {
+    if (view === 'layers') return t('parent.progress.viewing.layers');
+    if (view === 'packs') {
+      if (packsMode === 'interest') return t('parent.progress.viewing.interest');
+      return t('parent.progress.viewing.layer', { layerName: layerName(t, activeLayer) });
+    }
+    // units
+    const g = activeGroupId ? BEGINNER_GROUPS.find((x) => x.id === activeGroupId) : null;
+    const gName = g ? groupTitle(t, g) : null;
+
+    if (packsMode === 'interest') {
+      return gName
+        ? t('parent.progress.viewing.unitsInterest', { groupName: gName })
+        : t('parent.progress.viewing.interest');
     }
 
-    return t('parent.progress.reco.practiceLayer', {
-      layer: String(recommendation.currentLayer),
-    });
-  }, [recommendation, t]);
+    const lName = layerName(t, activeLayer);
 
-  const focusPacksText = useMemo(() => {
-    if (!recommendation?.focusPackIds?.length) return null;
+    if (gName && lName && gName.trim() === lName.trim()) {
+      return t('parent.progress.viewing.group', { groupName: gName });
+    }
 
-    const names = recommendation.focusPackIds.map((id) => {
-      const key = `content.pack.${id}.title`;
-      const translated = t(key);
-      return translated === key ? id : translated;
-    });
-
-    return t('parent.progress.focusPacks', { packs: names.join(', ') });
-  }, [recommendation, t]);
-
-  const textAlign = isRtl ? 'right' : 'left';
+    return gName
+      ? t('parent.progress.viewing.units', { layerName: lName, groupName: gName })
+      : t('parent.progress.viewing.layer', { layerName: lName });
+  }, [view, packsMode, activeLayer, activeGroupId, t]);
 
   return (
     <ScrollView ref={scrollRef} contentContainerStyle={styles.container}>
@@ -129,7 +178,7 @@ export function ParentProgressScreen({
                       variant={active ? 'primary' : 'secondary'}
                       onClick={() => {
                         onSelectChild(u.id);
-                        setView('groups');
+                        setView('layers');
                         setActiveGroupId(null);
                       }}
                     >
@@ -141,56 +190,46 @@ export function ParentProgressScreen({
             </View>
           )}
 
-          {view === 'units' ? (
+          {/* Overall progress */}
+          {currentLayerName ? (
             <View style={{ marginTop: 6 }}>
+              <Text style={[styles.strongLine, { textAlign }]}>
+                {t('parent.progress.overallProgress', { layerName: currentLayerName })}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Viewing context */}
+          <View style={{ marginTop: 4 }}>
+            <Text style={[styles.dimText, { textAlign }]}>{viewingLine}</Text>
+          </View>
+
+          {/* Local navigation controls */}
+          {view === 'units' ? (
+            <View style={{ marginTop: 8 }}>
               <Button
                 onClick={() => {
-                  setView('groups');
+                  setView('packs');
                   setActiveGroupId(null);
                 }}
               >
-                {t('parent.progress.backToGroups')}
+                {safeT(t, 'parent.progress.backToPacks', isRtl ? 'חזרה לחבילות' : 'Back to packs')}
+              </Button>
+            </View>
+          ) : view === 'packs' ? (
+            <View style={{ marginTop: 8 }}>
+              <Button
+                onClick={() => {
+                  setView('layers');
+                  setActiveGroupId(null);
+                }}
+              >
+                {backToLayersLabel}
               </Button>
             </View>
           ) : null}
         </Card>
       </View>
-
-      {recommendation ? (
-        <View style={{ marginTop: 14 }}>
-          <Card>
-            <Text style={[styles.sectionTitle, { textAlign }]}>
-              {t('parent.progress.recommendationTitle')}
-            </Text>
-
-            <Text style={[styles.paragraph, { textAlign }]}>
-              {recommendationText}
-            </Text>
-
-            <View style={{ marginTop: 10 }}>
-              <Text style={[styles.strongLine, { textAlign }]}>
-                {t('parent.progress.currentLayer', {
-                  layer: String(recommendation.currentLayer),
-                })}
-              </Text>
-
-              {recommendation.suggestedNextLayer !== null ? (
-                <Text style={[styles.strongLine, { textAlign, marginTop: 4 }]}>
-                  {t('parent.progress.suggestedNextLayer', {
-                    layer: String(recommendation.suggestedNextLayer),
-                  })}
-                </Text>
-              ) : null}
-
-              {focusPacksText ? (
-                <Text style={[styles.paragraph, { textAlign, marginTop: 10 }]}>
-                  {focusPacksText}
-                </Text>
-              ) : null}
-            </View>
-          </Card>
-        </View>
-      ) : null}
 
       {!selectedFresh ? (
         <View style={{ marginTop: 14 }}>
@@ -198,9 +237,31 @@ export function ParentProgressScreen({
             {t('parent.progress.noChildSelected')}
           </Text>
         </View>
-      ) : view === 'groups' ? (
-        <ParentProgressGroupsScreen
+      ) : view === 'layers' ? (
+        <ParentProgressLayersScreen
           child={selectedFresh}
+          currentLayer={currentLayer}
+          onOpenLayer={(layer) => {
+            setPacksMode('layer');
+            setActiveLayer(layer);
+            setActiveGroupId(null);
+            setView('packs');
+          }}
+          onOpenInterest={() => {
+            setPacksMode('interest');
+            setActiveGroupId(null);
+            setView('packs');
+          }}
+        />
+      ) : view === 'packs' ? (
+        <ParentProgressPacksScreen
+          child={selectedFresh}
+          mode={packsMode}
+          layer={packsMode === 'layer' ? activeLayer : undefined}
+          onBack={() => {
+            setView('layers');
+            setActiveGroupId(null);
+          }}
           onSelectGroup={(groupId) => {
             setActiveGroupId(groupId as UnitGroupId);
             setView('units');
@@ -210,8 +271,9 @@ export function ParentProgressScreen({
         <ParentProgressUnitsScreen
           child={selectedFresh}
           groupId={activeGroupId}
-          onBackToGroups={() => {
-            setView('groups');
+          layer={packsMode === 'layer' ? activeLayer : null}
+          onBackToPacks={() => {
+            setView('packs');
             setActiveGroupId(null);
           }}
           onToast={toast}
@@ -238,12 +300,7 @@ const styles = StyleSheet.create({
 
   dimText: { opacity: 0.75 },
 
-  paragraph: {
-    opacity: 0.85,
-    lineHeight: 20,
-  },
-
-  strongLine: { fontWeight: '700' },
+  strongLine: { fontWeight: '800' },
 
   userRow: {
     flexDirection: 'row',

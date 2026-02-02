@@ -18,3 +18,9 @@ export * from './core/toysPack';
 // Interest packs (optional / motivation)
 export * from './interest/spacePack';
 export * from './interest/foodFunPack';
+
+export * from './interest/animalsMorePack';
+export * from './interest/transportMorePack';
+export * from './interest/clothesMorePack';
+export * from './interest/homeMorePack';
+export * from './interest/jobsPack';

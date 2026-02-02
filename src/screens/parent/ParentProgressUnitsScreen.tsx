@@ -3,10 +3,14 @@ import { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { ChildProfile } from '../../types';
 
+import type { LevelLayer } from '../../content/types';
+
 import {
+  BEGINNER_GROUPS,
   getUnitsByGroup,
   getUnitStatus,
   type UnitDef,
+  type UnitGroupDef,
   type UnitGroupId,
   QUIZ_PASS_SCORE,
 } from '../../tracks/beginnerTrack';
@@ -28,7 +32,9 @@ import { Button } from '../../ui/Button';
 type Props = {
   child: ChildProfile; // required
   groupId: UnitGroupId;
-  onBackToGroups: () => void;
+  /** When coming from a specific layer, provide it for breadcrumb/context. */
+  layer: LevelLayer | null;
+  onBackToPacks: () => void;
   onToast?: (msg: string) => void;
   onRefreshUsers: () => void;
 };
@@ -36,7 +42,8 @@ type Props = {
 export function ParentProgressUnitsScreen({
   child,
   groupId,
-  onBackToGroups,
+  layer,
+  onBackToPacks,
   onToast,
   onRefreshUsers,
 }: Props) {
@@ -64,6 +71,21 @@ export function ParentProgressUnitsScreen({
 
   function freshChild(): ChildProfile {
     return ChildrenStore.getById(child.id) ?? child;
+  }
+
+
+  function layerNameForUI(l: LevelLayer): string {
+    const key = `beginner.layer.${l}.title`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+    // fallback: Layer N
+    return t('parent.progress.layers.layerTitle', { layer: String(l) });
+  }
+
+  function groupTitleForUI(g: UnitGroupDef): string {
+    if (!g.titleKey) return g.title;
+    const translated = t(g.titleKey);
+    return translated === g.titleKey ? g.title : translated;
   }
 
   function unitTitle(u: UnitDef) {
@@ -132,16 +154,28 @@ export function ParentProgressUnitsScreen({
     }
   }
 
+  const groupDef = useMemo(() => {
+    return BEGINNER_GROUPS.find((g) => g.id === groupId) ?? null;
+  }, [groupId]);
+
+  const breadcrumb = useMemo(() => {
+    const parts: string[] = [];
+    const l = layer !== null ? layerNameForUI(layer) : null;
+    const g = groupDef ? groupTitleForUI(groupDef) : null;
+
+    // Avoid duplicate like: "יסודות → יסודות"
+    if (l && g && l.trim() === g.trim()) return g;
+
+    if (l) parts.push(l);
+    if (g) parts.push(g);
+
+    return parts.join(' → ');
+  }, [layer, groupDef]);
+
   return (
     <View style={{ marginTop: 14 }}>
       {/* Top actions row */}
       <View style={[styles.topRow, isRtl && styles.rowRtl]}>
-        <View style={styles.btnWrap}>
-          <Button onClick={onBackToGroups} disabled={busy}>
-            {t('parent.progress.units.backToGroups')}
-          </Button>
-        </View>
-
         <View style={styles.btnWrap}>
           <Button variant="secondary" onClick={resetAll} disabled={busy}>
             {t('parent.progress.units.resetAll')}
@@ -227,9 +261,7 @@ export function ParentProgressUnitsScreen({
 
 const styles = StyleSheet.create({
   dim: { opacity: 0.75 },
-
   rowRtl: { flexDirection: 'row-reverse' },
-
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',

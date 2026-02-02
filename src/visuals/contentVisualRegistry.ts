@@ -150,6 +150,31 @@ const PACK_VISUALS: Record<string, VisualSpec> = {
     emoji: '🚀',
     image: require('../assets/content/packs/space.png'),
   },
+  animals_more: {
+    kind: 'pack',
+    id: 'animals_more',
+    emoji: '🦊',
+  },
+  transport_more: {
+    kind: 'pack',
+    id: 'transport_more',
+    emoji: '✈️',
+  },
+  clothes_more: {
+    kind: 'pack',
+    id: 'clothes_more',
+    emoji: '🧥',
+  },
+  home_more: {
+    kind: 'pack',
+    id: 'home_more',
+    emoji: '🏡',
+  },
+  jobs: {
+    kind: 'pack',
+    id: 'jobs',
+    emoji: '🧑‍🚒',
+  },
 early_recognition: {
     kind: 'pack',
     id: 'early_recognition',

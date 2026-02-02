@@ -114,7 +114,7 @@ export const DICT_HE: Record<string, string> = {
   'learn.quiz.titleFallback': 'בוחן',
   'learn.quiz.titleShort': 'בוחן',
   'learn.quiz.lockedTodayTitle': '🔒 הבוחן נעול להיום',
-  'learn.quiz.lockedTodayAttempts': 'עשית כבר {attempts}/3 ניסיונות היום',
+  'learn.quiz.lockedTodayAttempts': 'עשית כבר {n}/3 ניסיונות היום',
   'learn.quiz.lockedTodayHint':
     'אפשר לתרגל את מה שטעית בו, ולנסות שוב מחר (או שהורה יפתח).',
   'learn.quiz.buttonPractice': '🧩 תרגול',
@@ -125,7 +125,7 @@ export const DICT_HE: Record<string, string> = {
   'learn.quiz.unitLabel': 'יחידה: {title}',
   'learn.quiz.failedTitle': '💪 כמעט!',
   'learn.quiz.failedSubtitle': 'בוא נתרגל או ננסה שוב 🙂',
-  'learn.quiz.attemptsToday': 'ניסיונות היום: {attempts}/3{willLock}',
+  'learn.quiz.attemptsToday': 'ניסיונות היום: {n}/3{willLock}',
   'learn.quiz.willLockSuffix': ' • הבוחן ננעל להיום',
   'learn.quiz.buttonPracticeWrong': '🧩 תרגול על מה שטעיתי',
   'learn.quiz.buttonRetryNow': '🔁 נסה שוב עכשיו',
@@ -230,7 +230,6 @@ export const DICT_HE: Record<string, string> = {
 
   // Space (official localization example)
   'content.pack.space.title': 'חלל',
-  'content.pack.space.desc': 'יסודות החלל: לומדים מילים לפי שמיעה ואייקונים.',
   'content.group.space_basics.title': 'חלל – בסיס',
 
   // Animals (Core)
@@ -358,7 +357,22 @@ export const DICT_HE: Record<string, string> = {
   // -----------------------------------------
   'parent.progress.title': 'התקדמות',
   'parent.progress.childLabel': 'משתמש:',
+  'parent.progress.backToLayers': '← חזרה לשכבות',
   'parent.progress.backToGroups': '← חזרה לקבוצות',
+
+  // Drill-down: Layers -> Packs -> Units
+  'parent.progress.layers.title': 'תכנית ליבה (שכבות)',
+  'parent.progress.layers.layerBadge': 'שכבה {layer}',
+  'parent.progress.layers.layerTitle': 'שכבה {layer}',
+  'parent.progress.layers.summary': '{groups} חבילות • {done}/{total} יחידות • {pct}%',
+  'parent.progress.layers.emptyLayer': 'אין חבילות ליבה בשכבה הזו (עדיין).',
+  'parent.progress.layers.interestTitle': 'חבילות עניין (אופציונלי)',
+  'parent.progress.layers.interestSubtitle': '{count} חבילות ב־Explore',
+  'parent.progress.layers.openInterest': 'פתח חבילות עניין',
+
+  'parent.progress.packs.layerTitle': 'חבילות: {layerName}',
+  'parent.progress.packs.interestTitle': 'חבילות עניין',
+  'parent.progress.packs.empty': 'לא נמצאו חבילות.',
 
   'parent.progress.recommendationTitle': 'המלצה לרמה A',
   'parent.progress.reco.complete': 'רמה A הושלמה. כל הכבוד!',
@@ -398,7 +412,7 @@ export const DICT_HE: Record<string, string> = {
   'parent.progress.units.status.quizReady': '🧠 מוכן לבוחן ({seen}/{total})',
   'parent.progress.units.status.completed': '🏁 הושלם ({best}%)',
 
-  'parent.progress.units.attemptsToday': 'ניסיונות היום: {attempts}/3',
+  'parent.progress.units.attemptsToday': 'ניסיונות היום: {n}/3',
   'parent.progress.units.lockedToday': '🔒 נעול היום',
   'parent.progress.units.lockedTodaySuffix': ' • 🔒 נעול היום',
 
@@ -595,7 +609,6 @@ export const DICT_HE: Record<string, string> = {
   // Interest — Fun Food (New)
   // -----------------------------------------
   'content.pack.food_fun.title': 'מאכלים טעימים',
-  'content.pack.food_fun.desc': 'מאכלים מפנקים ללמידה וזיהוי.',
   'content.group.food_fun_treats.title': 'מאכלים מפנקים',
 
     // =========================
@@ -644,6 +657,16 @@ export const DICT_HE: Record<string, string> = {
   'rewards.shop.filter.all': "הכל ({count})",
   'rewards.shop.filter.canBuy': "אפשר לקנות ({count})",
   'rewards.shop.filter.free': "חינם",
+
+  'rewards.shop.category.all': 'כל הקטגוריות',
+  'rewards.shop.category.animals': 'חיות',
+  'rewards.shop.category.space': 'חלל',
+  'rewards.shop.category.sports': 'ספורט',
+  'rewards.shop.category.food': 'אוכל',
+  'rewards.shop.category.nature': 'טבע',
+  'rewards.shop.category.fantasy': 'פנטזיה',
+  'rewards.shop.category.faces': 'פרצופים',
+  'rewards.shop.category.objects': 'חפצים',
   'rewards.shop.info.allUnlocked': "🎉 כל האייקונים פתוחים!",
   'rewards.shop.info.noMatch': "אין משהו שמתאים לסינון הזה.",
   'rewards.shop.priceLabel': "מחיר",
@@ -694,4 +717,54 @@ export const DICT_HE: Record<string, string> = {
   'beginner.unit.l4_patterns_aba.title': 'דפוס א-ב-א',
   'beginner.unit.l4_patterns_abc.title': 'דפוס א-ב-ג',
   'beginner.unit.l4_patterns_aabb.title': 'דפוס א-א-ב-ב',
+
+  // ===== V12.3 Interest expansions =====
+  'content.pack.food_fun.desc': 'פירות, ירקות וארוחות טעימות.',
+  'content.group.food_fun_fruits.title': 'אוכל – פירות',
+  'content.group.food_fun_vegetables.title': 'אוכל – ירקות',
+  'content.group.food_fun_meals_snacks.title': 'אוכל – ארוחות וחטיפים',
+
+  'content.pack.space.desc': 'מילים בסיסיות על חלל עם אייקונים ושמע.',
+  'content.group.space_objects.title': 'חלל – גרמי שמיים',
+  'content.group.space_tech.title': 'חלל – טכנולוגיה',
+
+  'content.pack.animals_more.title': 'עוד חיות',
+  'content.pack.animals_more.desc': 'עוד חיות ללמוד ולהכיר.',
+  'content.group.animals_more_pets.title': 'חיות – בית',
+  'content.group.animals_more_wild.title': 'חיות – טבע',
+
+  'content.pack.transport_more.title': 'עוד תחבורה',
+  'content.pack.transport_more.desc': 'עוד דרכים לנוע ולנסוע.',
+  'content.group.transport_more_land.title': 'תחבורה – יבשה',
+  'content.group.transport_more_air_sea.title': 'תחבורה – אוויר וים',
+
+  'content.pack.clothes_more.title': 'עוד בגדים',
+  'content.pack.clothes_more.desc': 'עוד דברים שאפשר ללבוש.',
+  'content.group.clothes_more_basics.title': 'בגדים – עוד',
+
+  'content.pack.home_more.title': 'הבית שלי',
+  'content.pack.home_more.desc': 'חדרים וחפצים בבית.',
+  'content.group.home_more_rooms.title': 'בית – חדרים',
+  'content.group.home_more_things.title': 'בית – חפצים',
+
+  'content.pack.jobs.title': 'מקצועות',
+  'content.pack.jobs.desc': 'אנשים שעוזרים ועובדים.',
+  'content.group.jobs_emergency.title': 'מקצועות – חירום',
+  'content.group.jobs_community.title': 'מקצועות – קהילה',
+  'content.group.jobs_build_fix.title': 'מקצועות – בנייה ותיקון',
+
+  'beginner.layer.0.title': 'יסודות',
+  'beginner.layer.1.title': 'הקשבה ופקודות',
+  'beginner.layer.2.title': 'אוצר מילים מוחשי',
+  'beginner.layer.3.title': 'סמלים',
+  'beginner.layer.4.title': 'מיקס ומשחק',
+  'parent.progress.overallProgress': 'התקדמות כללית: {layerName}',
+  'parent.progress.viewing.layers': 'צפייה: שכבות',
+  'parent.progress.viewing.layer': 'צפייה: {layerName}',
+  'parent.progress.viewing.interest': 'צפייה: חבילות עניין',
+  'parent.progress.viewing.units': 'צפייה: {layerName} → {groupName}',
+  'parent.progress.viewing.group': 'צפייה: {groupName}',
+  'parent.progress.viewing.unitsInterest': 'צפייה: {groupName}',
+  'parent.progress.backToPacks': 'חזרה לחבילות',
+  'parent.progress.units.backToPacks': 'חזרה',
 };

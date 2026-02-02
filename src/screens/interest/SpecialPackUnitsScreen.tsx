@@ -18,7 +18,7 @@ type Mode = 'learn' | 'quiz';
 
 type Props = {
   child: ChildProfile; // future: progress/locking
-  packId: string | null;
+  packId: ContentPackId;
   onBack: () => void;
 
   // V4: navigate to group details (Unit = Group)
@@ -29,7 +29,7 @@ export function SpecialPackUnitsScreen({ child, packId, onBack, onOpenGroup }: P
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
 
-  const pack = packId ? getPackById(packId as ContentPackId) : undefined;
+  const pack = getPackById(packId);
   const unlock = pack ? isPackUnlockedForChildA(child, pack) : null;
   const isLocked = unlock ? !unlock.unlocked : false;
 
@@ -38,6 +38,7 @@ export function SpecialPackUnitsScreen({ child, packId, onBack, onOpenGroup }: P
       <TopBar
         title={pack ? getPackTitle(pack, t) : t('specialPackUnits.packFallback')}
         onBack={onBack}
+        backLabel={t('learn.common.back')}
         dir={dir}
       />
 
@@ -109,3 +110,5 @@ const styles = StyleSheet.create({
 
   mt8: { marginTop: 8 },
 });
+
+export default SpecialPackUnitsScreen;

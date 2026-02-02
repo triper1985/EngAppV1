@@ -24,6 +24,11 @@ import { l4_patternsPack } from './packs/core/l4_patternsPack';
 
 import { spacePack } from './packs/interest/spacePack';
 import { foodFunPack } from './packs/interest/foodFunPack';
+import { animalsMorePack } from './packs/interest/animalsMorePack';
+import { transportMorePack } from './packs/interest/transportMorePack';
+import { clothesMorePack } from './packs/interest/clothesMorePack';
+import { homeMorePack } from './packs/interest/homeMorePack';
+import { jobsPack } from './packs/interest/jobsPack';
 
 export const BUILT_IN_PACKS: readonly ContentPack[] = [
   foundationsPack,
@@ -47,6 +52,11 @@ export const BUILT_IN_PACKS: readonly ContentPack[] = [
   spacePack,
   earlyRecognitionPack,
   foodFunPack,
+  animalsMorePack,
+  transportMorePack,
+  clothesMorePack,
+  homeMorePack,
+  jobsPack,
 ] as const;
 
 const packsById = new Map<ContentPackId, ContentPack>();

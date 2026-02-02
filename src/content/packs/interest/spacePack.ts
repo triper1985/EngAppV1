@@ -1,6 +1,15 @@
 // src/content/packs/interest/spacePack.ts
 import type { ContentPack } from '../../types';
 
+/**
+ * V12.3 — Interest Pack: Space (Beginner / Level A)
+ * -----------------------------------------------
+ * Expanded to two groups/units:
+ * - Space Objects
+ * - Space Tech
+ *
+ * Visuals are emoji-only (temporary) for clean rendering.
+ */
 export const spacePack: ContentPack = {
   id: 'space',
   policy: {
@@ -14,50 +23,39 @@ export const spacePack: ContentPack = {
   title: 'Space',
   titleKey: 'content.pack.space.title',
 
-  emoji: '🪐',
+  emoji: '🚀',
 
-  description: 'Space basics: learn words by sound + icons.',
+  description: 'Learn space words by sound + icons.',
   descriptionKey: 'content.pack.space.desc',
 
-  meta: { tags: ['interest'] },
+  meta: { tags: ['interest', 'beginnerBridge'] },
 
   items: [
-    {
-      id: 'space_star',
-      en: 'star',
-      he: 'כוכב',
-      visual: { kind: 'text', he: '⭐ כוכב' },
-    },
-    {
-      id: 'space_moon',
-      en: 'moon',
-      he: 'ירח',
-      visual: { kind: 'text', he: '🌙 ירח' },
-    },
-    {
-      id: 'space_sun',
-      en: 'sun',
-      he: 'שמש',
-      visual: { kind: 'text', he: '☀️ שמש' },
-    },
-    {
-      id: 'space_planet',
-      en: 'planet',
-      he: 'כוכב לכת',
-      visual: { kind: 'text', he: '🪐 כוכב לכת' },
-    },
+    { id: 'space_sun', en: 'sun', he: 'שמש', heNiqqud: 'שֶׁמֶשׁ', visual: { kind: 'text', he: '☀️' } },
+    { id: 'space_moon', en: 'moon', he: 'ירח', heNiqqud: 'יָרֵחַ', visual: { kind: 'text', he: '🌙' } },
+    { id: 'space_star', en: 'star', he: 'כוכב', heNiqqud: 'כּוֹכָב', visual: { kind: 'text', he: '⭐' } },
+    { id: 'space_planet', en: 'planet', he: 'כוכב לכת', heNiqqud: 'כּוֹכָב לֶכֶת', visual: { kind: 'text', he: '🪐' } },
+    { id: 'space_earth', en: 'earth', he: 'כדור הארץ', heNiqqud: 'כַּדּוּר הָאָרֶץ', visual: { kind: 'text', he: '🌍' } },
+
+    { id: 'space_rocket', en: 'rocket', he: 'טיל', heNiqqud: 'טִיל', visual: { kind: 'text', he: '🚀' } },
+    { id: 'space_astronaut', en: 'astronaut', he: 'אסטרונאוט', heNiqqud: 'אַסְטְרוֹנָאוּט', visual: { kind: 'text', he: '🧑‍🚀' } },
+    { id: 'space_satellite', en: 'satellite', he: 'לוויין', heNiqqud: 'לַוְיָן', visual: { kind: 'text', he: '🛰️' } },
   ],
 
   groups: [
     {
-      id: 'space_basics',
-      title: 'Space – Basics',
-      titleKey: 'content.group.space_basics.title',
-      policy: {
-        minLayer: 2,
-        gamePoolContribution: true,
-      },
-      itemIds: ['space_star', 'space_moon', 'space_sun', 'space_planet'],
+      id: 'space_objects',
+      title: 'Space – Objects',
+      titleKey: 'content.group.space_objects.title',
+      policy: { minLayer: 2, gamePoolContribution: true },
+      itemIds: ['space_sun', 'space_moon', 'space_star', 'space_planet', 'space_earth'],
+    },
+    {
+      id: 'space_tech',
+      title: 'Space – Tech',
+      titleKey: 'content.group.space_tech.title',
+      policy: { minLayer: 2, gamePoolContribution: true },
+      itemIds: ['space_rocket', 'space_astronaut', 'space_satellite'],
     },
   ],
 

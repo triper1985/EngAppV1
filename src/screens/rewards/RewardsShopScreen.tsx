@@ -77,7 +77,7 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
             onClick={() => setTab('shop')}
             style={[styles.tabPill, shopSelected ? styles.tabSelected : null]}
           >
-            Shop
+            {t('rewards.shop.tab.shop')}
           </Button>
 
           <Button
@@ -85,7 +85,7 @@ export function RewardsShopScreen({ child, onBack, onChildUpdated }: Props) {
             onClick={() => setTab('owned')}
             style={[styles.tabPill, ownedSelected ? styles.tabSelected : null]}
           >
-            Owned
+            {t('rewards.shop.tab.owned')}
           </Button>
         </View>
 

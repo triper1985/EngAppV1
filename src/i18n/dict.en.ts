@@ -119,7 +119,7 @@ export const DICT_EN: Record<string, string> = {
   'learn.quiz.titleShort': 'Quiz',
   'learn.quiz.lockedTodayTitle': '🔒 Quiz locked for today',
   'learn.quiz.lockedTodayAttempts':
-    'You already did {attempts}/3 attempts today',
+    'You already did {n}/3 attempts today',
   'learn.quiz.lockedTodayHint':
     'You can practice what you missed, and try again tomorrow (or a parent can unlock).',
   'learn.quiz.buttonPractice': '🧩 Practice',
@@ -130,7 +130,7 @@ export const DICT_EN: Record<string, string> = {
   'learn.quiz.unitLabel': 'Unit: {title}',
   'learn.quiz.failedTitle': '💪 Almost!',
   'learn.quiz.failedSubtitle': "Let's practice or try again 🙂",
-  'learn.quiz.attemptsToday': 'Attempts today: {attempts}/3{willLock}',
+  'learn.quiz.attemptsToday': 'Attempts today: {n}/3{willLock}',
   'learn.quiz.willLockSuffix': ' • quiz will lock today',
   'learn.quiz.buttonPracticeWrong': '🧩 Practice what I missed',
   'learn.quiz.buttonRetryNow': '🔁 Try again now',
@@ -240,7 +240,6 @@ export const DICT_EN: Record<string, string> = {
 
   // Space (official localization example)
   'content.pack.space.title': 'Space',
-  'content.pack.space.desc': 'Space basics: learn words by sound + icons.',
   'content.group.space_basics.title': 'Space – Basics',
 
   // Animals (Core)
@@ -369,7 +368,22 @@ export const DICT_EN: Record<string, string> = {
   // -----------------------------------------
   'parent.progress.title': 'Progress',
   'parent.progress.childLabel': 'Child:',
+  'parent.progress.backToLayers': '← Back to layers',
   'parent.progress.backToGroups': '← Back to groups',
+
+  // Drill-down: Layers -> Packs -> Units
+  'parent.progress.layers.title': 'Core curriculum (layers)',
+  'parent.progress.layers.layerBadge': 'L{layer}',
+  'parent.progress.layers.layerTitle': 'Layer {layer}',
+  'parent.progress.layers.summary': '{groups} packs • {done}/{total} units • {pct}%',
+  'parent.progress.layers.emptyLayer': 'No core packs in this layer (yet).',
+  'parent.progress.layers.interestTitle': 'Interest packs (optional)',
+  'parent.progress.layers.interestSubtitle': '{count} packs in Explore',
+  'parent.progress.layers.openInterest': 'Open interest packs',
+
+  'parent.progress.packs.layerTitle': 'Packs: {layerName}',
+  'parent.progress.packs.interestTitle': 'Interest packs',
+  'parent.progress.packs.empty': 'No packs found.',
 
   'parent.progress.recommendationTitle': 'Level A recommendation',
   'parent.progress.reco.complete': 'Level A is complete. Great job!',
@@ -616,7 +630,6 @@ export const DICT_EN: Record<string, string> = {
   // Interest — Fun Food (New)
   // -----------------------------------------
   'content.pack.food_fun.title': 'Fun Food',
-  'content.pack.food_fun.desc': 'Tasty treats to learn and recognize.',
   'content.group.food_fun_treats.title': 'Fun Food – Treats',
 
     // =========================
@@ -666,6 +679,16 @@ export const DICT_EN: Record<string, string> = {
   'rewards.shop.filter.all': "All ({count})",
   'rewards.shop.filter.canBuy': "Can buy ({count})",
   'rewards.shop.filter.free': "Free",
+
+  'rewards.shop.category.all': 'All categories',
+  'rewards.shop.category.animals': 'Animals',
+  'rewards.shop.category.space': 'Space',
+  'rewards.shop.category.sports': 'Sports',
+  'rewards.shop.category.food': 'Food',
+  'rewards.shop.category.nature': 'Nature',
+  'rewards.shop.category.fantasy': 'Fantasy',
+  'rewards.shop.category.faces': 'Faces',
+  'rewards.shop.category.objects': 'Objects',
   'rewards.shop.info.allUnlocked': "🎉 All icons unlocked!",
   'rewards.shop.info.noMatch': "Nothing matches this filter.",
   'rewards.shop.priceLabel': "Price",
@@ -716,4 +739,54 @@ export const DICT_EN: Record<string, string> = {
   'beginner.unit.l4_patterns_aba.title': 'ABA Pattern',
   'beginner.unit.l4_patterns_abc.title': 'ABC Pattern',
   'beginner.unit.l4_patterns_aabb.title': 'AABB Pattern',
+
+  // ===== V12.3 Interest expansions =====
+  'content.pack.food_fun.desc': 'Fruits, vegetables, and tasty meals.',
+  'content.group.food_fun_fruits.title': 'Fun Food – Fruits',
+  'content.group.food_fun_vegetables.title': 'Fun Food – Vegetables',
+  'content.group.food_fun_meals_snacks.title': 'Fun Food – Meals & Snacks',
+
+  'content.pack.space.desc': 'Learn space words by sound + icons.',
+  'content.group.space_objects.title': 'Space – Objects',
+  'content.group.space_tech.title': 'Space – Tech',
+
+  'content.pack.animals_more.title': 'More Animals',
+  'content.pack.animals_more.desc': 'Extra animals to discover.',
+  'content.group.animals_more_pets.title': 'More Animals – Pets',
+  'content.group.animals_more_wild.title': 'More Animals – Wild',
+
+  'content.pack.transport_more.title': 'More Transport',
+  'content.pack.transport_more.desc': 'More ways to travel and move.',
+  'content.group.transport_more_land.title': 'More Transport – Land',
+  'content.group.transport_more_air_sea.title': 'More Transport – Air & Sea',
+
+  'content.pack.clothes_more.title': 'More Clothes',
+  'content.pack.clothes_more.desc': 'More things you can wear.',
+  'content.group.clothes_more_basics.title': 'More Clothes – Basics',
+
+  'content.pack.home_more.title': 'My Home',
+  'content.pack.home_more.desc': 'Rooms and things at home.',
+  'content.group.home_more_rooms.title': 'My Home – Rooms',
+  'content.group.home_more_things.title': 'My Home – Things',
+
+  'content.pack.jobs.title': 'Jobs',
+  'content.pack.jobs.desc': 'People who help and work.',
+  'content.group.jobs_emergency.title': 'Jobs – Emergency',
+  'content.group.jobs_community.title': 'Jobs – Community',
+  'content.group.jobs_build_fix.title': 'Jobs – Build & Fix',
+
+  'beginner.layer.0.title': 'Foundations',
+  'beginner.layer.1.title': 'Listening & Commands',
+  'beginner.layer.2.title': 'World Objects',
+  'beginner.layer.3.title': 'Symbols',
+  'beginner.layer.4.title': 'Mix & Play',
+  'parent.progress.overallProgress': 'Overall progress: {layerName}',
+  'parent.progress.viewing.layers': 'Viewing: Layers',
+  'parent.progress.viewing.layer': 'Viewing: {layerName}',
+  'parent.progress.viewing.interest': 'Viewing: Interest packs',
+  'parent.progress.viewing.units': 'Viewing: {layerName} → {groupName}',
+  'parent.progress.viewing.group': 'Viewing: {groupName}',
+  'parent.progress.viewing.unitsInterest': 'Viewing: {groupName}',
+  'parent.progress.backToPacks': 'Back to packs',
+  'parent.progress.units.backToPacks': 'Back',
 };

@@ -19,10 +19,22 @@ type Props = {
 
 type Filter = 'all' | 'canBuy' | 'free';
 
+type Category =
+  | 'all'
+  | 'animals'
+  | 'space'
+  | 'sports'
+  | 'food'
+  | 'nature'
+  | 'fantasy'
+  | 'faces'
+  | 'objects';
+
 
 export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
   const { t } = useI18n();
   const [filter, setFilter] = useState<Filter>('all');
+  const [category, setCategory] = useState<Category>('all');
   const [confirming, setConfirming] = useState<{
     iconId: string;
     label: string;
@@ -44,17 +56,23 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
   }, [lockedIcons, coins]);
 
   const filteredLockedIcons = useMemo(() => {
-    return lockedIcons.filter((ic) => {
+    const base = lockedIcons.filter((ic) => {
       const price = getIconPrice(ic.id);
       const free = isIconFree(ic.id);
       const canBuy = free || coins >= price;
+
+      if (category !== 'all') {
+        const c = (ic as any).category as string | undefined;
+        if (c !== category) return false;
+      }
 
       if (filter === 'all') return true;
       if (filter === 'free') return free;
       if (filter === 'canBuy') return canBuy;
       return true;
     });
-  }, [lockedIcons, coins, filter]);
+    return base.sort((a, b) => getIconPrice(a.id) - getIconPrice(b.id));
+  }, [lockedIcons, coins, filter, category]);
 
   function requestBuy(iconId: string, label: string) {
     const price = getIconPrice(iconId);
@@ -117,8 +135,29 @@ export function IconShop({ coins, unlockedIconIds, onBuy }: Props) {
           onClick={() => setFilter('free')}
           style={filter === 'free' ? styles.filterSelected : undefined}
         >
-          Free
+          {t('rewards.shop.filter.free')}
         </Button>
+      </View>
+
+      <View style={styles.categories}>
+        <Button
+          variant="pill"
+          onClick={() => setCategory('all')}
+          style={category === 'all' ? styles.filterSelected : undefined}
+        >
+          {t('rewards.shop.category.all')}
+        </Button>
+
+        {(['animals', 'space', 'sports', 'food', 'nature', 'fantasy', 'faces', 'objects'] as Category[]).map((c) => (
+          <Button
+            key={c}
+            variant="pill"
+            onClick={() => setCategory(c)}
+            style={category === c ? styles.filterSelected : undefined}
+          >
+            {t(`rewards.shop.category.${c}`)}
+          </Button>
+        ))}
       </View>
 
       <View style={{ marginTop: 14 }}>
@@ -225,6 +264,8 @@ const styles = StyleSheet.create({
 
   filters: { marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterSelected: { borderColor: '#111', borderWidth: 2 },
+
+  categories: { marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 
   info: { paddingVertical: 10, fontSize: 14, opacity: 0.7 },
 

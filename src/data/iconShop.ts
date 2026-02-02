@@ -12,9 +12,43 @@ export const ICON_PRICES: Record<string, number> = {
   basketball: 0,
   rocket: 0,
 
-  // examples (תוסיף/תשנה איך שבא לך):
-  // crown: 10,
-  // dragon: 20,
+  // Animals (tier 1)
+  tiger: 5,
+  lion: 5,
+  panda: 5,
+  dog: 5,
+  cat: 5,
+  dolphin: 10,
+  turtle: 10,
+
+  // Space
+  planet: 5,
+  astronaut: 10,
+  ufo: 15,
+
+  // Sports
+  soccer: 5,
+  tennis: 5,
+
+  // Food
+  pizza: 10,
+  icecream: 10,
+  cake: 10,
+
+  // Nature
+  sun: 5,
+  rainbow: 10,
+  tree: 5,
+  flower: 5,
+
+  // Fantasy
+  unicorn: 10,
+  dragon: 20,
+  crown: 15,
+
+  // Faces
+  cool: 5,
+  happy: 5,
 };
 
 export function getIconPrice(iconId: string): number {

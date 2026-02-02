@@ -58,6 +58,7 @@ type Props = {
   onBack: () => void; // back to Units
   onChildUpdated: (updated: ChildProfile) => void;
   onStartQuiz?: (unitId: UnitId) => void; // ✅ V10 behavior (go to quiz)
+  onStartPractice?: (unitId: UnitId) => void;
 };
 
 function getItemSpeakText(it: ContentItem, _isRtl: boolean): string {

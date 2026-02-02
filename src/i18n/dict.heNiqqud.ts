@@ -112,10 +112,10 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'learn.quiz.failedSubtitle': 'בּוֹא נִתְרַגֵּל אוֹ נְנַסֶּה שׁוּב 🙂',
   'learn.quiz.passedTitle': '🎉 אַלּוּפִים!',
   'learn.quiz.toastCoins': 'כָּל הַכָּבוֹד! קִבַּלְתָּ {bonus} מַטְבֵּעוֹת',
-  'learn.quiz.attemptsToday': 'נִסָּיוֹנוֹת הַיּוֹם: {attempts}/3{willLock}',
+  'learn.quiz.attemptsToday': 'נִסָּיוֹנוֹת הַיּוֹם: {n}/3{willLock}',
   'learn.quiz.willLockSuffix': ' • הַבֹּחַן נִנְעָל לְהַיּוֹם',
   'learn.quiz.lockedTodayTitle': '🔒 הַבֹּחַן נָעוּל לְהַיּוֹם',
-  'learn.quiz.lockedTodayAttempts': 'עָשִׂיתָ כְּבָר {attempts}/3 נִסָּיוֹנוֹת הַיּוֹם',
+  'learn.quiz.lockedTodayAttempts': 'עָשִׂיתָ כְּבָר {n}/3 נִסָּיוֹנוֹת הַיּוֹם',
   'learn.quiz.lockedTodayHint':
     'אֶפְשָׁר לְתַרְגֵּל אֶת מַה שֶׁטָּעִיתָ בּוֹ, וְלְנַסּוֹת שׁוּב מָחָר (אוֹ שֶׁהוֹרֶה יִפְתַּח).',
   'learn.quiz.notEnoughItemsTitle': 'אֵין מַסְפִּיק פְּרִיטִים',
@@ -155,7 +155,7 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
 
   // Interest — Fun Food (New)
   'content.pack.food_fun.title': 'מַאֲכָלִים טְעִימִים',
-  'content.pack.food_fun.desc': 'מַאֲכָלִים מְפַנְּקִים לְלִמּוּד וּלְזַהוּי.',
+
 
   'content.pack.foundations.title': 'יְסוֹדוֹת',
   'content.pack.foundations.desc':
@@ -174,7 +174,7 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'content.pack.numbers.desc': 'לוֹמְדִים לוֹמַר וּלְזַהוֹת מִסְפָּרִים (שְׁמִיעָה → סִימָן).',
 
   'content.pack.space.title': 'חָלָל',
-  'content.pack.space.desc': 'יְסוֹדוֹת הֶחָלָל: לוֹמְדִים מִלִּים לְפִי שְׁמִיעָה וְאִיקוֹנִים.',
+
 
   'content.pack.toys.title': 'צַעֲצוּעִים',
   'content.pack.toys.desc': 'צַעֲצוּעִים וּמִשְׂחָקִים.',
@@ -240,6 +240,16 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'rewards.shop.filter.all': "הַכֹּל ({count})",
   'rewards.shop.filter.canBuy': "אֶפְשָׁר לִקְנוֹת ({count})",
   'rewards.shop.filter.free': "חִנָּם",
+
+  'rewards.shop.category.all': 'כָּל הַקַּטֶּגוֹרְיוֹת',
+  'rewards.shop.category.animals': 'חַיּוֹת',
+  'rewards.shop.category.space': 'חָלָל',
+  'rewards.shop.category.sports': 'סְפּוֹרְט',
+  'rewards.shop.category.food': 'אוֹכֶל',
+  'rewards.shop.category.nature': 'טֶבַע',
+  'rewards.shop.category.fantasy': 'פַנְטַזְיָה',
+  'rewards.shop.category.faces': 'פָּנִים',
+  'rewards.shop.category.objects': 'חֲפָצִים',
   'rewards.shop.info.allUnlocked': "🎉 כָּל הָאֵיקוֹנִים פְּתוּחִים!",
   'rewards.shop.info.noMatch': "אֵין מַשֶּׁהוּ שֶׁמַּתְאִים לַסִּנּוּן הַזֶּה.",
   'rewards.shop.priceLabel': "מְחִיר",
@@ -265,11 +275,11 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   // Layer 4 — Core Expansion
   // ======================
   'content.pack.l4_shapes.title': 'צוּרוֹת',
-  'content.pack.l4_shapes.desc': 'זִיּוּי צוּרוֹת בְּסִיסִיּוֹת.',
+  'content.pack.l4_shapes.desc': 'זִיהוּי צוּרוֹת בְּסִיסִיּוֹת.',
   'beginner.unit.l4_shapes_basic.title': 'צוּרוֹת בְּסִיסִיּוֹת',
   'beginner.unit.l4_shapes_more.title': 'עוֹד צוּרוֹת',
   'content.pack.l4_directions.title': 'כִּוּוּנִים',
-  'content.pack.l4_directions.desc': 'זִיּוּי כִּוּוּנִים וְחִצִּים.',
+  'content.pack.l4_directions.desc': 'זִיהוּי כִּוּוּנִים וְחִצִּים.',
   'beginner.unit.l4_directions_basic.title': 'לְמַעְלָה / לְמַטָּה / יָמִין / שְׂמֹאל',
   'beginner.unit.l4_directions_diagonal.title': 'אַלְכְּסוֹן',
   'content.pack.l4_spatial.title': 'יַחֲסֵי מָקוֹם',
@@ -277,11 +287,11 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'beginner.unit.l4_spatial_inout.title': 'בִּפְנִים / בַּחוּץ',
   'beginner.unit.l4_spatial_relations.title': 'יַחֲסִים',
   'content.pack.l4_emotions.title': 'רְגָשׁוֹת',
-  'content.pack.l4_emotions.desc': 'זִיּוּי רְגָשׁוֹת בְּסִיסִיִּים.',
+  'content.pack.l4_emotions.desc': 'זִיהוּי רְגָשׁוֹת בְּסִיסִיִּים.',
   'beginner.unit.l4_emotions_basic.title': 'רְגָשׁוֹת בְּסִיסִיִּים',
   'beginner.unit.l4_emotions_more.title': 'עוֹד רְגָשׁוֹת',
   'content.pack.l4_symbols.title': 'סְמָלִים',
-  'content.pack.l4_symbols.desc': 'זִיּוּי סְמָלִים נְפוֹצִים.',
+  'content.pack.l4_symbols.desc': 'זִיהוּי סְמָלִים נְפוֹצִים.',
   'beginner.unit.l4_symbols_yesno.title': 'כֵּן / לֹא',
   'beginner.unit.l4_symbols_controls.title': 'כַּפְתּוֹרִים',
   'beginner.unit.l4_symbols_math.title': 'פְּלוּס / מִינוּס',
@@ -291,4 +301,55 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'beginner.unit.l4_patterns_aba.title': 'דְּפוּס אַ-ב-אַ',
   'beginner.unit.l4_patterns_abc.title': 'דְּפוּס אַ-ב-ג',
   'beginner.unit.l4_patterns_aabb.title': 'דְּפוּס אַ-אַ-ב-ב',
+
+  // ===== V12.3 Interest expansions =====
+  'content.pack.food_fun.desc': 'פֵּרוֹת, יְרָקוֹת וְאַרוּחוֹת טְעִימוֹת.',
+  'content.group.food_fun_fruits.title': 'אוֹכֶל – פֵּרוֹת',
+  'content.group.food_fun_vegetables.title': 'אוֹכֶל – יְרָקוֹת',
+  'content.group.food_fun_meals_snacks.title': 'אוֹכֶל – אֲרוּחוֹת וְחֲטִיפִים',
+
+  'content.pack.space.desc': 'מִלִּים בְּסִיסִיּוֹת עַל חָלָל עִם אִיקוֹנִים וְשֶׁמַע.',
+  'content.group.space_objects.title': 'חָלָל – גַּרְמֵי שָׁמַיִם',
+  'content.group.space_tech.title': 'חָלָל – טֶכְנוֹלוֹגְיָה',
+
+  'content.pack.animals_more.title': 'עוֹד חַיּוֹת',
+  'content.pack.animals_more.desc': 'עוֹד חַיּוֹת לִלְמוֹד וּלְהַכִּיר.',
+  'content.group.animals_more_pets.title': 'חַיּוֹת – בַּיִת',
+  'content.group.animals_more_wild.title': 'חַיּוֹת – טֶבַע',
+
+  'content.pack.transport_more.title': 'עוֹד תַּחְבּוּרָה',
+  'content.pack.transport_more.desc': 'עוֹד דְּרָכִים לָנוּעַ וְלִנְסֹעַ.',
+  'content.group.transport_more_land.title': 'תַּחְבּוּרָה – יַבָּשָׁה',
+  'content.group.transport_more_air_sea.title': 'תַּחְבּוּרָה – אֲוִיר וְיָם',
+
+  'content.pack.clothes_more.title': 'עוֹד בְּגָדִים',
+  'content.pack.clothes_more.desc': 'עוֹד דְּבָרִים שֶׁאֶפְשָׁר לִלְבּוֹשׁ.',
+  'content.group.clothes_more_basics.title': 'בְּגָדִים – עוֹד',
+
+  'content.pack.home_more.title': 'הַבַּיִת שֶׁלִּי',
+  'content.pack.home_more.desc': 'חֲדָרִים וַחֲפָצִים בַּבַּיִת.',
+  'content.group.home_more_rooms.title': 'בַּיִת – חֲדָרִים',
+  'content.group.home_more_things.title': 'בַּיִת – חֲפָצִים',
+
+  'content.pack.jobs.title': 'מִקְצוֹעוֹת',
+  'content.pack.jobs.desc': 'אֲנָשִׁים שֶׁעוֹזְרִים וְעוֹבְדִים.',
+  'content.group.jobs_emergency.title': 'מִקְצוֹעוֹת – חֵרוּם',
+  'content.group.jobs_community.title': 'מִקְצוֹעוֹת – קְהִלָּה',
+  'content.group.jobs_build_fix.title': 'מִקְצוֹעוֹת – בְּנִיָּה וְתִקּוּן',
+
+  'beginner.layer.0.title': 'יְסוֹדוֹת',
+  'beginner.layer.1.title': 'הַקְשָׁבָה וּפְקוּדוֹת',
+  'beginner.layer.2.title': 'אוֹצַר מִלִּים מוּחָשִׁי',
+  'beginner.layer.3.title': 'סְמָלִים',
+  'beginner.layer.4.title': 'מִיקְס וּמִשְׂחָק',
+  'parent.progress.overallProgress': 'הִתְקַדְּמוּת כְּלָלִית: {layerName}',
+  'parent.progress.viewing.layers': 'צְפִיָּה: שְׁכָבוֹת',
+  'parent.progress.viewing.layer': 'צְפִיָּה: {layerName}',
+  'parent.progress.viewing.interest': 'צְפִיָּה: חֲבִילוֹת עִנְיָן',
+  'parent.progress.viewing.units': 'צְפִיָּה: {layerName} → {groupName}',
+  'parent.progress.viewing.group': 'צְפִיָּה: {groupName}',
+  'parent.progress.viewing.unitsInterest': 'צְפִיָּה: {groupName}',
+  'parent.progress.backToPacks': 'חֲזָרָה לַחֲבִילוֹת',
+  'parent.progress.units.backToPacks': 'חֲזָרָה',
+  'parent.progress.packs.layerTitle': 'חֲבִילוֹת: {layerName}',
 };

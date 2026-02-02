@@ -20,9 +20,9 @@ import { ParentAudioSettingsScreen } from './screens/parent/ParentAudioSettingsS
 import { ParentChildAudioSettingsScreen } from './screens/parent/ParentChildAudioSettingsScreen';
 
 // V4
-import { SpecialPacksScreen } from './screens/interest/SpecialPacksScreen';
-import { SpecialPackUnitsScreen } from './screens/interest/SpecialPackUnitsScreen';
-import { SpecialPackUnitScreen } from './screens/interest/SpecialPackUnitScreen';
+import SpecialPacksScreen from './screens/interest/SpecialPacksScreen';
+import SpecialPackUnitsScreen from './screens/interest/SpecialPackUnitsScreen';
+import SpecialPackUnitScreen from './screens/interest/SpecialPackUnitScreen';
 import { GamesHubScreen } from './screens/games/GamesHubScreen';
 
 import { I18nProvider } from './i18n/I18nContext';
@@ -34,6 +34,8 @@ import { RegisterScreen } from './screens/auth/RegisterScreen';
 import { ParentGate } from './ParentGate';
 import { hydrateParentPin } from './parentPin';
 import { preloadFx } from './audio/fx';
+
+import type { ContentGroupId, ContentPackId } from './content/types';
 
 type Screen =
   | 'home'
@@ -102,8 +104,8 @@ function AppInner() {
   }, [parentLocale]);
 
   // V4 navigation state
-  const [specialPackId, setSpecialPackId] = useState<string | null>(null);
-  const [specialGroupId, setSpecialGroupId] = useState<string | null>(null);
+  const [specialPackId, setSpecialPackId] = useState<ContentPackId | null>(null);
+  const [specialGroupId, setSpecialGroupId] = useState<ContentGroupId | null>(null);
   const [specialMode, setSpecialMode] = useState<SpecialMode>('learn');
 
   // ✅ Parent security
@@ -276,7 +278,7 @@ function AppInner() {
         <SpecialPacksScreen
           child={activeChild}
           onBack={() => setScreen('childHub')}
-          onOpenPack={(packId: string) => {
+          onOpenPack={(packId: ContentPackId) => {
             setSpecialPackId(packId);
             setSpecialGroupId(null);
             setScreen('specialPackUnits');
@@ -285,13 +287,13 @@ function AppInner() {
       );
     }
 
-    if (screen === 'specialPackUnits' && activeChild) {
+    if (screen === 'specialPackUnits' && activeChild && specialPackId) {
       return (
         <SpecialPackUnitsScreen
           child={activeChild}
           packId={specialPackId}
           onBack={() => setScreen('specialPacks')}
-          onOpenGroup={(groupId: string, mode: SpecialMode) => {
+          onOpenGroup={(groupId: ContentGroupId, mode: SpecialMode) => {
             setSpecialGroupId(groupId);
             setSpecialMode(mode);
             setScreen('specialPackUnit');
@@ -304,10 +306,14 @@ function AppInner() {
       return (
         <SpecialPackUnitScreen
           child={activeChild}
-          packId={specialPackId as any}
-          groupId={specialGroupId as any}
+          packId={specialPackId}
+          groupId={specialGroupId}
           mode={specialMode}
           onBack={() => setScreen('specialPackUnits')}
+          onChildUpdated={(updated: ChildProfile) => {
+            setActiveChild(updated);
+            syncUsersFromStore(false);
+          }}
         />
       );
     }
