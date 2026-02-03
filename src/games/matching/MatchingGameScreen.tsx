@@ -15,19 +15,25 @@ import { ChildrenStore } from '../../storage/childrenStore';
 
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
-import { useI18n } from '../../i18n/I18nContext';
 
 import { getItemVisualImage } from '../../visuals/itemVisualRegistry';
 import { GameHeader } from '../common/GameHeader';
 import { useGameAudio } from '../common/useGameAudio';
 import type { GameItem } from '../common/gameTypes';
+import {
+  getGamePoolItems,
+  pickRandomItemsForGame,
+  updateRecentIds,
+} from '../common/gamePool';
+
+import { useI18n } from '../../i18n/I18nContext';
 
 type Props = {
   child: ChildProfile;
   onBack: () => void;
   onChildUpdated?: (updated: ChildProfile) => void;
 
-  /** Optional. If omitted, we use a tiny built-in demo list. */
+  /** Optional override for tests/dev. */
   items?: GameItem[];
 
   /** 4–6 pairs recommended (8–12 cards) */
@@ -52,16 +58,12 @@ function shuffle<T>(arr: readonly T[]): T[] {
   return a;
 }
 
-function sampleItems(): GameItem[] {
-  // Beginner games are English-only by design.
-  return [
-    { id: 'apple', label: 'Apple', ttsText: 'Apple', visualId: 'food_apple' },
-    { id: 'banana', label: 'Banana', ttsText: 'Banana', visualId: 'food_banana' },
-    { id: 'dog', label: 'Dog', ttsText: 'Dog', visualId: 'dog' },
-    { id: 'duck', label: 'Duck', ttsText: 'Duck', visualId: 'duck' },
-    { id: 'fish', label: 'Fish', ttsText: 'Fish', visualId: 'fish' },
-    { id: 'cow', label: 'Cow', ttsText: 'Cow', visualId: 'cow' },
-  ];
+function fontSizeForWord(word: string) {
+  const n = (word ?? '').length;
+  if (n <= 6) return 22;
+  if (n <= 9) return 18;
+  if (n <= 12) return 16;
+  return 14;
 }
 
 export function MatchingGameScreen({
@@ -71,30 +73,66 @@ export function MatchingGameScreen({
   items,
   pairsCount = 4,
 }: Props) {
+  const audio = useGameAudio(child);
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
-  const audio = useGameAudio(child);
 
   // ✅ track mistakes + award-once
   const mistakesRef = useRef(0);
   const coinsAwardedRef = useRef(false);
 
+  // ✅ pool comes from completed content (dynamic, per child)
   const pool = useMemo(() => {
-    const base = items?.length ? items : sampleItems();
-    return base.filter((it) => (it.ttsText ?? it.label)?.trim());
-  }, [items]);
+    const base = items?.length ? items : getGamePoolItems(child);
+    // avoid super long labels that won't fit nicely
+    return base.filter(
+      (it) => (it.ttsText ?? it.label)?.trim() && (it.label ?? '').length <= 12
+    );
+  }, [items, child]);
 
   const [seed, setSeed] = useState(0);
 
+  // ✅ pick pairs using the REAL signature in your project
+  const pickedPairs = useMemo(() => {
+    const count = Math.max(2, Math.min(pairsCount, pool.length));
+    return pickRandomItemsForGame({
+      child,
+      gameId: 'memory_pairs',
+      pool,
+      count,
+    });
+  }, [pool, pairsCount, child, seed]);
+
+  // ✅ persist recents quietly (no onChildUpdated here)
+  useEffect(() => {
+    if (!pickedPairs.usedIds.length) return;
+
+    const updatedChild = updateRecentIds(child, 'memory_pairs', pickedPairs.usedIds);
+
+    // Save quietly to the store. Do NOT call onChildUpdated here,
+    // otherwise App.tsx may set state and cause a render loop.
+    ChildrenStore.upsert(updatedChild);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedPairs.usedIds.join('|'), child.id]);
+
   const deck = useMemo(() => {
-    const picked = shuffle(pool).slice(0, Math.max(2, Math.min(pairsCount, pool.length)));
     const cards: CardVM[] = [];
-    for (const it of picked) {
-      cards.push({ cardId: `${it.id}:img:${seed}`, pairId: it.id, kind: 'image', item: it });
-      cards.push({ cardId: `${it.id}:word:${seed}`, pairId: it.id, kind: 'word', item: it });
+    for (const it of pickedPairs.picked) {
+      cards.push({
+        cardId: `${it.id}:img:${seed}`,
+        pairId: it.id,
+        kind: 'image',
+        item: it,
+      });
+      cards.push({
+        cardId: `${it.id}:word:${seed}`,
+        pairId: it.id,
+        kind: 'word',
+        item: it,
+      });
     }
     return shuffle(cards);
-  }, [pool, pairsCount, seed]);
+  }, [pickedPairs.picked, seed]);
 
   const [openCardIds, setOpenCardIds] = useState<string[]>([]);
   const [matchedPairIds, setMatchedPairIds] = useState<Set<string>>(() => new Set());
@@ -105,9 +143,9 @@ export function MatchingGameScreen({
     return s.size;
   }, [deck]);
 
-  const done = matchedPairIds.size >= totalPairs && totalPairs > 0;
+  const done = totalPairs > 0 && matchedPairIds.size >= totalPairs;
 
-  // ✅ award coins once when finished
+  // award coins once when finished
   useEffect(() => {
     if (!done) return;
     if (coinsAwardedRef.current) return;
@@ -124,231 +162,224 @@ export function MatchingGameScreen({
     }
   }, [done, child, onChildUpdated]);
 
-  function speakItem(it: GameItem) {
-    const text = it.ttsText ?? it.label;
-    if (!text) return;
-    audio.speak(text);
-  }
-
-  function reset() {
+  function resetGame() {
     audio.tap();
     mistakesRef.current = 0;
     coinsAwardedRef.current = false;
-
-    setSeed((s) => s + 1);
     setOpenCardIds([]);
     setMatchedPairIds(new Set());
-    setLocked(false);
+    setSeed((s) => s + 1);
   }
 
-  function onCardPress(card: CardVM) {
-    const isMatched = matchedPairIds.has(card.pairId);
-    const isOpen = openCardIds.includes(card.cardId);
+  function speakWord(it: GameItem) {
+    audio.speak(it.ttsText ?? it.label);
+  }
 
-    // ✅ Requirement: If face-up, tapping again repeats the word (doesn't close)
-    if (isOpen || isMatched) {
-      audio.tap();
-      speakItem(card.item);
+  function onPressCard(card: CardVM) {
+    if (locked) return;
+
+    // already matched: allow "tap to repeat" only on WORD cards
+    if (matchedPairIds.has(card.pairId)) {
+      if (card.kind === 'word') {
+        audio.tap();
+        speakWord(card.item);
+      }
       return;
     }
 
-    if (done) return;
-    if (locked) return;
-    if (matchedPairIds.has(card.pairId)) return;
+    // already open: repeat only on WORD cards (and don't close)
+    if (openCardIds.includes(card.cardId)) {
+      if (card.kind === 'word') {
+        audio.tap();
+        speakWord(card.item);
+      }
+      return;
+    }
 
     audio.tap();
 
-    const nextOpen = [...openCardIds, card.cardId].slice(-2);
+    // open
+    const nextOpen = [...openCardIds, card.cardId];
     setOpenCardIds(nextOpen);
 
-    if (nextOpen.length === 2) {
-      const [aId, bId] = nextOpen;
-      const a = deck.find((c) => c.cardId === aId);
-      const b = deck.find((c) => c.cardId === bId);
-      if (!a || !b) return;
+    // ✅ when opening a WORD card, speak immediately (kids can't read)
+    if (card.kind === 'word') {
+      speakWord(card.item);
+    }
 
-      setLocked(true);
+    // if only one card open, wait for second
+    if (nextOpen.length < 2) return;
 
-      if (a.pairId === b.pairId) {
+    // evaluate match
+    const a = deck.find((c) => c.cardId === nextOpen[0]);
+    const b = deck.find((c) => c.cardId === nextOpen[1]);
+    if (!a || !b) return;
+
+    const isMatch = a.pairId === b.pairId && a.kind !== b.kind;
+
+    setLocked(true);
+
+    if (isMatch) {
+      // success: let any TTS finish a bit, then play success fx
+      setTimeout(() => {
         audio.success();
-        speakItem(a.item);
-        setTimeout(() => {
-          setMatchedPairIds((prev) => new Set([...prev, a.pairId]));
-          setOpenCardIds([]);
-          setLocked(false);
-        }, 450);
-      } else {
-        mistakesRef.current += 1;
-        audio.error();
-        setTimeout(() => {
-          setOpenCardIds([]);
-          setLocked(false);
-        }, 650);
-      }
+        setMatchedPairIds((prev) => new Set(prev).add(a.pairId));
+        setOpenCardIds([]);
+        setLocked(false);
+      }, 500);
+    } else {
+      mistakesRef.current += 1;
+      audio.error();
+      setTimeout(() => {
+        setOpenCardIds([]);
+        setLocked(false);
+      }, 850);
     }
   }
 
-  const finishBonus = coinsRewardForGameSession(child, { perfect: mistakesRef.current === 0 });
+  const finishBonus = coinsRewardForGameSession(child, {
+    perfect: mistakesRef.current === 0,
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <GameHeader
-        title={t('games.matching.title')}
+        title={t('gamesHub.gamePairs.title')}
         onBack={onBack}
         dir={dir}
         progressLabel={
-          done
-            ? t('games.common.completed')
-            : isRtl
-              ? `Pairs: ${matchedPairIds.size}/${totalPairs}`
-              : `Pairs: ${matchedPairIds.size}/${totalPairs}`
+          done ? t('games.common.completed') : `${matchedPairIds.size} / ${Math.max(1, totalPairs)}`
         }
       />
 
       {done ? (
         <Card>
-          <Text style={[styles.big, isRtl && styles.rtl]}>{t('games.common.wellDone')}</Text>
-
-          <Text style={styles.coinsLine}>
-            {t('games.common.coinsLine', { bonus: String(finishBonus) })}
+          <Text style={[styles.big, isRtl && styles.rtl]}>
+            {t('games.common.wellDone')}
+          </Text>
+          <Text style={[styles.coinsLine, isRtl && styles.rtl]}>
+            {`הרווחת ${finishBonus} מטבעות`}
           </Text>
 
           <View style={styles.row}>
-            <Button onClick={reset}>{t('games.common.playAgain')}</Button>
+            <Button onClick={resetGame}>{t('games.common.playAgain')}</Button>
             <Button variant="secondary" onClick={onBack}>
               {t('games.common.back')}
             </Button>
           </View>
         </Card>
-      ) : (
+      ) : deck.length === 0 ? (
         <Card>
-          <Text style={[styles.prompt, isRtl && styles.rtl]}>{t('games.matching.prompt')}</Text>
+          <Text style={[styles.title, isRtl && styles.rtl]}>{t('games.common.empty')}</Text>
+          <Text style={[styles.subtitle, isRtl && styles.rtl]}>
+            סיים שכבה 2 כדי לפתוח מילים למשחקים.
+          </Text>
+          <View style={styles.row}>
+            <Button onClick={onBack}>{t('games.common.back')}</Button>
+          </View>
         </Card>
-      )}
+      ) : (
+        <>
+          <Card>
+            <Text style={[styles.hint, isRtl && styles.rtl]}>
+              {t('games.matching.prompt')}. לחץ על כרטיס מילה כדי לשמוע אותה.
+            </Text>
+          </Card>
 
-      <View style={styles.grid}>
-        {deck.map((c) => {
-          const isMatched = matchedPairIds.has(c.pairId);
-          const isOpen = openCardIds.includes(c.cardId);
-          const faceUp = isMatched || isOpen;
+          <View style={styles.grid}>
+            {deck.map((card) => {
+              const isOpen = openCardIds.includes(card.cardId);
+              const isMatched = matchedPairIds.has(card.pairId);
+              const faceUp = isOpen || isMatched;
 
-          const img = c.item.visualId ? getItemVisualImage(c.item.visualId) : null;
+              const imgSource =
+                card.kind === 'image'
+                  ? (getItemVisualImage(card.item.visualId ?? card.item.id) ?? undefined)
+                  : undefined;
 
-          return (
-            <Pressable
-              key={c.cardId}
-              onPress={() => onCardPress(c)}
-              style={({ pressed }) => [
-                styles.tile,
-                pressed && !locked ? styles.tilePressed : null,
-                locked && !faceUp ? styles.tileLocked : null,
-              ]}
-            >
-              <Card style={[styles.tileCard, isMatched ? styles.tileMatched : null]}>
-                {faceUp ? (
-                  c.kind === 'image' ? (
-                    <View style={styles.face}>
-                      {img ? (
-                        <Image source={img} style={styles.image} resizeMode="contain" />
+              return (
+                <Pressable
+                  key={card.cardId}
+                  onPress={() => onPressCard(card)}
+                  style={[styles.slot, isMatched && styles.slotMatched]}
+                >
+                  {faceUp ? (
+                    card.kind === 'image' ? (
+                      imgSource ? (
+                        <Image
+                          source={imgSource}
+                          style={styles.img}
+                          resizeMode="contain"
+                        />
                       ) : (
-                        <Text style={styles.fallback}>?</Text>
-                      )}
-                      {/* Small speaker cue */}
-                      <Text style={styles.speakerHint}>🔊</Text>
-                    </View>
+                        <Text style={styles.backText}>?</Text>
+                      )
+                    ) : (
+                      <Text
+                        style={[
+                          styles.word,
+                          { fontSize: fontSizeForWord(card.item.label) },
+                        ]}
+                      >
+                        {card.item.label}
+                      </Text>
+                    )
                   ) : (
-                    <View style={styles.face}>
-                      <View style={styles.wordRow}>
-                        <Text style={styles.speaker}>🔊</Text>
-                        <Text style={[styles.word, isRtl && styles.rtl]} numberOfLines={1}>
-                          {(c.item.ttsText ?? c.item.label) || ''}
-                        </Text>
-                      </View>
-                      <Text style={styles.speakerHint}>tap to repeat</Text>
+                    <View style={styles.back}>
+                      <Text style={styles.backText}>?</Text>
                     </View>
-                  )
-                ) : (
-                  <View style={styles.back}>
-                    <Text style={styles.backText}>?</Text>
-                  </View>
-                )}
-              </Card>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={styles.row}>
-        <Button variant="secondary" onClick={reset}>
-          {t('games.common.restart')}
-        </Button>
-      </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    paddingBottom: 26,
-    maxWidth: 900,
-    alignSelf: 'center',
-    width: '100%',
-    gap: 12,
-  },
+  container: { padding: 12, gap: 12 },
 
-  rtl: { textAlign: 'right' as const },
+  title: { fontSize: 20, fontWeight: '800', marginBottom: 4 },
+  subtitle: { opacity: 0.8 },
 
-  big: { fontSize: 22, fontWeight: '900' },
-  prompt: { fontSize: 16, fontWeight: '900' },
+  hint: { fontSize: 16, opacity: 0.9 },
 
-  coinsLine: {
-    marginTop: 6,
-    textAlign: 'center',
-    fontWeight: '800',
-  },
+  big: { fontSize: 26, fontWeight: '900', marginBottom: 6 },
+  coinsLine: { fontSize: 16, opacity: 0.85, marginBottom: 12 },
 
-  row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
+  row: { flexDirection: 'row', gap: 12, justifyContent: 'center', marginTop: 12 },
 
   grid: {
-    marginTop: 4,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     justifyContent: 'center',
   },
 
-  tile: { width: 140, maxWidth: '30%' },
-  tilePressed: { transform: [{ scale: 0.98 }] },
-  tileLocked: { opacity: 0.85 },
-
-  tileCard: { padding: 10, minHeight: 140, justifyContent: 'center' },
-  tileMatched: { opacity: 0.88 },
-
-  face: { alignItems: 'center', justifyContent: 'center', gap: 10 },
-
-  wordRow: {
-    flexDirection: 'row',
+  slot: {
+    width: 150,
+    height: 120,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#e6e6e6',
+    backgroundColor: 'white',
     alignItems: 'center',
-    gap: 8,
     justifyContent: 'center',
-    paddingHorizontal: 6,
   },
 
-  speaker: { fontSize: 20 },
-  word: { fontSize: 22, fontWeight: '900' },
-
-  speakerHint: {
-    fontSize: 12,
-    fontWeight: '800',
-    opacity: 0.55,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  slotMatched: {
+    borderColor: '#cfead6',
+    backgroundColor: '#f7fffa',
   },
 
-  back: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-  backText: { fontSize: 42, fontWeight: '900', opacity: 0.18 },
+  back: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+  backText: { fontSize: 42, opacity: 0.5 },
 
-  image: { width: 82, height: 82 },
-  fallback: { fontSize: 42, fontWeight: '900', opacity: 0.3 },
+  img: { width: 90, height: 90 },
+  word: { fontWeight: '900' },
+
+  rtl: { writingDirection: 'rtl', textAlign: 'right' },
 });
