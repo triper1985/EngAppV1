@@ -23,6 +23,9 @@ import {
 
 import { getFailedIdsToday } from '../../tracks/beginnerProgress';
 
+import { ChildrenStore } from '../../storage/childrenStore';
+import { coinsRewardForUnitPractice } from '../../rewards/coins';
+
 import { TopBar } from '../../ui/TopBar';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
@@ -47,6 +50,7 @@ type Props = {
   child: ChildProfile;
   unitId: UnitId;
   onBack: () => void;
+  onChildUpdated?: (updated: ChildProfile) => void;
 
   // optional: smooth “practice → quiz”
   onStartQuiz?: (unitId: UnitId) => void;
@@ -142,7 +146,7 @@ function speakPromptHE(it: any, effectiveAudio: any) {
   speakHebrewItemLike(it as any, { settings: effectiveAudio });
 }
 
-export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props) {
+export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz, onChildUpdated  }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
 
@@ -197,6 +201,8 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
 
   const [qIndex, setQIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  const mistakesRef = useRef(0);
+  const coinsAwardedRef = useRef(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
 
@@ -253,6 +259,23 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
 
     playFx('complete');
   }, [done]);
+
+  // ✅ award coins once when practice completes
+  useEffect(() => {
+    if (!done) return;
+    if (coinsAwardedRef.current) return;
+    coinsAwardedRef.current = true;
+
+    const latest = ChildrenStore.getById(child.id) ?? child;
+    const perfect = mistakesRef.current === 0;
+    const bonus = coinsRewardForUnitPractice(latest, { perfect });
+
+    if (bonus > 0) {
+      ChildrenStore.addCoins(child.id, bonus);
+      const updated = ChildrenStore.getById(child.id) ?? latest;
+      onChildUpdated?.(updated);
+    }
+  }, [done, child, onChildUpdated]); 
 
   // -----------------------------------------
   // Render
@@ -450,6 +473,7 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz }: Props
                       setCorrectCount((c) => c + 1);
                       playFx('success');
                     } else {
+                      mistakesRef.current += 1;
                       playFx('error');
                     }
 

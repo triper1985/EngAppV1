@@ -18,6 +18,7 @@ import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCat
 import { playFx, playFxAndWait, stopAllFx, speakContentItem, speakHebrewItemLike, stopTTS, getEffectiveAudioSettings, speakLetterWordEN, speakLetterWordHE } from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
+import { coinsRewardForUnitLearn } from '../../rewards/coins';
 
 import { TopBar } from '../../ui/TopBar';
 import { Card } from '../../ui/Card';
@@ -183,6 +184,7 @@ export function UnitLearnScreen({
 
   // ✅ play end-of-learn FX once when DONE screen is reached
   const doneFxPlayedRef = useRef(false);
+  const learnCoinsAwardedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -364,7 +366,25 @@ export function UnitLearnScreen({
       playFx('complete');
     }
 
+    // ✅ coins: award once per completion (no farming on 'Review' inside the same visit)
+    if (!learnCoinsAwardedRef.current) {
+      learnCoinsAwardedRef.current = true;
+
+      const latest = ChildrenStore.getById(child.id) ?? child;
+      const bonus = coinsRewardForUnitLearn(latest);
+
+      if (bonus > 0) {
+        ChildrenStore.addCoins(child.id, bonus);
+        const updated = ChildrenStore.getById(child.id) ?? latest;
+        onChildUpdated(updated);
+
+        // toast is optional; keep it subtle
+        showToast(t('learn.learn.toastCoins', { bonus: String(bonus) }));
+      }
+    }
+
     return (
+
       <ScrollView contentContainerStyle={styles.container}>
         <TopBar backLabel={t('learn.common.back')} dir={dir} title={unitTitle} onBack={onBack} />
 

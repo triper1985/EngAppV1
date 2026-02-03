@@ -334,7 +334,7 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'content.pack.jobs.title': 'מִקְצוֹעוֹת',
   'content.pack.jobs.desc': 'אֲנָשִׁים שֶׁעוֹזְרִים וְעוֹבְדִים.',
   'content.group.jobs_emergency.title': 'מִקְצוֹעוֹת – חֵרוּם',
-  'content.group.jobs_community.title': 'מִקְצוֹעוֹת – קְהִלָּה',
+  'content.group.jobs_community.title': 'מִקְצוֹעוֹת – קְהִילָּה',
   'content.group.jobs_build_fix.title': 'מִקְצוֹעוֹת – בְּנִיָּה וְתִקּוּן',
 
   'beginner.layer.0.title': 'יְסוֹדוֹת',
@@ -352,4 +352,48 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'parent.progress.backToPacks': 'חֲזָרָה לַחֲבִילוֹת',
   'parent.progress.units.backToPacks': 'חֲזָרָה',
   'parent.progress.packs.layerTitle': 'חֲבִילוֹת: {layerName}',
+
+  // מִשְׂחָקִים (Playable)
+  'gamesHub.play': 'שַׂחֵק',
+  'gamesHub.gameListen.title': 'שְׁמַע וּבְחַר',
+  'gamesHub.gameListen.desc': 'שׁוֹמְעִים מִלָּה וּבוֹחֲרִים אֶת הַתְּמוּנָה הַנְּכוֹנָה.',
+  'gamesHub.gamePairs.title': 'זּוּגוֹת זִכָּרוֹן',
+  'gamesHub.gamePairs.desc': 'הוֹפְכִים קְלָפִים וּמוֹצְאִים זּוּגוֹת תּוֹאֲמִים.',
+  'gamesHub.gameTap.title': 'גַּע בַּתְּמוּנָה הַנְּכוֹנָה',
+  'gamesHub.gameTap.desc': 'גַּע בַּתְּמוּנָה הַנְּכוֹנָה בִּמְהִירוּת.',
+  'gamesHub.gamePhonics.title': 'צְלִילִים וְאוֹתִיּוֹת',
+  'gamesHub.gamePhonics.desc': 'הַתְאָמַת אוֹת לְצְלִיל.',
+
+  // מִשְׂחָקִים (Common)
+  'games.common.playAgain': 'שַׂחֵק שׁוּב',
+  'games.common.back': 'חֲזָרָה',
+  'games.common.restart': 'הַתְחֵל מֵחָדָשׁ',
+  'games.common.wellDone': 'כָּל הַכָּבוֹד! 🎉',
+  'games.common.tryAgain': 'נַסֵּה שׁוּב',
+  'games.common.correct': 'נָכוֹן!',
+  'games.common.completed': 'הֻשְׁלַם',
+  'games.common.empty': 'אֵין עֲדַיִן פְּרִיטִים',
+  'games.matching.title': 'הַתְאָמַת זּוּגוֹת',
+  'games.matching.prompt': 'מְצָא אֶת הַזּוּגוֹת הַתּוֹאֲמִים',
+  'games.listening.title': 'שְׁמַע וּבְחַר',
+  'games.listening.prompt': 'שְׁמַע וּבְחַר אֶת הַתְּמוּנָה הַנְּכוֹנָה',
+  'games.listening.repeat': 'שְׁמַע שׁוּב',
+
+
+  'learn.learn.toastCoins': "הִרְוַחְתָּ {bonus} מַטְבְּעוֹת!",
+  'learn.practice.coinsLine': "הִרְוַחְתָּ {bonus} מַטְבְּעוֹת!",
+  'games.common.coinsLine': "הִרְוַחְתָּ {bonus} מַטְבְּעוֹת!",
+
+    // Games (shared UI strings)
+  'games.listen.repeat': 'שְׁמַע שׁוּב',
+  'games.feedback.correct': 'כָּל הַכָּבוֹד!',
+  'games.feedback.wrong': 'לֹא נָכוֹן',
+  'games.done.title': 'כָּל הַכָּבוֹד!',
+  'games.done.desc': 'סִיַּמְתָּ אֶת הַמִּשְׂחָק.',
+  'games.done.back': 'חֲזָרָה',
+  'games.done.completed': 'הֻשְׁלַם',
+  'games.done.earned': 'הִרְוַחְתָּ {count} מַטְבְּעוֹת',
+
+  'games.matching.hint': 'מְצָא אֶת הַזּוּגוֹת הַתּוֹאֲמִים. לְחַץ עַל כַּרְטִיס מִלָּה כְּדֵי לִשְׁמֹעַ אוֹתָהּ.',
+
 };

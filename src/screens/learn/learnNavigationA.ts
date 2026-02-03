@@ -10,7 +10,7 @@ import {
 } from '../../tracks/beginnerTrack';
 import { getBeginnerProgress } from '../../tracks/beginnerProgress';
 
-import { getPackById } from '../../content/registry';
+import { getPackById, isInterestPack } from '../../content/registry';
 import { getUnlockedLayerSnapshotA } from '../../content/policy/levelA/unlock';
 
 export type LayerCardVM = {
@@ -43,6 +43,15 @@ function clampPct(x: number) {
   return Math.max(0, Math.min(100, Math.round(x)));
 }
 
+
+function isCoreGroup(g: UnitGroupDef): boolean {
+  const pack = getPackById(g.id as any);
+  if (!pack) return true;
+  // Interest packs are optional and must not appear inside Layers view
+  if (isInterestPack(pack)) return false;
+  return true;
+}
+
 function getRequiredLayerForGroup(g: UnitGroupDef): number {
   const pack = getPackById(g.id as any);
   return (pack?.policy?.minLayer as number | undefined) ?? 0;
@@ -69,9 +78,7 @@ function summarizeGroup(child: ChildProfile, groupId: UnitGroupId) {
 }
 
 function calcLayerProgressPct(child: ChildProfile, layerId: number) {
-  const groupsInLayer = BEGINNER_GROUPS.filter(
-    (g) => getRequiredLayerForGroup(g) === layerId
-  );
+  const groupsInLayer = BEGINNER_GROUPS.filter((g) => isCoreGroup(g) && getRequiredLayerForGroup(g) === layerId);
   if (groupsInLayer.length === 0) return 0;
 
   let sumPct = 0;
@@ -135,7 +142,7 @@ export function getLearnLayerVM_A(args: {
     const requiredLayer = getRequiredLayerForGroup(g);
     return { g, idx, requiredLayer };
   })
-    .filter((x) => x.requiredLayer === layerId)
+    .filter((x) => isCoreGroup(x.g) && x.requiredLayer === layerId)
     .sort((a, b) => {
       // ✅ Special sort only for Layer 3
       if (layerId === 3) {

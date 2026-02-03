@@ -19,6 +19,7 @@ import {
   recordQuizFailAttempt,
   resetQuizDailyStateOnPass,
   setBestQuizScore,
+  getBeginnerProgress,
 } from '../../tracks/beginnerProgress';
 
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
@@ -35,7 +36,7 @@ import {
 } from '../../audio';
 
 import { ChildrenStore } from '../../storage/childrenStore';
-import { coinsBonusForQuizPass } from '../../rewards/coins';
+import { coinsRewardForQuizPass } from '../../rewards/coins';
 
 import { TopBar } from '../../ui/TopBar';
 import { Button } from '../../ui/Button';
@@ -316,7 +317,9 @@ export function UnitQuizScreen({
       setConfettiKey((k) => k + 1);
 
       const latest = ChildrenStore.getById(child.id) ?? child;
-      const bonus = coinsBonusForQuizPass(latest);
+      const preBest = getBeginnerProgress(latest).units[unitId]?.bestQuizScore ?? 0;
+      const firstPass = preBest < QUIZ_PASS_SCORE;
+      const bonus = coinsRewardForQuizPass(latest, { firstPass });
 
       if (bonus > 0) {
         ChildrenStore.addCoins(child.id, bonus);

@@ -186,6 +186,32 @@ export const DICT_EN: Record<string, string> = {
   'gamesHub.game3.title': 'Find the picture',
   'gamesHub.game3.desc':
     'Hear a word and pick the correct picture from several options.',
+  // Games (playable)
+  'gamesHub.play': 'Play',
+  'gamesHub.gameListen.title': 'Listen & choose',
+  'gamesHub.gameListen.desc': 'Hear a word and pick the correct picture.',
+  'gamesHub.gamePairs.title': 'Memory pairs',
+  'gamesHub.gamePairs.desc': 'Flip cards and find matching pairs.',
+  'gamesHub.gameTap.title': 'Tap the matching picture',
+  'gamesHub.gameTap.desc': 'Tap the correct picture quickly.',
+  'gamesHub.gamePhonics.title': 'Sounds & letters',
+  'gamesHub.gamePhonics.desc': 'Match a letter to its sound.',
+
+  // Games (common)
+  'games.common.playAgain': 'Play again',
+  'games.common.back': 'Back',
+  'games.common.restart': 'Restart',
+  'games.common.wellDone': 'Well done! 🎉',
+  'games.common.tryAgain': 'Try again',
+  'games.common.correct': 'Correct!',
+  'games.common.completed': 'Completed',
+  'games.common.empty': 'No items yet',
+  'games.matching.title': 'Matching pairs',
+  'games.matching.prompt': 'Find the matching pairs',
+  'games.listening.title': 'Listen & choose',
+  'games.listening.prompt': 'Listen and choose the correct picture',
+  'games.listening.repeat': 'Hear again',
+
 
   // -----------------------------------------
   // Special Packs (hub + units shells)
@@ -789,4 +815,8 @@ export const DICT_EN: Record<string, string> = {
   'parent.progress.viewing.unitsInterest': 'Viewing: {groupName}',
   'parent.progress.backToPacks': 'Back to packs',
   'parent.progress.units.backToPacks': 'Back',
+
+  'learn.learn.toastCoins': "You earned {bonus} coins!",
+  'learn.practice.coinsLine': "You earned {bonus} coins!",
+  'games.common.coinsLine': "You earned {bonus} coins!",
 };

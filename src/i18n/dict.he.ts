@@ -179,6 +179,43 @@ export const DICT_HE: Record<string, string> = {
   'gamesHub.game3.title': 'מצא את התמונה',
   'gamesHub.game3.desc':
     'שומעים מילה ובוחרים את התמונה הנכונה מתוך כמה אפשרויות.',
+  // משחקים (Playable)
+  'gamesHub.play': 'שחק',
+  'gamesHub.gameListen.title': 'שמע ובחר',
+  'gamesHub.gameListen.desc': 'שומעים מילה ובוחרים את התמונה הנכונה.',
+  'gamesHub.gamePairs.title': 'זוגות זיכרון',
+  'gamesHub.gamePairs.desc': 'הופכים קלפים ומוצאים זוגות תואמים.',
+  'gamesHub.gameTap.title': 'גע בתמונה הנכונה',
+  'gamesHub.gameTap.desc': 'גע בתמונה הנכונה במהירות.',
+  'gamesHub.gamePhonics.title': 'צלילים ואותיות',
+  'gamesHub.gamePhonics.desc': 'התאמת אות לצליל.',
+
+  // משחקים (Common)
+
+  'games.common.back': 'חזרה',
+  'games.common.restart': 'התחל מחדש',
+  'games.common.wellDone': 'כל הכבוד! 🎉',
+  'games.common.tryAgain': 'נסה שוב',
+  'games.common.correct': 'נכון!',
+  'games.common.completed': 'הושלם',
+  'games.common.empty': 'אין עדיין פריטים',
+  'games.matching.title': 'התאמת זוגות',
+  'games.matching.prompt': 'מצא את הזוגות התואמים',
+  'games.listening.title': 'שמע ובחר',
+  'games.listening.prompt': 'שמע ובחר את התמונה הנכונה',
+  'games.listening.repeat': 'שמע שוב',
+  // Games (shared UI strings)
+  'games.listen.repeat': 'שמע שוב',
+  'games.feedback.correct': 'כל הכבוד!',
+  'games.feedback.wrong': 'לא נכון',
+  'games.done.title': 'כל הכבוד!',
+  'games.done.desc': 'סיימת את המשחק.',
+  'games.done.back': 'חזרה',
+  'games.done.completed': 'הושלם',
+  'games.done.earned': 'הרווחת {count} מטבעות',
+  'games.common.playAgain': 'שחק שוב',
+  'games.matching.hint': 'מצא את הזוגות התואמים. לחץ על כרטיס מילה כדי לשמוע אותה.',
+
 
   // -----------------------------------------
   // Special Packs (hub + units shells)
@@ -767,4 +804,9 @@ export const DICT_HE: Record<string, string> = {
   'parent.progress.viewing.unitsInterest': 'צפייה: {groupName}',
   'parent.progress.backToPacks': 'חזרה לחבילות',
   'parent.progress.units.backToPacks': 'חזרה',
+
+  'learn.learn.toastCoins': "הרווחת {bonus} מטבעות!",
+  'learn.practice.coinsLine': "הרווחת {bonus} מטבעות!",
+  'games.common.coinsLine': "הרווחת {bonus} מטבעות!",
+  
 };

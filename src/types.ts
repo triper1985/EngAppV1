@@ -51,6 +51,11 @@ export type ChildProfile = {
   // optional legacy (icon shop)
   ownedIconIds?: string[];
 
+  /**
+   * Recently used game item ids per game (to avoid repetition)
+   */
+  gameRecents?: Record<string, string[]>;
+
   beginnerProgress?: {
     units: Record<
       string,

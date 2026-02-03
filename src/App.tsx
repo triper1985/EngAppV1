@@ -24,6 +24,8 @@ import SpecialPacksScreen from './screens/interest/SpecialPacksScreen';
 import SpecialPackUnitsScreen from './screens/interest/SpecialPackUnitsScreen';
 import SpecialPackUnitScreen from './screens/interest/SpecialPackUnitScreen';
 import { GamesHubScreen } from './screens/games/GamesHubScreen';
+import { ListeningChooseGameScreen } from './games/listening/ListeningChooseGameScreen';
+import { MatchingGameScreen } from './games/matching/MatchingGameScreen';
 
 import { I18nProvider } from './i18n/I18nContext';
 
@@ -47,6 +49,8 @@ type Screen =
   | 'specialPackUnits'
   | 'specialPackUnit'
   | 'gamesHub'
+  | 'gameListenChoose'
+  | 'gameMatching'
   // Auth
   | 'login'
   | 'register'
@@ -322,7 +326,43 @@ function AppInner() {
     // GAMES HUB (V4)
     // -------------------------
     if (screen === 'gamesHub' && activeChild) {
-      return <GamesHubScreen child={activeChild} onBack={() => setScreen('childHub')} />;
+      return (
+        <GamesHubScreen
+          child={activeChild}
+          onBack={() => setScreen('childHub')}
+          onGoLearn={() => setScreen('learn')}
+          onOpenGame={(type) => {
+            if (type === 'listen_choose') setScreen('gameListenChoose');
+            else if (type === 'memory_pairs') setScreen('gameMatching');
+          }}
+        />
+      );
+    }
+
+    if (screen === 'gameListenChoose' && activeChild) {
+      return (
+        <ListeningChooseGameScreen
+          child={activeChild}
+          onBack={() => setScreen('gamesHub')}
+          onChildUpdated={(updated: ChildProfile) => {
+            setActiveChild(updated);
+            syncUsersFromStore(false);
+          }}
+        />
+      );
+    }
+
+    if (screen === 'gameMatching' && activeChild) {
+      return (
+        <MatchingGameScreen
+          child={activeChild}
+          onBack={() => setScreen('gamesHub')}
+          onChildUpdated={(updated: ChildProfile) => {
+            setActiveChild(updated);
+            syncUsersFromStore(false);
+          }}
+        />
+      );
     }
 
     // -------------------------
