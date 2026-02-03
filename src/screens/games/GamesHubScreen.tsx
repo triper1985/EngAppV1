@@ -41,13 +41,13 @@ const GAMES: GameCard[] = [
     type: 'tap_match',
     titleKey: 'gamesHub.gameTap.title',
     descKey: 'gamesHub.gameTap.desc',
-    implemented: false,
+    implemented: true,
   },
   {
     type: 'phonics_match',
     titleKey: 'gamesHub.gamePhonics.title',
     descKey: 'gamesHub.gamePhonics.desc',
-    implemented: false,
+    implemented: true,
   },
 ];
 

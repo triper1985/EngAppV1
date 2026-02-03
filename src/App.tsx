@@ -26,6 +26,8 @@ import SpecialPackUnitScreen from './screens/interest/SpecialPackUnitScreen';
 import { GamesHubScreen } from './screens/games/GamesHubScreen';
 import { ListeningChooseGameScreen } from './games/listening/ListeningChooseGameScreen';
 import { MatchingGameScreen } from './games/matching/MatchingGameScreen';
+import { TapMatchGameScreen } from './games/tapMatch/TapMatchGameScreen';
+import { PhonicsMatchGameScreen } from './games/phonicsMatch/PhonicsMatchGameScreen';
 
 import { I18nProvider } from './i18n/I18nContext';
 
@@ -51,6 +53,8 @@ type Screen =
   | 'gamesHub'
   | 'gameListenChoose'
   | 'gameMatching'
+  | 'gameTapMatch'
+  | 'gamePhonicsMatch'
   // Auth
   | 'login'
   | 'register'
@@ -334,6 +338,8 @@ function AppInner() {
           onOpenGame={(type) => {
             if (type === 'listen_choose') setScreen('gameListenChoose');
             else if (type === 'memory_pairs') setScreen('gameMatching');
+            else if (type === 'tap_match') setScreen('gameTapMatch');
+            else if (type === 'phonics_match') setScreen('gamePhonicsMatch');
           }}
         />
       );
@@ -355,6 +361,32 @@ function AppInner() {
     if (screen === 'gameMatching' && activeChild) {
       return (
         <MatchingGameScreen
+          child={activeChild}
+          onBack={() => setScreen('gamesHub')}
+          onChildUpdated={(updated: ChildProfile) => {
+            setActiveChild(updated);
+            syncUsersFromStore(false);
+          }}
+        />
+      );
+    }
+
+    if (screen === 'gameTapMatch' && activeChild) {
+      return (
+        <TapMatchGameScreen
+          child={activeChild}
+          onBack={() => setScreen('gamesHub')}
+          onChildUpdated={(updated: ChildProfile) => {
+            setActiveChild(updated);
+            syncUsersFromStore(false);
+          }}
+        />
+      );
+    }
+
+    if (screen === 'gamePhonicsMatch' && activeChild) {
+      return (
+        <PhonicsMatchGameScreen
           child={activeChild}
           onBack={() => setScreen('gamesHub')}
           onChildUpdated={(updated: ChildProfile) => {

@@ -388,6 +388,7 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'games.listen.repeat': 'שְׁמַע שׁוּב',
   'games.feedback.correct': 'כָּל הַכָּבוֹד!',
   'games.feedback.wrong': 'לֹא נָכוֹן',
+  'games.feedback.timeout': 'הַזְּמַן נִגְמַר ⏳',
   'games.done.title': 'כָּל הַכָּבוֹד!',
   'games.done.desc': 'סִיַּמְתָּ אֶת הַמִּשְׂחָק.',
   'games.done.back': 'חֲזָרָה',
@@ -395,5 +396,11 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'games.done.earned': 'הִרְוַחְתָּ {count} מַטְבְּעוֹת',
 
   'games.matching.hint': 'מְצָא אֶת הַזּוּגוֹת הַתּוֹאֲמִים. לְחַץ עַל כַּרְטִיס מִלָּה כְּדֵי לִשְׁמֹעַ אוֹתָהּ.',
+
+  'games.results.correct': 'נְכוֹנוֹת',
+  'games.results.wrong': 'שְׁגוּיוֹת',
+  'games.results.timeout': 'נִגְמַר הַזְּמַן',
+  'games.results.avgTime': 'זְמַן מְמוּצָּע',
+  'games.results.coins': 'מַטְבְּעוֹת שֶׁהִרְוַחְתָּ',
 
 };

@@ -208,6 +208,7 @@ export const DICT_HE: Record<string, string> = {
   'games.listen.repeat': 'שמע שוב',
   'games.feedback.correct': 'כל הכבוד!',
   'games.feedback.wrong': 'לא נכון',
+  'games.feedback.timeout': 'הזמן נגמר ⏳',
   'games.done.title': 'כל הכבוד!',
   'games.done.desc': 'סיימת את המשחק.',
   'games.done.back': 'חזרה',
@@ -809,4 +810,10 @@ export const DICT_HE: Record<string, string> = {
   'learn.practice.coinsLine': "הרווחת {bonus} מטבעות!",
   'games.common.coinsLine': "הרווחת {bonus} מטבעות!",
   
+  'games.results.correct': 'נכונות',
+  'games.results.wrong': 'שגויות',
+  'games.results.timeout': 'נגמר הזמן',
+  'games.results.avgTime': 'זמן ממוצע',
+  'games.results.coins': 'מטבעות שהרווחת',
+
 };

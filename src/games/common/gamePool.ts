@@ -8,7 +8,7 @@ import { getItemVisualImage } from '../../visuals/itemVisualRegistry';
 import { getPackById, isInterestPack } from '../../content/registry';
 import type { GameItem } from './gameTypes';
 
-export type GameId = 'listen_choose' | 'memory_pairs';
+export type GameId = 'listen_choose' | 'memory_pairs' | 'tap_match' | 'phonics_match';
 
 const RECENT_LIMIT = 20;
 

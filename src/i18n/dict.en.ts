@@ -197,6 +197,13 @@ export const DICT_EN: Record<string, string> = {
   'gamesHub.gamePhonics.title': 'Sounds & letters',
   'gamesHub.gamePhonics.desc': 'Match a letter to its sound.',
 
+  'gamesHub.locked.title': 'Games are locked',
+  'gamesHub.locked.desc': 'Finish Layer 2 to unlock games.',
+  'gamesHub.locked.cta': 'Go learn',
+
+  'gamesHub.noWords.title': 'Not enough words yet',
+  'gamesHub.noWords.desc': 'Complete more learning to add words to games.',
+
   // Games (common)
   'games.common.playAgain': 'Play again',
   'games.common.back': 'Back',
@@ -211,6 +218,15 @@ export const DICT_EN: Record<string, string> = {
   'games.listening.title': 'Listen & choose',
   'games.listening.prompt': 'Listen and choose the correct picture',
   'games.listening.repeat': 'Hear again',
+
+  // Keys used by the current games implementation
+  'games.listen.repeat': 'Hear again',
+  'games.feedback.correct': 'Great job!',
+  'games.feedback.wrong': 'Not correct',
+  'games.feedback.timeout': 'Time is up! ⏳',
+  'games.done.title': 'Well done!',
+  'games.done.desc': 'You finished this game.',
+  'games.done.back': 'Back to games',
 
 
   // -----------------------------------------
@@ -819,4 +835,10 @@ export const DICT_EN: Record<string, string> = {
   'learn.learn.toastCoins': "You earned {bonus} coins!",
   'learn.practice.coinsLine': "You earned {bonus} coins!",
   'games.common.coinsLine': "You earned {bonus} coins!",
+  'games.results.correct': 'Correct',
+  'games.results.wrong': 'Wrong',
+  'games.results.timeout': 'Timed out',
+  'games.results.avgTime': 'Avg time',
+  'games.results.coins': 'Coins earned',
+
 };
