@@ -1,5 +1,5 @@
 // src/screens/games/GamesHubScreen.tsx
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChildProfile } from '../../types';
 
 import { TopBar } from '../../ui/TopBar';
@@ -14,9 +14,10 @@ import {
 type Props = {
   child: ChildProfile;
   onBack: () => void;
+  onOpenGame: (type: GameType) => void;
 };
 
-export function GamesHubScreen({ child, onBack }: Props) {
+export function GamesHubScreen({ child, onBack, onOpenGame }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
 
@@ -28,24 +29,37 @@ export function GamesHubScreen({ child, onBack }: Props) {
     title: string;
     desc: string;
     minLayer: number;
+    implemented?: boolean;
   }[] = [
     {
-      type: 'tap_match',
-      title: t('gamesHub.game1.title'),
-      desc: t('gamesHub.game1.desc'),
+      type: 'listen_choose',
+      title: t('gamesHub.gameListen.title'),
+      desc: t('gamesHub.gameListen.desc'),
       minLayer: 0,
+      implemented: true,
     },
     {
       type: 'memory_pairs',
-      title: t('gamesHub.game2.title'),
-      desc: t('gamesHub.game2.desc'),
+      title: t('gamesHub.gamePairs.title'),
+      desc: t('gamesHub.gamePairs.desc'),
       minLayer: 1,
+      implemented: true,
+    },
+
+    // placeholders (not implemented yet)
+    {
+      type: 'tap_match',
+      title: t('gamesHub.gameTap.title'),
+      desc: t('gamesHub.gameTap.desc'),
+      minLayer: 0,
+      implemented: false,
     },
     {
       type: 'phonics_match',
-      title: t('gamesHub.game3.title'),
-      desc: t('gamesHub.game3.desc'),
+      title: t('gamesHub.gamePhonics.title'),
+      desc: t('gamesHub.gamePhonics.desc'),
       minLayer: 3,
+      implemented: false,
     },
   ];
 
@@ -54,43 +68,52 @@ export function GamesHubScreen({ child, onBack }: Props) {
       <TopBar title={t('gamesHub.title')} onBack={onBack} dir={dir} />
 
       <View style={styles.stack}>
-        <Card>
-          <Text style={[styles.headerTitle, isRtl && styles.rtl]}>
-            {t('gamesHub.header')}
-          </Text>
-          <Text style={[styles.intro, isRtl && styles.rtl]}>
-            {t('gamesHub.intro')}
-          </Text>
-        </Card>
-
         {games.map((g) => {
           const isUnlocked =
             (unlockedLayer as number) >= g.minLayer && allowed.has(g.type);
 
           const badgeText = isUnlocked
-            ? t('gamesHub.badge')
+            ? g.implemented
+              ? t('gamesHub.play')
+              : t('gamesHub.badge')
             : isRtl
               ? `נעול עד שכבה ${g.minLayer}`
               : `Locked until layer ${g.minLayer}`;
 
           return (
-            <Card key={g.type} style={!isUnlocked ? styles.lockedCard : undefined}>
-              <View style={[styles.row, isRtl && styles.rowRtl]}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    style={[styles.gameTitle, isRtl && styles.rtl]}
-                    numberOfLines={1}
-                  >
-                    {g.title}
-                  </Text>
-                  <Text style={[styles.gameDesc, isRtl && styles.rtl]}>{g.desc}</Text>
-                </View>
+            <Pressable
+              key={g.type}
+              disabled={!isUnlocked || !g.implemented}
+              onPress={() => {
+                if (!isUnlocked || !g.implemented) return;
+                onOpenGame(g.type);
+              }}
+              style={({ pressed }) => [
+                !isUnlocked ? styles.lockedCard : undefined,
+                isUnlocked && g.implemented ? styles.pressableCard : undefined,
+                pressed && isUnlocked && g.implemented ? styles.pressed : undefined,
+              ]}
+            >
+              <Card>
+                <View style={[styles.row, isRtl && styles.rowRtl]}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      style={[styles.gameTitle, isRtl && styles.rtl]}
+                      numberOfLines={1}
+                    >
+                      {g.title}
+                    </Text>
+                    <Text style={[styles.gameDesc, isRtl && styles.rtl]}>
+                      {g.desc}
+                    </Text>
+                  </View>
 
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{badgeText}</Text>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{badgeText}</Text>
+                  </View>
                 </View>
-              </View>
-            </Card>
+              </Card>
+            </Pressable>
           );
         })}
       </View>
@@ -107,14 +130,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   stack: { marginTop: 14, gap: 10 },
-
-  headerTitle: { fontWeight: '900', fontSize: 18 },
-  intro: {
-    marginTop: 6,
-    fontSize: 13,
-    opacity: 0.75,
-    lineHeight: 20,
-  },
 
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   rowRtl: { flexDirection: 'row-reverse' as const },
@@ -135,6 +150,16 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 12, fontWeight: '800' },
 
   lockedCard: { opacity: 0.65 },
+
+  // When a card is tappable we give it a subtle emphasis.
+  pressableCard: {
+    borderRadius: 14,
+  },
+
+  // Press feedback (kept minimal; Card provides most visuals).
+  pressed: {
+    opacity: 0.88,
+  },
 
   rtl: { textAlign: 'right' as const },
 });
