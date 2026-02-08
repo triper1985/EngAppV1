@@ -5,6 +5,7 @@ import type { ChildProfile } from '../../types';
 
 import { ChildrenStore } from '../../storage/childrenStore';
 import { ParentReport } from '../../parentReport';
+import { parentDeleteChild } from '../../parent/parentDeleteChild';
 
 import { TopBar } from '../../ui/TopBar';
 import { Card } from '../../ui/Card';
@@ -102,25 +103,18 @@ export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
     refreshUsers();
     closeUi();
   }
+function submitDelete() {
+  if (ui.kind !== 'delete') return;
 
-  function submitDelete() {
-    if (ui.kind !== 'delete') return;
-
-    try {
-      ParentReport.resetAllForChild(ui.user.id);
-    } catch (e) {
-      console.log('[ParentUsers] resetAllForChild failed (non-fatal):', e);
-    }
-
-    try {
-      ChildrenStore.remove(ui.user.id);
-    } catch (e) {
-      console.log('[ParentUsers] remove failed:', e);
-    }
-
-    refreshUsers();
-    closeUi();
+  try {
+    parentDeleteChild(ui.user.id);
+  } catch (e) {
+    console.log('[ParentUsers] delete child failed:', e);
   }
+
+  refreshUsers();
+  closeUi();
+}
 
   function submitDevAllUnlocked() {
     try {

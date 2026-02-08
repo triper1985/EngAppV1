@@ -5,6 +5,7 @@ import * as Speech from 'expo-speech';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
+import { trackEvent } from '../../storage/events';
 
 import {
   BEGINNER_UNITS,
@@ -218,7 +219,8 @@ export function UnitQuizScreen({
   const [correctCount, setCorrectCount] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
-
+  const quizCompletedRef = useRef(false);
+  const quizStartedAtRef = useRef<number>(Date.now());
   const wrongIdsRef = useRef<Set<string>>(new Set());
   const lastAutoSpeakKey = useRef<string>('');
 
@@ -231,85 +233,152 @@ export function UnitQuizScreen({
   // ✅ ensure result FX plays once per run
   const resultFxPlayedRef = useRef(false);
 
-  useEffect(() => {
-    return () => stopTTS();
-  }, []);
 
-  const attempts = getQuizAttemptsToday(child, unitId);
-  const lockedToday = isQuizLockedToday(child, unitId);
+  
+useEffect(() => {
+  return () => stopTTS();
+}, []);
 
-  useEffect(() => {
-    setQIndex(0);
-    setCorrectCount(0);
-    setSelected(null);
-    setLocked(false);
-    wrongIdsRef.current = new Set();
-    setFinished(null);
-    setPersisted(false);
-    lastAutoSpeakKey.current = '';
-    resultFxPlayedRef.current = false; // ✅ reset
-    clearToast();
-  }, [unitId, clearToast]);
+const attempts = getQuizAttemptsToday(child, unitId);
+const lockedToday = isQuizLockedToday(child, unitId);
 
-  const q = questions[qIndex];
-  const correctItem = q ? byId.get(q.correctId) : undefined;
+useEffect(() => {
+  setQIndex(0);
+  setCorrectCount(0);
+  setSelected(null);
+  setLocked(false);
+  wrongIdsRef.current = new Set();
+  setFinished(null);
+  setPersisted(false);
+  lastAutoSpeakKey.current = '';
+  resultFxPlayedRef.current = false;
+  quizCompletedRef.current = false; // ✅ reset
+  clearToast();
+}, [unitId, clearToast]);
 
-  useEffect(() => {
+// =========================
+// QUIZ STARTED
+// =========================
+useEffect(() => {
+  quizStartedAtRef.current = Date.now();
+
+  trackEvent('unit_quiz_started', {
+    childId: child.id,
+    payload: {
+      unitId,
+    },
+  });
+}, [unitId]);
+
+const q = questions[qIndex];
+const correctItem = q ? byId.get(q.correctId) : undefined;
+
+// =========================
+// QUIZ PARTIAL (unmount)
+// =========================
+useEffect(() => {
+  return () => {
+    if (quizCompletedRef.current) return;
+
+    const durationSec = Math.max(
+      1,
+      Math.round((Date.now() - quizStartedAtRef.current) / 1000)
+    );
+
+    trackEvent('unit_quiz_partial', {
+      childId: child.id,
+      payload: {
+        unitId,
+        duration_sec: durationSec,
+      },
+    });
+  };
+}, []);
+
+// =========================
+// AUTO SPEAK
+// =========================
+useEffect(() => {
+  if (lockedToday) return;
+  if (finished) return;
+  if (!q) return;
+  if (!correctItem) return;
+
+  const key = `${unitId}:${qIndex}:${correctItem.id}`;
+  if (lastAutoSpeakKey.current === key) return;
+  lastAutoSpeakKey.current = key;
+
+  const tt = setTimeout(() => {
+    stopTTS();
     if (lockedToday) return;
     if (finished) return;
-    if (!q) return;
-    if (!correctItem) return;
 
-    const key = `${unitId}:${qIndex}:${correctItem.id}`;
-    if (lastAutoSpeakKey.current === key) return;
-    lastAutoSpeakKey.current = key;
+    speakPromptEN(correctItem as any, effectiveAudio);
+  }, 120);
 
-    const tt = setTimeout(() => {
-      stopTTS();
-      if (lockedToday) return;
-      if (finished) return;
+  return () => clearTimeout(tt);
+}, [unitId, qIndex, q, correctItem, lockedToday, finished, effectiveAudio]);
 
-      speakPromptEN(correctItem as any, effectiveAudio);
-}, 120);
+function persistChild(updated: ChildProfile) {
+  ChildrenStore.upsert(updated);
+  onChildUpdated(updated);
+}
 
-    return () => clearTimeout(tt);
-  }, [unitId, qIndex, q, correctItem, lockedToday, finished, effectiveAudio]);
+function saveScoreAndDailyState(score: number, passed: boolean) {
+  const latest = ChildrenStore.getById(child.id) ?? child;
 
-  function persistChild(updated: ChildProfile) {
-    ChildrenStore.upsert(updated);
-    onChildUpdated(updated);
+  let next = setBestQuizScore(latest, unitId, score);
+
+  if (passed) {
+    next = resetQuizDailyStateOnPass(next, unitId);
+  } else {
+    next = recordQuizFailAttempt(next, unitId, Array.from(wrongIdsRef.current.values()));
   }
 
-  function saveScoreAndDailyState(score: number, passed: boolean) {
-    const latest = ChildrenStore.getById(child.id) ?? child;
+  persistChild(next);
+}
+// =========================
+// QUIZ COMPLETED
+// =========================
+useEffect(() => {
+  if (!finished) return;
+  if (quizCompletedRef.current) return;
 
-    let next = setBestQuizScore(latest, unitId, score);
+  // 🔒 mark immediately to block partial cleanup
+  quizCompletedRef.current = true;
 
-    if (passed) {
-      next = resetQuizDailyStateOnPass(next, unitId);
+  const durationSec = Math.max(
+    1,
+    Math.round((Date.now() - quizStartedAtRef.current) / 1000)
+  );
+
+  trackEvent('unit_quiz_completed', {
+    childId: child.id,
+    payload: {
+      unitId,
+      duration_sec: durationSec,
+      score: finished.score,
+      passed: finished.passed,
+    },
+  });
+}, [finished, unitId, child.id]);
+
+// =========================
+// EXISTING FX + PERSIST
+// =========================
+useEffect(() => {
+  if (!finished) return;
+  if (persisted) return;
+
+  if (!resultFxPlayedRef.current) {
+    resultFxPlayedRef.current = true;
+
+    if (finished.passed) {
+      playFx('complete');
     } else {
-      next = recordQuizFailAttempt(next, unitId, Array.from(wrongIdsRef.current.values()));
+      playFx('fail');
     }
-
-    persistChild(next);
   }
-
-  useEffect(() => {
-    if (!finished) return;
-    if (persisted) return;
-
-    // ✅ FX: play exactly once when result is determined
-    if (!resultFxPlayedRef.current) {
-      resultFxPlayedRef.current = true;
-
-      if (finished.passed) {
-        // ✅ end-of-unit success (learn/practice/quiz)
-        playFx('complete');
-      } else {
-        // ✅ gentle fail for quiz end
-        playFx('fail');
-      }
-    }
 
     saveScoreAndDailyState(finished.score, finished.passed);
 
@@ -548,7 +617,7 @@ export function UnitQuizScreen({
 
                   // ✅ no tap FX here — keep the word clean
                   speakPromptEN(correctItem as any, effectiveAudio);
-}}
+                }}
                 disabled={!correctItem}
                 style={[styles.bigBtn, styles.hearBtn]}
               >

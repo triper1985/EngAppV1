@@ -5,6 +5,9 @@ import { TopBar } from '../../ui/TopBar';
 import { Button } from '../../ui/Button';
 import { useI18n } from '../../i18n/I18nContext';
 import type { Locale } from '../../i18n/types';
+import { syncAllSafe } from '../../data/sync/syncAllSafe';
+import { logout } from '../../screens/auth/authApi';
+import { syncPushNewChildren } from '../../data/sync/syncPushNewChildren';
 
 type Props = {
   users: ChildProfile[];
@@ -15,6 +18,7 @@ type Props = {
   onOpenChildSettings: () => void;
   onOpenUsers: () => void;
   onOpenParentPin: () => void;
+  parentId: string;
   onOpenAudioSettings: () => void;
 };
 
@@ -27,10 +31,31 @@ export function ParentHomeScreen({
   onOpenChildSettings,
   onOpenUsers,
   onOpenParentPin,
+  parentId,
   onOpenAudioSettings,
 }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
+
+async function onLogout() {
+  try {
+    console.log('[SYNC] before parent logout (button)');
+
+    await syncAllSafe('manual');
+
+    // 🔥 דוחף ילדים שנוצרו מאז ה־PIN האחרון
+    await syncPushNewChildren({ parentId });
+
+    console.log('[SYNC] done before parent logout');
+
+    await logout(); // supabase.signOut
+    onExit();
+  } catch (e) {
+    console.error('[AUTH][LOGOUT] failed', e);
+  }
+}
+
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -76,37 +101,60 @@ export function ParentHomeScreen({
 
       {/* Main actions */}
       <View style={styles.actions}>
-        <View style={styles.actionGap}>
-          <Button variant="primary" fullWidth onClick={onOpenProgress}>
-            {t('parent.home.progressTitle')}
-          </Button>
-        </View>
+  <View style={styles.actionGap}>
+    <Button variant="primary" fullWidth onClick={onOpenProgress}>
+      {t('parent.home.progressTitle')}
+    </Button>
+  </View>
 
-        <View style={styles.actionGap}>
-          <Button fullWidth onClick={onOpenChildSettings}>
-            {t('parent.home.childSettingsTitle')}
-          </Button>
-        </View>
+  <View style={styles.actionGap}>
+    <Button fullWidth onClick={onOpenChildSettings}>
+      {t('parent.home.childSettingsTitle')}
+    </Button>
+  </View>
 
-        <View style={styles.actionGap}>
-          <Button fullWidth onClick={onOpenUsers}>
-            {t('parent.home.usersTitle')}
-          </Button>
-        </View>
+  <View style={styles.actionGap}>
+    <Button fullWidth onClick={onOpenUsers}>
+      {t('parent.home.usersTitle')}
+    </Button>
+  </View>
 
-        <View style={styles.actionGap}>
-          <Button fullWidth onClick={onOpenAudioSettings}>
-            {t('parent.home.audioTitle')}
-          </Button>
-        </View>
+  <View style={styles.actionGap}>
+    <Button fullWidth onClick={onOpenAudioSettings}>
+      {t('parent.home.audioTitle')}
+    </Button>
+  </View>
 
-        <Button fullWidth onClick={onOpenParentPin}>
-          {t('parent.home.pinTitle')}
-        </Button>
-      </View>
-    </ScrollView>
-  );
+  <View style={styles.actionGap}>
+    <Button fullWidth onClick={onOpenParentPin}>
+      {t('parent.home.pinTitle')}
+    </Button>
+  </View>
+
+  <View style={styles.actionGap}>
+    <Button
+      fullWidth
+      variant="secondary"
+      onClick={() => syncAllSafe('manual')}
+    >
+      סנכרן נתונים עכשיו
+    </Button>
+  </View>
+
+  <View style={styles.actionGap}>
+    <Button
+      fullWidth
+      variant="secondary"
+      onClick={onLogout}
+    >
+      Logout (Parent)
+    </Button>
+  </View>
+</View>
+ </ScrollView>
+   );
 }
+
 
 const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 28 },

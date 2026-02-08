@@ -1,3 +1,5 @@
+
+// src/storage/parentReportStore.ts
 export type SessionEntry = {
   sessionId: string;
   startedAt: number;
@@ -132,3 +134,8 @@ export const ParentReportStore = {
     saveStore(store);
   },
 };
+export function clearAllReports() {
+  const store = loadStore();
+  store.byChildId = {};
+  saveStore(store);
+}

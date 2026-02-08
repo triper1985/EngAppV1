@@ -2,13 +2,24 @@
 import { useEffect, useState } from 'react';
 import { Text, View, Pressable } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDeviceId } from './storage/device';
+import { initDb } from './storage/db';
+import { syncAll } from './data/sync';
+import { Alert } from 'react-native';
+import { getDeviceParentId, setDeviceParentId, clearDeviceParentId } from './storage/parentOwner';
+import { resetParentPin } from './parentPin';
+import { hasParentPin } from './parentPin';
+import { clearAllEvents } from './storage/events';
 import type { ChildProfile } from './types';
 import { ChildrenStore } from './storage/childrenStore';
+import { clearAllProgress } from './storage/progress';
+import { syncPullChildren } from './data/sync/syncPullChildren';
 
 import { HomeScreen } from './screens/child/HomeScreen';
 import { ChildHubScreen } from './screens/child/ChildHubScreen';
 import { RewardsShopScreen } from './screens/rewards/RewardsShopScreen';
+import { ensureParentExists } from './supabase/ensureParent';
 
 import { LearnFlow } from './screens/learn';
 import { ParentHomeScreen } from './screens/parent/ParentHomeScreen';
@@ -18,7 +29,7 @@ import { ParentUsersScreen } from './screens/parent/ParentUsersScreen';
 import { ParentPinSettingsScreen } from './screens/parent/ParentPinSettingsScreen';
 import { ParentAudioSettingsScreen } from './screens/parent/ParentAudioSettingsScreen';
 import { ParentChildAudioSettingsScreen } from './screens/parent/ParentChildAudioSettingsScreen';
-
+import { syncPushNewChildren } from './data/sync/syncPushNewChildren';
 // V4
 import SpecialPacksScreen from './screens/interest/SpecialPacksScreen';
 import SpecialPackUnitsScreen from './screens/interest/SpecialPackUnitsScreen';
@@ -85,10 +96,10 @@ function isParentScreen(screen: Screen) {
 function getWebLocalStorage(): Storage | null {
   return (globalThis as any)?.localStorage ?? null;
 }
+let childrenHydratedOnce = false;
 
 function AppInner() {
   const { isReady, session } = useAuth();
-
   const [screen, setScreen] = useState<Screen>('home');
 
   const [users, setUsers] = useState<ChildProfile[]>([]);
@@ -104,6 +115,77 @@ function AppInner() {
     const v = ls.getItem('parentLocale');
     return v === 'he' ? 'he' : 'en';
   });
+
+async function startParentFlow() {
+    console.log('[PARENT FLOW] start', {
+    hasSession: !!session,
+    userId: session?.user?.id,
+  });
+  if (!session?.user?.id) return;
+
+  const currentParentId = session.user.id;
+  const storedParentId = await getDeviceParentId();
+
+    console.log('[PARENT FLOW] device check', {
+    currentParentId,
+    storedParentId,
+    sameParent: storedParentId === currentParentId,
+  });
+
+  if (storedParentId && storedParentId !== currentParentId) {
+    Alert.alert(
+      'המכשיר כבר משויך להורה אחר',
+      'המשך ימחוק ילדים והתקדמות שנשמרו מקומית.',
+      [
+        { text: 'ביטול', style: 'cancel' },
+        {
+          text: 'המשך ומחק',
+          style: 'destructive',
+          onPress: async () => {
+            await clearLocalParentData();
+            await setDeviceParentId(currentParentId);
+            console.log('[PARENT FLOW] enter parent home');
+            setParentUnlocked(false);
+            setScreen('parentHome');
+          },
+        },
+      ]
+    );
+    return;
+  }
+
+  if (!storedParentId) {
+    await setDeviceParentId(currentParentId);
+  }
+
+  setParentUnlocked(false);
+  setScreen('parentHome');
+}
+
+async function enterParentMode() {
+  if (!session) {
+    setScreen('login');
+    return;
+  }
+
+  await startParentFlow();
+}
+  
+  // device_id – create once per install
+  useEffect(() => {
+    getDeviceId().catch(() => {});
+  }, []);
+
+useEffect(() => {
+  if (!session?.user?.id) return;
+
+  // Parent changed → reset UI state
+  setUsers([]);
+  setActiveChild(null);
+  setParentSelectedChildId(null);
+}, [session?.user?.id]);
+
+
 
   useEffect(() => {
     const ls = getWebLocalStorage();
@@ -121,6 +203,20 @@ function AppInner() {
 
   // ✅ Parent PIN storage hydration (RN AsyncStorage)
   const [pinReady, setPinReady] = useState(false);
+useEffect(() => {
+  if (!isReady) return;
+
+  // אם אין session – תמיד הולכים ל־login
+  if (!session) {
+    setScreen('login');
+    return;
+  }
+
+  // יש session → מותר לנסות להיכנס להורה (PIN יטפל בהמשך)
+  setScreen('parentHome');
+}, [isReady]);
+
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -166,7 +262,11 @@ function AppInner() {
       await preloadFx();
 
       // ✅ Hydrate ChildrenStore (native persistence)
-      await ChildrenStore.hydrate();
+      if (!childrenHydratedOnce) {
+        await ChildrenStore.hydrate();
+        childrenHydratedOnce = true;
+      }
+
 
       if (alive) {
         syncUsersFromStore(false);
@@ -178,6 +278,25 @@ function AppInner() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+    // ✅ Init local SQLite DB (offline-first)
+  useEffect(() => {
+    (async () => {
+      try {
+          await initDb();
+          console.log('[DB] ready');
+
+          if (__DEV__) {
+            await clearAllEvents();
+            await clearAllProgress();
+            console.log('[DEV] local DB cleared (events + progress)');
+          }
+      } catch (e) {
+        console.error('[DB] init failed', e);
+      }
+    })();
+  }, []);
+
 
   // Guard: Parent screens require login
   useEffect(() => {
@@ -193,6 +312,30 @@ function AppInner() {
     setScreen('home');
   }
 
+
+  async function clearLocalParentData() {
+  try {
+    await ChildrenStore.clear();
+    resetParentPin();
+    await clearDeviceParentId();
+  } catch (e) {
+    console.warn('[LOCAL CLEAR FAILED]', e);
+  }
+}
+
+
+useEffect(() => {
+  if (
+    isParentScreen(screen) &&
+    pinReady &&
+    !parentUnlocked &&
+    !hasParentPin()
+  ) {
+    setParentUnlocked(true);
+  }
+}, [screen, pinReady, parentUnlocked]);
+
+
   const ui = (() => {
     // Loading auth state (only matters when we need it)
     if (!isReady && (screen === 'login' || screen === 'register' || isParentScreen(screen))) {
@@ -206,27 +349,31 @@ function AppInner() {
     // -------------------------
     // AUTH
     // -------------------------
-    if (screen === 'login') {
-      return (
-        <LoginScreen
-          onGoRegister={() => setScreen('register')}
-          onLoggedIn={() => {
-            setParentUnlocked(true);
-            setScreen('parentHome');
-          }}
-          onBack={() => setScreen('home')}
-        />
-      );
-    }
+if (screen === 'login') {
+  return (
+    <LoginScreen
+      onGoRegister={() => setScreen('register')}
+      onLoggedIn={async () => {
+        await ensureParentExists();
+
+        // ⬅️ שחרור מה-login כדי שה-flow הראשי יתפוס
+        setScreen('parentHome');
+      }}
+      onBack={() => setScreen('home')}
+    />
+  );
+}
+
 
     if (screen === 'register') {
       return (
         <RegisterScreen
           onGoLogin={() => setScreen('login')}
-          onRegistered={() => {
-            setParentUnlocked(true);
-            setScreen('parentHome');
+          onRegistered={async () => {
+            await ensureParentExists();
+            await enterParentMode();
           }}
+
           onBack={() => setScreen('home')}
         />
       );
@@ -245,13 +392,8 @@ function AppInner() {
             setScreen('childHub');
           }}
           onEnterParent={() => {
-            if (!session) {
-              setScreen('login');
-              return;
-            }
-            // Session exists -> require PIN every time you enter parent
-            setParentUnlocked(false);
-            setScreen('parentHome');
+            if (!session) setScreen('login');
+            else setScreen('parentHome');
           }}
         />
       );
@@ -427,22 +569,55 @@ function AppInner() {
         );
       }
 
-      if (!parentUnlocked) {
-        return (
-          <ParentGate
-            onExit={exitParentToHome}
-            onUnlocked={() => {
-              setParentUnlocked(true);
-            }}
-          />
-        );
-      }
+if (!parentUnlocked) {
+  return (
+    <ParentGate
+      onExit={exitParentToHome}
+      onUnlocked={async () => {
+        console.log('[PARENT GATE] unlocked → start sync', {
+          userId: session?.user?.id,
+        });
+
+        setParentUnlocked(true);
+
+        try {
+          // 1️⃣ Push: events + progress 
+          await syncAll();
+          console.log('[SYNC] completed after PIN');
+
+              // 2️⃣ Push ילדים חדשים (🆕)
+              if (session?.user?.id) {
+                await syncPushNewChildren({
+                  parentId: session.user.id,
+                });
+              }
+             // 3️⃣ Pull authoritative מהענן
+              if (session?.user?.id) {
+                const pull = await syncPullChildren({
+                  parentId: session.user.id,
+                  requirePushSuccess: true,
+                });
+
+                if (pull.ok) {
+                  console.log('[SYNC] pull children done', pull.count);
+                  syncUsersFromStore(false);
+                }
+              }
+        } catch (e) {
+          console.warn('[SYNC] failed after PIN', e);
+        }
+      }}
+    />
+  );
+}
+
 
       if (screen === 'parentHome') {
         return (
           <ParentHomeScreen
             users={users}
             parentLocale={parentLocale}
+            parentId={session!.user.id} 
             onChangeParentLocale={(loc) => setParentLocale(loc)}
             onExit={exitParentToHome}
             onOpenProgress={() => setScreen('parentProgress')}

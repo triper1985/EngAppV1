@@ -1,3 +1,4 @@
+//src-auth/authApi.ts
 import { supabase } from '../../supabase/client';
 
 export async function register(email: string, password: string) {

@@ -1,6 +1,9 @@
+//src/screens/auth/AuthProvider.tsx
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../../supabase/client';
+import { getDeviceParentId, setDeviceParentId } from '../../storage/parentOwner';
+import { clearLocalDataForParentSwitch } from '../../parent/clearLocalData';
 
 type AuthState = {
   isReady: boolean;
@@ -31,6 +34,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+  if (!isReady) return;
+
+  const currentParentId = session?.user?.id ?? null;
+
+  if (!currentParentId) return;
+
+  let cancelled = false;
+
+  (async () => {
+    const lastParentId = await getDeviceParentId();
+
+    if (cancelled) return;
+
+    if (lastParentId !== currentParentId) {
+      console.log('[PARENT SWITCH]', lastParentId, '→', currentParentId);
+      await clearLocalDataForParentSwitch();
+      await setDeviceParentId(currentParentId);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [isReady, session?.user?.id]);
+
 
   const value = useMemo(
     () => ({ isReady, session, user: session?.user ?? null }),

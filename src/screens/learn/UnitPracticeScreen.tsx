@@ -5,6 +5,7 @@ import * as Speech from 'expo-speech';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
+import { trackEvent } from '../../storage/events';
 
 import { BEGINNER_UNITS, resolveUnitItems, type UnitDef } from '../../tracks/beginnerTrack';
 
@@ -212,70 +213,150 @@ export function UnitPracticeScreen({ child, unitId, onBack, onStartQuiz, onChild
   // ✅ play "complete" FX once when done screen is reached
   const doneFxPlayedRef = useRef(false);
 
-  useEffect(() => {
-    return () => stopTTS();
-  }, []);
+  const practiceCompletedRef = useRef(false);
+  const practiceStartedAtRef = useRef<number>(Date.now());
 
-  useEffect(() => {
-    setQIndex(0);
-    setCorrectCount(0);
-    setSelected(null);
-    setLocked(false);
-    lastAutoSpeakKey.current = '';
-    doneFxPlayedRef.current = false; // ✅ reset
-  }, [unitId]);
+  
+useEffect(() => {
+  return () => stopTTS();
+}, []);
 
-  const focusedAvailable = useMemo(
-    () => failedIds.filter((id) => byId.has(id)).length,
-    [failedIds, byId]
+// =========================
+// PRACTICE PARTIAL (unmount)
+// =========================
+useEffect(() => {
+  return () => {
+    if (practiceCompletedRef.current) return;
+
+    const durationSec = Math.max(
+      1,
+      Math.round((Date.now() - practiceStartedAtRef.current) / 1000)
+    );
+
+    trackEvent('unit_practice_partial', {
+      childId: child.id,
+      payload: {
+        unitId,
+        duration_sec: durationSec,
+      },
+    });
+  };
+}, []);
+
+// =========================
+// RESET ON UNIT CHANGE
+// =========================
+useEffect(() => {
+  setQIndex(0);
+  setCorrectCount(0);
+  setSelected(null);
+  setLocked(false);
+  lastAutoSpeakKey.current = '';
+  doneFxPlayedRef.current = false;
+  practiceCompletedRef.current = false;
+}, [unitId]);
+
+const focusedAvailable = useMemo(
+  () => failedIds.filter((id) => byId.has(id)).length,
+  [failedIds, byId]
+);
+
+// =========================
+// PRACTICE STARTED
+// =========================
+useEffect(() => {
+  practiceStartedAtRef.current = Date.now();
+
+  trackEvent('unit_practice_started', {
+    childId: child.id,
+    payload: {
+      unitId,
+    },
+  });
+}, [unitId]);
+
+// =========================
+// COMPUTED STATE
+// =========================
+const done = qIndex >= questions.length;
+const q = questions[qIndex];
+const correctItem = q ? byId.get(q.correctId) : undefined;
+
+// =========================
+// AUTO SPEAK PROMPT
+// =========================
+useEffect(() => {
+  if (done) return;
+  if (!correctItem) return;
+
+  const key = `${unitId}:${qIndex}:${correctItem.id}`;
+  if (lastAutoSpeakKey.current === key) return;
+  lastAutoSpeakKey.current = key;
+
+  const tt = setTimeout(() => {
+    speakPromptEN(correctItem as any, isRtl, effectiveAudio);
+  }, 120);
+
+  return () => clearTimeout(tt);
+}, [unitId, qIndex, correctItem, done, isRtl, effectiveAudio]);
+
+// =========================
+// FX ON DONE
+// =========================
+useEffect(() => {
+  if (!done) return;
+  if (doneFxPlayedRef.current) return;
+
+  doneFxPlayedRef.current = true;
+  playFx('complete');
+}, [done]);
+
+// =========================
+// PRACTICE COMPLETED
+// =========================
+useEffect(() => {
+  if (!done) return;
+  if (practiceCompletedRef.current) return;
+
+  // 🔒 mark immediately to block partial cleanup
+  practiceCompletedRef.current = true;
+
+  const durationSec = Math.max(
+    1,
+    Math.round((Date.now() - practiceStartedAtRef.current) / 1000)
   );
 
-  // ✅ compute these BEFORE any conditional return
-  const done = qIndex >= questions.length;
-  const q = questions[qIndex];
-  const correctItem = q ? byId.get(q.correctId) : undefined;
+  trackEvent('unit_practice_completed', {
+    childId: child.id,
+    payload: {
+      unitId,
+      duration_sec: durationSec,
+      score: Math.round((correctCount / questions.length) * 100),
+      correct: correctCount,
+      total: questions.length,
+    },
+  });
+}, [done, correctCount, questions.length, unitId, child.id]);
 
-  // ✅ Hook must ALWAYS be called (no conditional returns before it)
-  useEffect(() => {
-    if (done) return;
-    if (!correctItem) return;
+// =========================
+// AWARD COINS ON DONE
+// =========================
+useEffect(() => {
+  if (!done) return;
+  if (coinsAwardedRef.current) return;
 
-    const key = `${unitId}:${qIndex}:${correctItem.id}`;
-    if (lastAutoSpeakKey.current === key) return;
-    lastAutoSpeakKey.current = key;
+  coinsAwardedRef.current = true;
 
-    const tt = setTimeout(() => {
-      speakPromptEN(correctItem as any, isRtl, effectiveAudio);
-}, 120);
+  const latest = ChildrenStore.getById(child.id) ?? child;
+  const perfect = mistakesRef.current === 0;
+  const bonus = coinsRewardForUnitPractice(latest, { perfect });
 
-    return () => clearTimeout(tt);
-  }, [unitId, qIndex, correctItem, done, isRtl, effectiveAudio]);
-
-  // ✅ when done becomes true, play "complete" once
-  useEffect(() => {
-    if (!done) return;
-    if (doneFxPlayedRef.current) return;
-    doneFxPlayedRef.current = true;
-
-    playFx('complete');
-  }, [done]);
-
-  // ✅ award coins once when practice completes
-  useEffect(() => {
-    if (!done) return;
-    if (coinsAwardedRef.current) return;
-    coinsAwardedRef.current = true;
-
-    const latest = ChildrenStore.getById(child.id) ?? child;
-    const perfect = mistakesRef.current === 0;
-    const bonus = coinsRewardForUnitPractice(latest, { perfect });
-
-    if (bonus > 0) {
-      ChildrenStore.addCoins(child.id, bonus);
-      const updated = ChildrenStore.getById(child.id) ?? latest;
-      onChildUpdated?.(updated);
-    }
-  }, [done, child, onChildUpdated]); 
+  if (bonus > 0) {
+    ChildrenStore.addCoins(child.id, bonus);
+    const updated = ChildrenStore.getById(child.id) ?? latest;
+    onChildUpdated?.(updated);
+  }
+}, [done, child, onChildUpdated]);
 
   // -----------------------------------------
   // Render

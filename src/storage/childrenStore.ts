@@ -276,6 +276,28 @@ function ensureChildDefaults(c: any): { next: ChildProfile; changed: boolean } {
   return { next: fixed, changed };
 }
 
+async function clearStore(): Promise<void> {
+  try {
+    // ניקוי persistence
+    if (asyncStorage) {
+      await asyncStorage.removeItem(LS_KEY);
+    } else {
+      storage.removeItem(LS_KEY);
+    }
+
+    // ניקוי cache בזיכרון
+    cachedStore = { version: 1, children: [] };
+
+    // איפוס מצב hydrate (כאילו התקנה חדשה)
+    hasHydrated = false;
+    hydratePromise = null;
+  } catch (e) {
+    console.warn('[ChildrenStore] clear failed', e);
+  }
+}
+
+
+
 export const ChildrenStore = {
   /**
    * ✅ Native persistence
@@ -591,29 +613,16 @@ export const ChildrenStore = {
   },
 
   ensureDefaultsIfEmpty() {
-    const store = loadStore();
+  const store = loadStore();
 
-    if (store.children.length === 0) {
-      store.children = [
-        ensureUnlockedIcons({
-          id: 'itay',
-          name: 'Itay',
-          iconId: 'basketball',
-          selectedPackIds: ['basic', 'basketball'],
-          favoritePackIds: ['basketball'],
-          activePackId: 'basketball',
-          coins: 150,
-          levelId: 'beginner' as LevelId,
-          beginnerProgress: makeEmptyBeginnerProgress(),
-          unlockedIconIds: ['basketball', ...FREE_DEFAULT_ICON_IDS],
-        }),
-      ];
-      saveStore(store);
-      return;
-    }
+  if (store.children.length === 0) {
+    // ❌ אין יותר יצירת ילד ברירת־מחדל
+    return;
+  }
 
-    this.ensureDefaultsForAll();
-  },
+  this.ensureDefaultsForAll();
+},
+
 
   setSelectedIcon(childId: string, iconId: string) {
     const store = loadStore();
@@ -677,4 +686,6 @@ export const ChildrenStore = {
     saveStore(store);
     return { ok: true as const, child: updated, price };
   },
+  clear: clearStore,
+
 };

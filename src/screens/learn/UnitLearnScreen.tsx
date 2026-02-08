@@ -4,7 +4,8 @@ import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChildProfile } from '../../types';
 import type { UnitId } from '../../tracks/beginnerTrack';
 import type { ContentItem } from '../../content/types';
-
+import { upsertProgress } from '../../storage/progress';
+import { trackEvent } from '../../storage/events';
 import {
   BEGINNER_UNITS,
   resolveUnitItems,
@@ -181,6 +182,10 @@ export function UnitLearnScreen({
   const [advancing, setAdvancing] = useState(false);
   const lastSpeakAtRef = useRef(0);
   const lastAutoSpeakKey = useRef<string>('');
+  const completedRef = useRef(false);
+  const startedAtRef = useRef<number>(Date.now());
+
+
 
   // ✅ play end-of-learn FX once when DONE screen is reached
   const doneFxPlayedRef = useRef(false);
@@ -222,6 +227,75 @@ export function UnitLearnScreen({
     clearToast();
   }, [unitId, unitItems.length, child.id, clearToast]);
 
+
+
+useEffect(() => {
+  startedAtRef.current = Date.now();
+
+  trackEvent('unit_learn_started', {
+    childId: child.id,
+    payload: {
+      unitId,
+      startedAt: startedAtRef.current,
+    },
+  });
+}, [unitId]);
+
+
+useEffect(() => {
+  return () => {
+    if (completedRef.current) return;
+
+    const durationSec = Math.floor(
+      (Date.now() - startedAtRef.current) / 1000
+    );
+
+    trackEvent('unit_learn_partial', {
+      childId: child.id,
+      payload: {
+        unitId,
+        duration_sec: durationSec,
+      },
+    });
+
+  upsertProgress({
+    id: `unit_${unitId}`,
+    child_id: child.id,
+    lesson_id: unitId,
+    status: 'partial',
+    attempts: 1,
+    duration_sec: durationSec,
+      });
+    };
+  }, []);
+
+useEffect(() => {
+  if (index < unitItems.length) return;
+  if (completedRef.current) return;
+
+  completedRef.current = true;
+
+  const durationSec = getDurationSec();
+
+  trackEvent('unit_learn_completed', {
+    childId: child.id,
+    payload: {
+      unitId,
+      duration_sec: durationSec,
+    },
+  });
+
+  upsertProgress({
+    id: `unit_${unitId}`,
+    child_id: child.id,
+    lesson_id: unitId,
+    status: 'completed',
+    attempts: 1,
+    duration_sec: durationSec,
+  });
+}, [index, unitItems.length, unitId, child.id]);
+
+
   // ✅ Auto speak current item (delay increased to avoid FX overlap)
   useEffect(() => {
     if (!unitItems.length) return;
@@ -246,7 +320,10 @@ export function UnitLearnScreen({
 
   function persistChild(updated: ChildProfile) {
     ChildrenStore.upsert(updated);
-    onChildUpdated(updated);
+    queueMicrotask(() => {
+      onChildUpdated(updated);
+    });
+
   }
 
   function markSeen(itemId: string) {
@@ -282,6 +359,13 @@ export function UnitLearnScreen({
 
     persistChild(nextChild);
   }
+
+function getDurationSec() {
+  return Math.max(
+    1,
+    Math.round((Date.now() - startedAtRef.current) / 1000)
+  );
+}
 
   async function confirmExitLearn(): Promise<boolean> {
     const total = unitItems.length;
@@ -360,6 +444,7 @@ export function UnitLearnScreen({
 
   // ✅ DONE screen (end-of-flow): NO TAP on any buttons
   if (index >= total) {
+    
     if (!doneFxPlayedRef.current) {
       doneFxPlayedRef.current = true;
       // ✅ end-of-unit success
@@ -376,12 +461,16 @@ export function UnitLearnScreen({
       if (bonus > 0) {
         ChildrenStore.addCoins(child.id, bonus);
         const updated = ChildrenStore.getById(child.id) ?? latest;
-        onChildUpdated(updated);
+        queueMicrotask(() => {
+          onChildUpdated(updated);
+        });
+
 
         // toast is optional; keep it subtle
         showToast(t('learn.learn.toastCoins', { bonus: String(bonus) }));
       }
     }
+
 
     return (
 
@@ -418,9 +507,10 @@ export function UnitLearnScreen({
                   <Button
                     variant="primary"
                     fullWidth
-                    onClick={() => {
+                    onClick={async () => {
                       stopAllFx();
                       stopTTS();
+                    
                       onStartQuiz(unitId);
                     }}
                   >
@@ -430,9 +520,10 @@ export function UnitLearnScreen({
 
                 <Button
                   fullWidth
-                  onClick={() => {
+                  onClick={async () => {
                     stopAllFx();
                     stopTTS();
+                 
                     onBack();
                   }}
                 >
@@ -481,7 +572,9 @@ export function UnitLearnScreen({
         dir={dir}
         title={unitTitle}
         onBack={async () => {
-          if (await confirmExitLearn()) onBack();
+          if (await confirmExitLearn()) {
+           onBack();
+           }
         }}
         right={<Text style={styles.progressText}>{progressText}</Text>}
       />

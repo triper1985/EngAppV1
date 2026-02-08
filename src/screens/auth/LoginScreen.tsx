@@ -1,6 +1,10 @@
+//src/screens/auth/LoginScreen.tsx
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { login } from './authApi';
+
+
+
 
 type Props = { 
   onGoRegister: () => void;
@@ -18,15 +22,20 @@ export function LoginScreen({ onGoRegister, onLoggedIn, onBack }: Props) {
   async function onSubmit() {
     setBusy(true);
     setError(null);
+
     const { error } = await login(email.trim(), password);
-    setBusy(false);
 
     if (error) {
+      setBusy(false);
       setError(error.message);
       return;
     }
-    onLoggedIn();
+
+    setBusy(false);
+    onLoggedIn(); // רק מסמן "נכנסתי", לא מנווט
   }
+
+
 
   return (
     <View style={{ padding: 16, gap: 12 }}>

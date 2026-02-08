@@ -126,7 +126,8 @@ function readStoreSync(): Store {
 /** Does a pin exist (>= 4 digits)? */
 export function hasParentPin(): boolean {
   const s = readStoreSync();
-  return normalizePin(s.pin).length >= 4;
+  const pin = normalizePin(s.pin);
+  return pin.length >= 4 && pin !== DEFAULT_PIN;
 }
 
 /** For ParentGate / verification */
