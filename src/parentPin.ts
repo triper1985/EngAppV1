@@ -1,201 +1,73 @@
 // src/parentPin.ts
-// RN-safe Parent PIN store with a sync API (ParentGate-friendly).
-// Uses AsyncStorage if available; falls back to in-memory cache (no crash).
+// Parent PIN store – per parentId
+// Stored locally (AsyncStorage), reset only per parent
 
-const LS_KEY = 'english_parent_pin_v1';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const DEFAULT_PIN = '1234';
+const KEY_PREFIX = 'english_parent_pin_v1';
 
-type Store = {
-  version: 1;
-  pin: string; // digits only
-};
-
-// ---- Storage bridge (AsyncStorage if present) ----
-let AsyncStorage: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  AsyncStorage = require('@react-native-async-storage/async-storage')?.default ?? null;
-} catch {
-  AsyncStorage = null;
-}
-
-function hasWebLocalStorage(): boolean {
-  try {
-    // @ts-ignore - global may exist on web only
-    return typeof localStorage !== 'undefined' && !!localStorage?.getItem;
-  } catch {
-    return false;
-  }
-}
-
-// ---- In-memory cache (sync reads) ----
-let cache: Store = { version: 1, pin: DEFAULT_PIN };
-let hydrated = false;
-let hydrating = false;
+const pinKey = (parentId: string) => `${KEY_PREFIX}:${parentId}`;
 
 function normalizePin(pin: string): string {
-  return String(pin).replace(/\D/g, '').slice(0, 8); // digits only, max 8
+  return String(pin).replace(/\D/g, '').slice(0, 8);
 }
 
-function parseStore(raw: string | null): Store {
-  if (!raw) return { version: 1, pin: DEFAULT_PIN };
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed?.version === 1 && typeof parsed.pin === 'string') {
-      return { version: 1, pin: normalizePin(String(parsed.pin)) || DEFAULT_PIN };
-    }
-    return { version: 1, pin: DEFAULT_PIN };
-  } catch {
-    return { version: 1, pin: DEFAULT_PIN };
-  }
-}
+/**
+ * Does a PIN exist for this parent (>= 4 digits and not default)?
+ */
+export async function hasParentPin(parentId: string): Promise<boolean> {
+  if (!parentId) return false;
 
-function scheduleHydrateIfNeeded() {
-  if (hydrated || hydrating) return;
-  hydrating = true;
-
-  // Web: localStorage sync
-  if (hasWebLocalStorage()) {
-    try {
-      // @ts-ignore - web only
-      const raw = localStorage.getItem(LS_KEY);
-      cache = parseStore(raw);
-    } catch {
-      // ignore
-    } finally {
-      hydrated = true;
-      hydrating = false;
-    }
-    return;
-  }
-
-  // RN: AsyncStorage async -> hydrate cache when ready
-  if (AsyncStorage?.getItem) {
-    void (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(LS_KEY);
-        cache = parseStore(raw);
-      } catch {
-        // ignore
-      } finally {
-        hydrated = true;
-        hydrating = false;
-      }
-    })();
-    return;
-  }
-
-  // No storage available: just mark hydrated (keep default in memory)
-  hydrated = true;
-  hydrating = false;
-}
-
-function persist(store: Store) {
-  cache = store;
-
-  // Web
-  if (hasWebLocalStorage()) {
-    try {
-      // @ts-ignore - web only
-      localStorage.setItem(LS_KEY, JSON.stringify(store));
-    } catch {
-      // ignore
-    }
-    return;
-  }
-
-  // RN
-  if (AsyncStorage?.setItem) {
-    void (async () => {
-      try {
-        await AsyncStorage.setItem(LS_KEY, JSON.stringify(store));
-      } catch {
-        // ignore
-      }
-    })();
-  }
-}
-
-function readStoreSync(): Store {
-  scheduleHydrateIfNeeded();
-  return cache;
-}
-
-// ---- Public API (what screens / gate use) ----
-
-/** Does a pin exist (>= 4 digits)? */
-export function hasParentPin(): boolean {
-  const s = readStoreSync();
-  const pin = normalizePin(s.pin);
+  const raw = await AsyncStorage.getItem(pinKey(parentId));
+  const pin = normalizePin(raw ?? '');
   return pin.length >= 4 && pin !== DEFAULT_PIN;
 }
 
-/** For ParentGate / verification */
-export function verifyParentPin(input: string): boolean {
-  const s = readStoreSync();
-  return normalizePin(input) === normalizePin(s.pin);
+/**
+ * Verify PIN for ParentGate
+ */
+export async function verifyParentPin(
+  parentId: string,
+  input: string
+): Promise<boolean> {
+  if (!parentId) return false;
+
+  const raw = await AsyncStorage.getItem(pinKey(parentId));
+  const saved = normalizePin(raw ?? DEFAULT_PIN);
+  return normalizePin(input) === saved;
 }
 
-/** Back-compat: some older code used checkParentPin */
-export function checkParentPin(input: string): boolean {
-  return verifyParentPin(input);
+/**
+ * Backwards compatibility
+ */
+export async function checkParentPin(
+  parentId: string,
+  input: string
+): Promise<boolean> {
+  return verifyParentPin(parentId, input);
 }
 
-/** Get current pin (for display if needed) */
-export function getParentPin(): string {
-  return readStoreSync().pin;
-}
+/**
+ * Set / change PIN (min 4 digits)
+ */
+export async function setParentPin(
+  parentId: string,
+  newPin: string
+): Promise<boolean> {
+  if (!parentId) return false;
 
-/** Set new pin (min 4 digits). Returns true on success. */
-export function setParentPin(newPin: string): boolean {
   const pin = normalizePin(newPin);
   if (pin.length < 4) return false;
 
-  persist({ version: 1, pin });
+  await AsyncStorage.setItem(pinKey(parentId), pin);
   return true;
 }
 
-/** Clear pin (we reset to default to keep app behavior stable). */
-export function clearParentPin() {
-  persist({ version: 1, pin: DEFAULT_PIN });
+/**
+ * Reset PIN for this parent only
+ */
+export async function resetParentPin(parentId: string): Promise<void> {
+  if (!parentId) return;
+  await AsyncStorage.removeItem(pinKey(parentId));
 }
-
-/** Back-compat: older name */
-export function resetParentPin() {
-  clearParentPin();
-}
-// ---- Extra: explicit hydration for RN (recommended) ----
-
-export async function hydrateParentPin(): Promise<void> {
-  if (hydrated) return;
-
-  // Web: localStorage sync hydration already happens fast
-  if (hasWebLocalStorage()) {
-    scheduleHydrateIfNeeded();
-    // scheduleHydrateIfNeeded marks hydrated synchronously in web path
-    return;
-  }
-
-  // RN: force await once, so callers can safely rely on real pin
-  if (AsyncStorage?.getItem) {
-    try {
-      const raw = await AsyncStorage.getItem(LS_KEY);
-      cache = parseStore(raw);
-    } catch {
-      // ignore
-    } finally {
-      hydrated = true;
-      hydrating = false;
-    }
-    return;
-  }
-
-  // no storage
-  hydrated = true;
-  hydrating = false;
-}
-
-export function isParentPinHydrated(): boolean {
-  return hydrated;
-}
-

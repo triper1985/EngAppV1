@@ -8,11 +8,14 @@ import { Button } from '../../ui/Button';
 import { useI18n } from '../../i18n/I18nContext';
 
 import {
-  checkParentPin,
-  getParentPin as getParentPinSync,
-  setParentPin as setParentPinSync,
-  resetParentPin as resetParentPinSync,
+  hasParentPin,
+  verifyParentPin,
+  setParentPin,
+  resetParentPin,
 } from '../../parentPin';
+
+import { useAuth } from '../auth/AuthProvider';
+
 
 type Props = {
   onBack: () => void;
@@ -24,32 +27,12 @@ function normalizeDigits(v: string) {
   return String(v ?? '').replace(/\D/g, '').slice(0, 8);
 }
 
-/**
- * Local async adapters (so the screen keeps your async flow),
- * backed by the sync implementation you currently have in parentPin.ts
- */
-async function hasParentPin(): Promise<boolean> {
-  const pin = normalizeDigits(getParentPinSync());
-  // "exists" means: a non-default pin is set
-  return pin.length >= 4 && pin !== DEFAULT_PIN;
-}
-
-async function verifyParentPin(input: string): Promise<boolean> {
-  return checkParentPin(normalizeDigits(input));
-}
-
-async function setParentPin(newPin: string): Promise<boolean> {
-  return setParentPinSync(normalizeDigits(newPin));
-}
-
-async function clearParentPin(): Promise<void> {
-  // your implementation resets to default
-  resetParentPinSync();
-}
-
 export function ParentPinSettingsScreen({ onBack }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
+  const { session } = useAuth();
+  const parentId = session?.user?.id ?? null;
+
 
   const [loading, setLoading] = useState(true);
   const [pinExists, setPinExists] = useState(false);
@@ -61,21 +44,25 @@ export function ParentPinSettingsScreen({ onBack }: Props) {
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const exists = await hasParentPin();
-        if (!alive) return;
-        setPinExists(exists);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
+useEffect(() => {
+  if (!parentId) return;
+
+  let alive = true;
+  (async () => {
+    try {
+      const exists = await hasParentPin(parentId);
+      if (!alive) return;
+      setPinExists(exists);
+    } finally {
+      if (alive) setLoading(false);
+    }
+  })();
+
+  return () => {
+    alive = false;
+  };
+}, [parentId]);
+
 
   useEffect(() => {
     if (!toast) return;
@@ -91,10 +78,12 @@ export function ParentPinSettingsScreen({ onBack }: Props) {
     return a.length >= 4 && a === b && (!pinExists || cur.length >= 4);
   }, [newPin, confirmPin, pinExists, currentPin]);
 
-  async function refreshExists() {
-    const exists = await hasParentPin();
-    setPinExists(exists);
-  }
+async function refreshExists() {
+  if (!parentId) return;
+  const exists = await hasParentPin(parentId);
+  setPinExists(exists);
+}
+
 
   function showToast(msg: string) {
     setError(null);
@@ -122,15 +111,20 @@ export function ParentPinSettingsScreen({ onBack }: Props) {
     }
 
     // if pin already exists – require current pin
-    if (pinExists) {
-      const ok = await verifyParentPin(currentPin);
-      if (!ok) {
-        showError(t('parent.pin.error.currentWrong'));
-        return;
-      }
-    }
+if (pinExists) {
+  if (!parentId) return;
 
-    const ok = await setParentPin(a);
+  const ok = await verifyParentPin(parentId, currentPin);
+  if (!ok) {
+    showError(t('parent.pin.error.currentWrong'));
+    return;
+  }
+}
+
+if (!parentId) return;
+
+const ok = await setParentPin(parentId, a);
+
     if (!ok) {
       showError(t('parent.pin.error.newTooShort'));
       return;
@@ -145,17 +139,19 @@ export function ParentPinSettingsScreen({ onBack }: Props) {
 
   async function onClear() {
     // אם אין PIN "אמיתי" – לא עושים כלום
-    const exists = await hasParentPin();
-    if (!exists) return;
+if (!parentId) return;
 
-    // אם יש PIN – נדרוש אימות בקוד הנוכחי לפני איפוס
-    const ok = await verifyParentPin(currentPin);
-    if (!ok) {
-      showError(t('parent.pin.error.currentWrongToClear'));
-      return;
-    }
+const exists = await hasParentPin(parentId);
+if (!exists) return;
 
-    await clearParentPin();
+const ok = await verifyParentPin(parentId, currentPin);
+if (!ok) {
+  showError(t('parent.pin.error.currentWrongToClear'));
+  return;
+}
+
+await resetParentPin(parentId);
+
     await refreshExists();
     setCurrentPin('');
     setNewPin('');

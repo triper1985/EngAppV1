@@ -116,6 +116,7 @@ function submitDelete() {
   closeUi();
 }
 
+
   function submitDevAllUnlocked() {
     try {
       ChildrenStore.addDevAllUnlocked();

@@ -15,14 +15,26 @@ export async function syncAllSafe(
       return;
     }
 
-    console.log('[SYNC][START]', source);
-    const result = await syncAll();
-    console.log('[SYNC][DONE]', {
-        source,
-        success: result?.success,
-      });
+console.log('[SYNC][START]', {
+  source,
+  caller: 'syncAllSafe',
+});
+
+const result = await syncAll();
+
+console.log('[SYNC][DONE]', {
+  source,
+  caller: 'syncAllSafe',
+  success: result?.success,
+});
+
 
   } catch (err) {
-    console.error('[SYNC][FAILED]', source, err);
+    console.error('[SYNC][FAILED]', {
+  source,
+  caller: 'syncAllSafe',
+  error: err,
+});
+
   }
 }

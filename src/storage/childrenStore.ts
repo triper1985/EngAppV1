@@ -98,11 +98,19 @@ async function hydrateFromAsyncStorage(): Promise<void> {
 }
 
 function loadStore(): Store {
-  // If we already have an in-memory cache (native or after first save), use it.
-  if (cachedStore) return cachedStore;
+  if (cachedStore) {
+    console.log('[CHILDREN][STORE] loadStore – from cache', {
+      count: cachedStore.children.length,
+    });
+    return cachedStore;
+  }
 
   const raw = storage.getItem(LS_KEY);
-  if (!raw) return { version: 1, children: [] };
+  if (!raw) {
+    console.log('[CHILDREN][STORE] loadStore – empty');
+    return { version: 1, children: [] };
+  }
+
 
   try {
     const parsed = JSON.parse(raw);
@@ -115,7 +123,16 @@ function loadStore(): Store {
 }
 
 function saveStore(store: Store) {
+  console.log('[CHILDREN][STORE] saveStore', {
+    count: store.children.length,
+    names: store.children.map(c => ({
+      id: c.id,
+      name: c.name,
+    })),
+  });
+
   cachedStore = store;
+
 
   // Web: sync localStorage
   if (webLocalStorage) {
@@ -341,9 +358,16 @@ export const ChildrenStore = {
   },
 
   add(name: string): ChildProfile | null {
+    console.log('[CHILDREN][ADD] called', { name });
     const store = loadStore();
 
-    const normalized = name.trim();
+    const trimmed = name.trim();
+if (!trimmed) return null;
+
+// 🆕 normalize display name: Capitalize first letter
+const normalized =
+  trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+
     if (!normalized) return null;
 
     const exists = store.children.some(
@@ -379,6 +403,10 @@ export const ChildrenStore = {
 
     store.children.push(created);
     saveStore(store);
+      console.log('[CHILDREN][ADD] created', {
+      id: created.id,
+      name: created.name,
+    });
     return created;
   },
 
@@ -423,6 +451,10 @@ export const ChildrenStore = {
   },
 
   rename(childId: string, nextName: string): boolean {
+        console.log('[CHILDREN][RENAME] called', {
+      childId,
+      nextName,
+    });
     const store = loadStore();
     const name = nextName.trim();
     if (!name) return false;
@@ -438,6 +470,12 @@ export const ChildrenStore = {
     if (!updated) return false;
 
     saveStore(store);
+
+      console.log('[CHILDREN][RENAME] applied', {
+      childId,
+      name,
+    });
+
     return true;
   },
 
@@ -580,6 +618,10 @@ export const ChildrenStore = {
   },
 
   upsert(child: ChildProfile): ChildProfile {
+        console.log('[CHILDREN][UPSERT] incoming', {
+      id: child.id,
+      name: child.name,
+    });
     const store = loadStore();
 
     const { next, changed } = ensureChildDefaults(child);
@@ -589,11 +631,16 @@ export const ChildrenStore = {
     // keep behavior, always persist
     if (changed) saveStore(store);
     else saveStore(store);
-
+    console.log('[CHILDREN][UPSERT] saved', {
+      id: saved.id,
+      name: saved.name,
+      changed,
+    });
     return saved;
   },
 
   remove(id: string) {
+      console.log('[CHILDREN][REMOVE]', { id });
     const store = loadStore();
     store.children = store.children.filter((c) => c.id !== id);
     saveStore(store);

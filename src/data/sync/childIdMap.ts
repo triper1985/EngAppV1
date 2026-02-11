@@ -16,19 +16,44 @@ type ChildIdMap = Record<string, string>;
 async function loadMap(): Promise<ChildIdMap> {
   try {
     const raw = await AsyncStorage.getItem(KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as ChildIdMap;
+
+    if (!raw) {
+      console.log('[SYNC][CHILD][MAP] loadMap – empty');
+      return {};
+    }
+
+    const parsed = JSON.parse(raw) as ChildIdMap;
+
+    console.log('[SYNC][CHILD][MAP] loadMap', {
+      count: Object.keys(parsed).length,
+      keys: Object.keys(parsed),
+    });
+
+    return parsed;
+
   } catch {
     return {};
   }
 }
 export async function clearRemoteChildId(localChildId: string) {
-  const map = await loadMap();      // whatever internal helper you use
-  if (!(localChildId in map)) return;
+  const map = await loadMap();
+
+  if (!(localChildId in map)) {
+    console.log('[SYNC][CHILD][MAP] clearRemoteChildId – not found', {
+      localChildId,
+    });
+    return;
+  }
+
+  console.log('[SYNC][CHILD][MAP] clearRemoteChildId', {
+    localChildId,
+    remoteChildId: map[localChildId],
+  });
 
   delete map[localChildId];
   await saveMap(map);
 }
+
 async function saveMap(map: ChildIdMap): Promise<void> {
   try {
     await AsyncStorage.setItem(KEY, JSON.stringify(map));
@@ -48,8 +73,16 @@ export async function getRemoteChildId(
   localChildId: string
 ): Promise<string | null> {
   const map = await loadMap();
-  return map[localChildId] ?? null;
+  const remote = map[localChildId] ?? null;
+
+  console.log('[SYNC][CHILD][MAP] getRemoteChildId', {
+    localChildId,
+    remoteChildId: remote,
+  });
+
+  return remote;
 }
+
 
 /**
  * Save mapping local -> remote
@@ -59,9 +92,17 @@ export async function setRemoteChildId(
   remoteChildId: string
 ): Promise<void> {
   const map = await loadMap();
+
+  console.log('[SYNC][CHILD][MAP] setRemoteChildId', {
+    localChildId,
+    remoteChildId,
+    existedBefore: !!map[localChildId],
+  });
+
   map[localChildId] = remoteChildId;
   await saveMap(map);
 }
+
 
 /**
  * Ensure a remote child exists for this local child.
@@ -70,23 +111,69 @@ export async function setRemoteChildId(
 export async function ensureRemoteChild(opts: {
   localChildId: string;
   parentId: string;
+  displayName: string; // ✅ חדש
 }): Promise<string | null> {
-  const { localChildId, parentId } = opts;
+  const { localChildId, parentId, displayName } = opts;
+
+  console.log('[SYNC][CHILD][ENSURE] called', {
+    source: 'ensureRemoteChild',
+    parentId,
+    localChildId,
+    displayName,
+  });
+
+
+  console.log('[SYNC][CHILD][ENSURE] called', {
+    source: 'ensureRemoteChild',
+    parentId,
+    localChildId,
+  });
 
   // 1️⃣ check existing mapping
   const existing = await getRemoteChildId(localChildId);
-  if (existing) return existing;
+
+  if (existing) {
+    console.log('[SYNC][CHILD][ENSURE] existing mapping found', {
+      parentId,
+      localChildId,
+      remoteChildId: existing,
+    });
+    return existing;
+  }
+
+
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session || session.user.id !== parentId) {
+    console.warn('[SYNC][CHILD] skip create – no valid session', {
+      localChildId,
+      parentId,
+    });
+    return null;
+  }
+
 
   // 2️⃣ create child in Supabase
-  const { data, error } = await supabase
-    .from('children')
-    .insert({
-      parent_id: parentId,
-      local_child_id: localChildId,
-      name: localChildId, // זמני, אפשר לשפר בעתיד
-    })
+    console.log('[SYNC][CHILD][ENSURE] creating remote child', {
+  parentId,
+  localChildId,
+  nameSentToCloud: displayName,
+});
+
+const { data, error } = await supabase
+  .from('children')
+  .insert({
+    parent_id: parentId,
+    local_child_id: localChildId,
+    name: displayName, // ✅ עכשיו שולחים את השם האמיתי
+  })
+
     .select('id')
     .single();
+
 
   if (error || !data?.id) {
     console.error('[SYNC][CHILD] failed to create remote child', {
@@ -97,9 +184,10 @@ export async function ensureRemoteChild(opts: {
   }
 
   // 3️⃣ persist mapping
-  await setRemoteChildId(localChildId, data.id);
+    await setRemoteChildId(localChildId, data.id);
 
-  console.log('[SYNC][CHILD] mapped', {
+  console.log('[SYNC][CHILD][ENSURE] mapped new child', {
+    parentId,
     localChildId,
     remoteChildId: data.id,
   });
@@ -114,4 +202,17 @@ export async function clearChildIdMap(): Promise<void> {
   try {
     await AsyncStorage.removeItem(KEY);
   } catch {}
+}
+/**
+ * Get all local -> remote child id mappings
+ */
+export async function getAllChildIdMappings(): Promise<
+  { localChildId: string; remoteChildId: string }[]
+> {
+  const map = await loadMap();
+
+  return Object.entries(map).map(([localChildId, remoteChildId]) => ({
+    localChildId,
+    remoteChildId,
+  }));
 }

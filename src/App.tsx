@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Text, View, Pressable } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,7 +9,6 @@ import { syncAll } from './data/sync';
 import { Alert } from 'react-native';
 import { getDeviceParentId, setDeviceParentId, clearDeviceParentId } from './storage/parentOwner';
 import { resetParentPin } from './parentPin';
-import { hasParentPin } from './parentPin';
 import { clearAllEvents } from './storage/events';
 import type { ChildProfile } from './types';
 import { ChildrenStore } from './storage/childrenStore';
@@ -20,6 +19,7 @@ import { HomeScreen } from './screens/child/HomeScreen';
 import { ChildHubScreen } from './screens/child/ChildHubScreen';
 import { RewardsShopScreen } from './screens/rewards/RewardsShopScreen';
 import { ensureParentExists } from './supabase/ensureParent';
+import { clearLocalDataForParentSwitch } from './parent/clearLocalData';
 
 import { LearnFlow } from './screens/learn';
 import { ParentHomeScreen } from './screens/parent/ParentHomeScreen';
@@ -47,7 +47,7 @@ import { LoginScreen } from './screens/auth/LoginScreen';
 import { RegisterScreen } from './screens/auth/RegisterScreen';
 
 import { ParentGate } from './ParentGate';
-import { hydrateParentPin } from './parentPin';
+
 import { preloadFx } from './audio/fx';
 
 import type { ContentGroupId, ContentPackId } from './content/types';
@@ -105,8 +105,12 @@ function AppInner() {
   const [users, setUsers] = useState<ChildProfile[]>([]);
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
 
+  // 🔒 prevents double parent switch execution
+  const lastHandledParentRef = useRef<string | null>(null);
+
   // Parent selection state
   const [parentSelectedChildId, setParentSelectedChildId] = useState<string | null>(null);
+
 
   // Parent UI language should be stable (not depend on last selected child)
   const [parentLocale, setParentLocale] = useState<'en' | 'he'>(() => {
@@ -117,10 +121,20 @@ function AppInner() {
   });
 
 async function startParentFlow() {
-    console.log('[PARENT FLOW] start', {
+  console.log('[PARENT FLOW] start', {
     hasSession: !!session,
     userId: session?.user?.id,
   });
+
+  // 🔒 prevent double execution for same parent
+  if (session?.user?.id && lastHandledParentRef.current === session.user.id) {
+    return;
+  }
+
+  if (session?.user?.id) {
+    lastHandledParentRef.current = session.user.id;
+  }
+
   if (!session?.user?.id) return;
 
   const currentParentId = session.user.id;
@@ -142,12 +156,16 @@ async function startParentFlow() {
           text: 'המשך ומחק',
           style: 'destructive',
           onPress: async () => {
-            await clearLocalParentData();
+            // ניקוי כל הדאטה של ההורה הקודם
+            await clearLocalDataForParentSwitch(storedParentId ?? undefined);
+
             await setDeviceParentId(currentParentId);
+
             console.log('[PARENT FLOW] enter parent home');
             setParentUnlocked(false);
             setScreen('parentHome');
           },
+
         },
       ]
     );
@@ -202,31 +220,15 @@ useEffect(() => {
   const [parentUnlocked, setParentUnlocked] = useState(false);
 
   // ✅ Parent PIN storage hydration (RN AsyncStorage)
-  const [pinReady, setPinReady] = useState(false);
 useEffect(() => {
   if (!isReady) return;
 
-  // אם אין session – תמיד הולכים ל־login
   if (!session) {
     setScreen('login');
-    return;
   }
-
-  // יש session → מותר לנסות להיכנס להורה (PIN יטפל בהמשך)
-  setScreen('parentHome');
-}, [isReady]);
+}, [isReady, session]);
 
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      await hydrateParentPin();
-      if (alive) setPinReady(true);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   // If session ends, lock parent again
   useEffect(() => {
@@ -289,7 +291,9 @@ useEffect(() => {
           if (__DEV__) {
             await clearAllEvents();
             await clearAllProgress();
-            console.log('[DEV] local DB cleared (events + progress)');
+            await AsyncStorage.clear();
+            console.log('[DEV] local DB + AsyncStorage cleared');
+
           }
       } catch (e) {
         console.error('[DB] init failed', e);
@@ -298,14 +302,7 @@ useEffect(() => {
   }, []);
 
 
-  // Guard: Parent screens require login
-  useEffect(() => {
-    if (!isReady) return;
-    if (isParentScreen(screen) && !session) {
-      setParentUnlocked(false);
-      setScreen('login');
-    }
-  }, [isReady, session, screen]);
+
 
   function exitParentToHome() {
     setParentUnlocked(false);
@@ -316,25 +313,14 @@ useEffect(() => {
   async function clearLocalParentData() {
   try {
     await ChildrenStore.clear();
-    resetParentPin();
+    if (session?.user?.id) {
+      await resetParentPin(session.user.id);
+    }
     await clearDeviceParentId();
   } catch (e) {
     console.warn('[LOCAL CLEAR FAILED]', e);
   }
 }
-
-
-useEffect(() => {
-  if (
-    isParentScreen(screen) &&
-    pinReady &&
-    !parentUnlocked &&
-    !hasParentPin()
-  ) {
-    setParentUnlocked(true);
-  }
-}, [screen, pinReady, parentUnlocked]);
-
 
   const ui = (() => {
     // Loading auth state (only matters when we need it)
@@ -558,20 +544,15 @@ if (screen === 'login') {
     // -------------------------
     // PARENT (requires session + PIN per entry)
     // -------------------------
-    if (isParentScreen(screen)) {
-      if (!session) return null;
-
-      if (!pinReady) {
-        return (
-          <View style={{ padding: 16 }}>
-            <Text>Loading…</Text>
-          </View>
-        );
-      }
-
+if (isParentScreen(screen)) {
+  if (!session) {
+    return null;
+  }
 if (!parentUnlocked) {
   return (
     <ParentGate
+      parentId={session.user.id}
+      parentEmail={session.user.email ?? undefined}
       onExit={exitParentToHome}
       onUnlocked={async () => {
         console.log('[PARENT GATE] unlocked → start sync', {
@@ -618,6 +599,7 @@ if (!parentUnlocked) {
             users={users}
             parentLocale={parentLocale}
             parentId={session!.user.id} 
+            parentEmail={session!.user.email ?? undefined}
             onChangeParentLocale={(loc) => setParentLocale(loc)}
             onExit={exitParentToHome}
             onOpenProgress={() => setScreen('parentProgress')}

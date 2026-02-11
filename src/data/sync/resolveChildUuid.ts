@@ -5,6 +5,11 @@ export async function resolveChildUuid(
   localChildId: string,
   parentUuid: string
 ): Promise<string> {
+    console.log('[SYNC][RESOLVE][CHILD] start', {
+    source: 'resolveChildUuid',
+    parentUuid,
+    localChildId,
+  });
   const { data, error } = await supabase
     .from('children')
     .select('id')
@@ -12,9 +17,22 @@ export async function resolveChildUuid(
     .eq('parent_id', parentUuid)
     .single();
 
-  if (error || !data) {
-    throw new Error(`Child not found for local_child_id=${localChildId}`);
-  }
+if (error || !data) {
+  console.error('[SYNC][RESOLVE][CHILD] failed', {
+    source: 'resolveChildUuid',
+    parentUuid,
+    localChildId,
+    error,
+  });
+  throw new Error(`Child not found for local_child_id=${localChildId}`);
+}
+
+console.log('[SYNC][RESOLVE][CHILD] resolved', {
+  source: 'resolveChildUuid',
+  parentUuid,
+  localChildId,
+  remoteChildId: data.id,
+});
 
   return data.id;
 }

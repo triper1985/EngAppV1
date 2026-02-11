@@ -1,0 +1,471 @@
+.
+├── CREDITS.md
+├── README.md
+├── app
+│   ├── (tabs)
+│   │   ├── _layout.tsx
+│   │   ├── explore.tsx
+│   │   └── index.tsx
+│   ├── _layout.tsx
+│   └── modal.tsx
+├── app.json
+├── assets
+│   ├── fx
+│   │   ├── complete.mp3
+│   │   ├── error.mp3
+│   │   ├── fail.mp3
+│   │   ├── success.mp3
+│   │   └── tap.mp3
+│   └── images
+│       ├── android-icon-background.png
+│       ├── android-icon-foreground.png
+│       ├── android-icon-monochrome.png
+│       ├── favicon.png
+│       ├── icon.png
+│       ├── partial-react-logo.png
+│       ├── react-logo.png
+│       ├── react-logo@2x.png
+│       ├── react-logo@3x.png
+│       └── splash-icon.png
+├── components
+│   ├── external-link.tsx
+│   ├── haptic-tab.tsx
+│   ├── hello-wave.tsx
+│   ├── parallax-scroll-view.tsx
+│   ├── themed-text.tsx
+│   ├── themed-view.tsx
+│   └── ui
+│       ├── collapsible.tsx
+│       ├── icon-symbol.ios.tsx
+│       └── icon-symbol.tsx
+├── constants
+│   └── theme.ts
+├── eslint.config.js
+├── expo-env.d.ts
+├── hooks
+│   ├── use-color-scheme.ts
+│   ├── use-color-scheme.web.ts
+│   └── use-theme-color.ts
+├── package-lock.json
+├── package.json
+├── project.zip
+├── project_tree.txt
+├── scripts
+│   ├── downloadItemIconsTwemoji.mjs
+│   └── reset-project.js
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── ParentGate.tsx
+│   ├── ParentGate.web.tsx
+│   ├── _legacy
+│   │   └── learn
+│   │       ├── LearnGroupsScreen.tsx
+│   │       └── learnNavigationATypes.ts
+│   ├── _versions
+│   │   ├── PROJECT_VERSIONS.md
+│   │   ├── V12.3_V1_APK_Tracking.md
+│   │   ├── beginner.md
+│   │   └── todoList.md
+│   ├── assets
+│   │   ├── content
+│   │   │   ├── items
+│   │   │   │   ├── animals
+│   │   │   │   │   ├── chicken.png
+│   │   │   │   │   ├── cow.png
+│   │   │   │   │   ├── crab.png
+│   │   │   │   │   ├── dog.png
+│   │   │   │   │   ├── dolphin.png
+│   │   │   │   │   ├── duck.png
+│   │   │   │   │   ├── elephant.png
+│   │   │   │   │   ├── fish.png
+│   │   │   │   │   ├── giraffe.png
+│   │   │   │   │   ├── goat.png
+│   │   │   │   │   ├── horse.png
+│   │   │   │   │   ├── lion.png
+│   │   │   │   │   ├── monkey.png
+│   │   │   │   │   ├── octopus.png
+│   │   │   │   │   ├── parrot.png
+│   │   │   │   │   ├── pig.png
+│   │   │   │   │   ├── sea_turtle.png
+│   │   │   │   │   ├── seahorse.png
+│   │   │   │   │   ├── shark.png
+│   │   │   │   │   ├── sheep.png
+│   │   │   │   │   ├── snake.png
+│   │   │   │   │   ├── tiger.png
+│   │   │   │   │   ├── whale.png
+│   │   │   │   │   └── zebra.png
+│   │   │   │   ├── clothes
+│   │   │   │   │   ├── hat.png
+│   │   │   │   │   ├── pants.png
+│   │   │   │   │   ├── shirt.png
+│   │   │   │   │   └── shoes.png
+│   │   │   │   ├── food
+│   │   │   │   │   ├── apple.png
+│   │   │   │   │   ├── banana.png
+│   │   │   │   │   ├── bread.png
+│   │   │   │   │   ├── milk.png
+│   │   │   │   │   └── water.png
+│   │   │   │   ├── food_fun
+│   │   │   │   │   ├── cake.png
+│   │   │   │   │   ├── cheese.png
+│   │   │   │   │   ├── donut.png
+│   │   │   │   │   ├── fries.png
+│   │   │   │   │   ├── hamburger.png
+│   │   │   │   │   ├── ice_cream.png
+│   │   │   │   │   ├── pizza.png
+│   │   │   │   │   └── yogurt.png
+│   │   │   │   ├── foundations
+│   │   │   │   │   ├── angry.png
+│   │   │   │   │   ├── bye.png
+│   │   │   │   │   ├── calm.png
+│   │   │   │   │   ├── happy.png
+│   │   │   │   │   ├── hello.png
+│   │   │   │   │   ├── no.png
+│   │   │   │   │   ├── please.png
+│   │   │   │   │   ├── sad.png
+│   │   │   │   │   ├── scared.png
+│   │   │   │   │   ├── thank_you.png
+│   │   │   │   │   ├── tired.png
+│   │   │   │   │   └── yes.png
+│   │   │   │   ├── home
+│   │   │   │   │   ├── bed.png
+│   │   │   │   │   ├── chair.png
+│   │   │   │   │   ├── door.png
+│   │   │   │   │   ├── table.png
+│   │   │   │   │   └── window.png
+│   │   │   │   ├── layer4
+│   │   │   │   │   ├── directions
+│   │   │   │   │   │   ├── l4_dir_down.png
+│   │   │   │   │   │   ├── l4_dir_down_left.png
+│   │   │   │   │   │   ├── l4_dir_down_right.png
+│   │   │   │   │   │   ├── l4_dir_left.png
+│   │   │   │   │   │   ├── l4_dir_right.png
+│   │   │   │   │   │   ├── l4_dir_up.png
+│   │   │   │   │   │   ├── l4_dir_up_left.png
+│   │   │   │   │   │   └── l4_dir_up_right.png
+│   │   │   │   │   ├── emotions
+│   │   │   │   │   │   ├── l4_emotion_angry.png
+│   │   │   │   │   │   ├── l4_emotion_happy.png
+│   │   │   │   │   │   ├── l4_emotion_sad.png
+│   │   │   │   │   │   ├── l4_emotion_scared.png
+│   │   │   │   │   │   ├── l4_emotion_sleepy.png
+│   │   │   │   │   │   └── l4_emotion_surprised.png
+│   │   │   │   │   ├── patterns
+│   │   │   │   │   │   ├── l4_pattern_aabb.png
+│   │   │   │   │   │   ├── l4_pattern_ab.png
+│   │   │   │   │   │   ├── l4_pattern_aba.png
+│   │   │   │   │   │   └── l4_pattern_abc.png
+│   │   │   │   │   ├── shapes
+│   │   │   │   │   │   ├── l4_shape_circle.png
+│   │   │   │   │   │   ├── l4_shape_diamond.png
+│   │   │   │   │   │   ├── l4_shape_heart.png
+│   │   │   │   │   │   ├── l4_shape_oval.png
+│   │   │   │   │   │   ├── l4_shape_rectangle.png
+│   │   │   │   │   │   ├── l4_shape_square.png
+│   │   │   │   │   │   ├── l4_shape_star.png
+│   │   │   │   │   │   └── l4_shape_triangle.png
+│   │   │   │   │   ├── spatial
+│   │   │   │   │   │   ├── l4_spatial_above.png
+│   │   │   │   │   │   ├── l4_spatial_below.png
+│   │   │   │   │   │   ├── l4_spatial_between.png
+│   │   │   │   │   │   ├── l4_spatial_far.png
+│   │   │   │   │   │   ├── l4_spatial_in.png
+│   │   │   │   │   │   ├── l4_spatial_near.png
+│   │   │   │   │   │   ├── l4_spatial_next_to.png
+│   │   │   │   │   │   └── l4_spatial_out.png
+│   │   │   │   │   └── symbols
+│   │   │   │   │       ├── l4_symbol_check.png
+│   │   │   │   │       ├── l4_symbol_cross.png
+│   │   │   │   │       ├── l4_symbol_minus.png
+│   │   │   │   │       ├── l4_symbol_pause.png
+│   │   │   │   │       ├── l4_symbol_play.png
+│   │   │   │   │       ├── l4_symbol_plus.png
+│   │   │   │   │       └── l4_symbol_stop.png
+│   │   │   │   ├── letter_words
+│   │   │   │   │   ├── cat.png
+│   │   │   │   │   ├── egg.png
+│   │   │   │   │   ├── icecream.png
+│   │   │   │   │   ├── juice.png
+│   │   │   │   │   ├── kite.png
+│   │   │   │   │   ├── moon.png
+│   │   │   │   │   ├── nose.png
+│   │   │   │   │   ├── orange.png
+│   │   │   │   │   ├── queen.png
+│   │   │   │   │   ├── robot.png
+│   │   │   │   │   ├── sun.png
+│   │   │   │   │   ├── tree.png
+│   │   │   │   │   ├── umbrella.png
+│   │   │   │   │   ├── van.png
+│   │   │   │   │   ├── xylophone.png
+│   │   │   │   │   └── yoyo.png
+│   │   │   │   ├── listening
+│   │   │   │   │   ├── clap.png
+│   │   │   │   │   ├── jump.png
+│   │   │   │   │   ├── listen.png
+│   │   │   │   │   ├── look.png
+│   │   │   │   │   ├── run.png
+│   │   │   │   │   ├── sit.png
+│   │   │   │   │   ├── stand.png
+│   │   │   │   │   └── stop.png
+│   │   │   │   ├── space
+│   │   │   │   ├── toys
+│   │   │   │   │   ├── ball.png
+│   │   │   │   │   ├── blocks.png
+│   │   │   │   │   ├── doll.png
+│   │   │   │   │   └── teddy.png
+│   │   │   │   └── transport
+│   │   │   │       ├── bike.png
+│   │   │   │       ├── bus.png
+│   │   │   │       ├── car.png
+│   │   │   │       └── train.png
+│   │   │   ├── layers
+│   │   │   │   ├── layer0.png
+│   │   │   │   ├── layer1.png
+│   │   │   │   ├── layer2.png
+│   │   │   │   ├── layer3.png
+│   │   │   │   └── layer4.png
+│   │   │   ├── packs
+│   │   │   │   ├── animals.png
+│   │   │   │   ├── basic.png
+│   │   │   │   ├── clothes.png
+│   │   │   │   ├── colors.png
+│   │   │   │   ├── early_recognition.png
+│   │   │   │   ├── food.png
+│   │   │   │   ├── food_fun.png
+│   │   │   │   ├── foundations.png
+│   │   │   │   ├── home.png
+│   │   │   │   ├── l4_directions.png
+│   │   │   │   ├── l4_emotions.png
+│   │   │   │   ├── l4_patterns.png
+│   │   │   │   ├── l4_shapes.png
+│   │   │   │   ├── l4_spatial.png
+│   │   │   │   ├── l4_symbols.png
+│   │   │   │   ├── letter_a.png
+│   │   │   │   ├── letters.png
+│   │   │   │   ├── listening.png
+│   │   │   │   ├── numbers.png
+│   │   │   │   ├── space.png
+│   │   │   │   ├── toys.png
+│   │   │   │   └── transport.png
+│   │   │   └── units
+│   │   └── react.svg
+│   ├── audio
+│   │   ├── fx.ts
+│   │   ├── index.ts
+│   │   ├── once.ts
+│   │   ├── settings.ts
+│   │   └── tts.ts
+│   ├── components
+│   │   ├── Confetti.tsx
+│   │   ├── IconPicker.tsx
+│   │   ├── IconShop.tsx
+│   │   └── UserList.tsx
+│   ├── content
+│   │   ├── adapters
+│   │   │   ├── beginnerTrackAdapter.ts
+│   │   │   └── index.ts
+│   │   ├── compatibility
+│   │   │   ├── beginnerTrackCompatibility.ts
+│   │   │   └── index.ts
+│   │   ├── dev
+│   │   │   └── runChecks.ts
+│   │   ├── index.ts
+│   │   ├── localize.ts
+│   │   ├── packs
+│   │   │   ├── core
+│   │   │   │   ├── animalsPack.ts
+│   │   │   │   ├── clothesPack.ts
+│   │   │   │   ├── colorsPack.ts
+│   │   │   │   ├── earlyRecognitionPack.ts
+│   │   │   │   ├── foodPack.ts
+│   │   │   │   ├── foundationsPack.ts
+│   │   │   │   ├── homePack.ts
+│   │   │   │   ├── l4_directionsPack.ts
+│   │   │   │   ├── l4_emotionsPack.ts
+│   │   │   │   ├── l4_patternsPack.ts
+│   │   │   │   ├── l4_shapesPack.ts
+│   │   │   │   ├── l4_spatialPack.ts
+│   │   │   │   ├── l4_symbolsPack.ts
+│   │   │   │   ├── letterWordsPack.ts
+│   │   │   │   ├── lettersPack.ts
+│   │   │   │   ├── listeningPack.ts
+│   │   │   │   ├── numbersPack.ts
+│   │   │   │   ├── toysPack.ts
+│   │   │   │   └── transportPack.ts
+│   │   │   ├── index.ts
+│   │   │   └── interest
+│   │   │       ├── animalsMorePack.ts
+│   │   │       ├── clothesMorePack.ts
+│   │   │       ├── foodFunPack.ts
+│   │   │       ├── homeMorePack.ts
+│   │   │       ├── jobsPack.ts
+│   │   │       ├── spacePack.ts
+│   │   │       └── transportMorePack.ts
+│   │   ├── policy
+│   │   │   ├── index.ts
+│   │   │   ├── levelA
+│   │   │   │   ├── gameGating.ts
+│   │   │   │   ├── mastery.ts
+│   │   │   │   ├── recommendation.ts
+│   │   │   │   └── unlock.ts
+│   │   │   ├── levelPolicy.ts
+│   │   │   └── packPolicy.ts
+│   │   ├── registry.ts
+│   │   ├── selectors.ts
+│   │   ├── types.ts
+│   │   ├── utils
+│   │   │   └── definePack.ts
+│   │   └── validate.ts
+│   ├── data
+│   │   ├── iconShop.ts
+│   │   ├── icons.ts
+│   │   ├── levels.ts
+│   │   └── sync
+│   │       ├── childIdMap.ts
+│   │       ├── deletedChildIds.ts
+│   │       ├── index.ts
+│   │       ├── resolveChildUuid.ts
+│   │       ├── syncAllSafe.ts
+│   │       ├── syncEvents.ts
+│   │       ├── syncProgress.ts
+│   │       ├── syncPullChildren.ts
+│   │       ├── syncPushDeletedChildren.ts
+│   │       ├── syncPushNewChildren.ts
+│   │       └── syncTypes.ts
+│   ├── gameEngine.ts
+│   ├── games
+│   │   ├── common
+│   │   │   ├── GameHeader.tsx
+│   │   │   ├── gamePool.ts
+│   │   │   ├── gameTypes.ts
+│   │   │   └── useGameAudio.ts
+│   │   ├── listening
+│   │   │   └── ListeningChooseGameScreen.tsx
+│   │   ├── matching
+│   │   │   └── MatchingGameScreen.tsx
+│   │   ├── phonicsMatch
+│   │   │   └── PhonicsMatchGameScreen.tsx
+│   │   └── tapMatch
+│   │       └── TapMatchGameScreen.tsx
+│   ├── i18n
+│   │   ├── I18nContext.tsx
+│   │   ├── dict.en.ts
+│   │   ├── dict.he.ts
+│   │   ├── dict.heNiqqud.ts
+│   │   ├── i18n.ts
+│   │   ├── localeResolver.ts
+│   │   └── types.ts
+│   ├── index.css
+│   ├── main.tsx
+│   ├── packs
+│   │   ├── basicPack.ts
+│   │   └── packsCatalog.ts
+│   ├── parent
+│   │   ├── clearLocalData.ts
+│   │   └── parentDeleteChild.ts
+│   ├── parentPin.ts
+│   ├── parentReport.ts
+│   ├── rewards
+│   │   └── coins.ts
+│   ├── schema.ts
+│   ├── screens
+│   │   ├── auth
+│   │   │   ├── AuthProvider.tsx
+│   │   │   ├── LoginScreen.tsx
+│   │   │   ├── RegisterScreen.tsx
+│   │   │   └── authApi.ts
+│   │   ├── child
+│   │   │   ├── ChildHubScreen.tsx
+│   │   │   ├── ChildHubScreen.web.tsx
+│   │   │   ├── HomeScreen.tsx
+│   │   │   └── HomeScreen.web.tsx
+│   │   ├── games
+│   │   │   ├── GamesHubScreen.tsx
+│   │   │   └── GamesHubScreen.web.tsx
+│   │   ├── interest
+│   │   │   ├── SpecialPackUnitScreen.tsx
+│   │   │   ├── SpecialPackUnitScreen.web.tsx
+│   │   │   ├── SpecialPackUnitsScreen.tsx
+│   │   │   ├── SpecialPackUnitsScreen.web.tsx
+│   │   │   ├── SpecialPacksScreen.tsx
+│   │   │   └── SpecialPacksScreen.web.tsx
+│   │   ├── learn
+│   │   │   ├── ItemVisual.tsx
+│   │   │   ├── LearnFlow.tsx
+│   │   │   ├── LearnFlow.web.tsx
+│   │   │   ├── LearnHomeScreen.tsx
+│   │   │   ├── LearnLayerScreen.tsx
+│   │   │   ├── LearnUnitsScreen.tsx
+│   │   │   ├── UnitLearnScreen.tsx
+│   │   │   ├── UnitPracticeScreen.tsx
+│   │   │   ├── UnitQuizScreen.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── index.web.ts
+│   │   │   ├── learnNavigationA.ts
+│   │   │   ├── learnUtils.ts
+│   │   │   └── letterWordSpeech.ts
+│   │   ├── parent
+│   │   │   ├── ParentAudioSettingsScreen.tsx
+│   │   │   ├── ParentAudioSettingsScreen.web.tsx
+│   │   │   ├── ParentChildAudioSettingsScreen.tsx
+│   │   │   ├── ParentChildAudioSettingsScreen.web.tsx
+│   │   │   ├── ParentChildEditorScreen.tsx
+│   │   │   ├── ParentChildEditorScreen.web.tsx
+│   │   │   ├── ParentHomeScreen.tsx
+│   │   │   ├── ParentHomeScreen.web.tsx
+│   │   │   ├── ParentPinSettingsScreen.tsx
+│   │   │   ├── ParentPinSettingsScreen.web.tsx
+│   │   │   ├── ParentProgressGroupsScreen.tsx
+│   │   │   ├── ParentProgressGroupsScreen.web.tsx
+│   │   │   ├── ParentProgressLayersScreen.tsx
+│   │   │   ├── ParentProgressPacksScreen.tsx
+│   │   │   ├── ParentProgressScreen.tsx
+│   │   │   ├── ParentProgressScreen.web.tsx
+│   │   │   ├── ParentProgressUnitsScreen.tsx
+│   │   │   ├── ParentProgressUnitsScreen.web.tsx
+│   │   │   ├── ParentUsersScreen.tsx
+│   │   │   └── ParentUsersScreen.web.tsx
+│   │   └── rewards
+│   │       ├── RewardsShopScreen.tsx
+│   │       └── RewardsShopScreen.web.tsx
+│   ├── storage
+│   │   ├── audioSettingsStore.ts
+│   │   ├── childIdMap.ts
+│   │   ├── childrenStore.ts
+│   │   ├── db.ts
+│   │   ├── device.ts
+│   │   ├── events.ts
+│   │   ├── parentOwner.ts
+│   │   ├── parentReportStore.ts
+│   │   └── progress.ts
+│   ├── supabase
+│   │   ├── client.ts
+│   │   └── ensureParent.ts
+│   ├── tracks
+│   │   ├── beginnerProgress.ts
+│   │   ├── beginnerTrack.ts
+│   │   └── devTools.ts
+│   ├── tts.ts
+│   ├── types.ts
+│   ├── ui
+│   │   ├── Button.tsx
+│   │   ├── Button.web.tsx
+│   │   ├── Card.tsx
+│   │   ├── Card.web.tsx
+│   │   ├── CoinsBadge.tsx
+│   │   ├── CoinsBadge.web.tsx
+│   │   ├── ContentVisual.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Modal.web.tsx
+│   │   ├── PressableCard.tsx
+│   │   ├── TopBar.tsx
+│   │   ├── TopBar.web.tsx
+│   │   └── useToast.ts
+│   └── visuals
+│       ├── contentVisualRegistry.ts
+│       ├── itemVisualRegistry.ts
+│       └── useContentVisual.ts
+└── tsconfig.json
+
+76 directories, 393 files

@@ -7,14 +7,19 @@ import { ensureRemoteChild } from './childIdMap';
 export async function syncPendingProgress(): Promise<SyncResult> {
   try {
     const { data } = await supabase.auth.getUser();
-console.log('[AUTH]', data?.user?.id);
+    console.log('[SYNC][PROGRESS] auth user', data?.user?.id);
 
     const parentUuid = await getParentUuid();
+    console.log('[SYNC][PROGRESS] parentUuid resolved', parentUuid);
+
 
     const rows = await db.getAllAsync<ProgressRow>(
       `SELECT * FROM progress WHERE synced = 0`
     );
-
+console.log('[SYNC][PROGRESS] pending rows', {
+  count: rows.length,
+  parentUuid,
+});
     if (!rows.length) {
       return { success: true, syncedCount: 0 };
     }
@@ -22,22 +27,42 @@ console.log('[AUTH]', data?.user?.id);
     let syncedCount = 0;
 
 for (const row of rows) {
-  if (!row.child_id) {
-    console.warn('[SYNC][progress] missing local child id', row);
-    continue;
-  }
-
-  const childUuid = await ensureRemoteChild({
+  console.log('[SYNC][PROGRESS] handling row', {
+    rowId: row.id,
     localChildId: row.child_id,
-    parentId: parentUuid,
+    packId: row.pack_id,
+    lessonId: row.lesson_id,
   });
 
-  if (!childUuid) {
-    console.warn('[SYNC][progress] child mapping failed', {
-      localChildId: row.child_id,
-    });
+  if (!row.child_id) {
+    console.warn('[SYNC][PROGRESS] missing local child id', row);
     continue;
   }
+
+
+  const childUuid = await ensureRemoteChild({
+  localChildId: row.child_id,
+  parentId: parentUuid,
+});
+
+console.log('[SYNC][PROGRESS] child mapping result', {
+  localChildId: row.child_id,
+  remoteChildId: childUuid,
+});
+
+if (!childUuid) {
+  console.warn('[SYNC][PROGRESS] child mapping failed', {
+    localChildId: row.child_id,
+  });
+  continue;
+}
+console.log('[SYNC][PROGRESS] pushing to cloud', {
+  rowId: row.id,
+  parentUuid,
+  childUuid,
+  status: row.status,
+  score: row.score,
+});
 
       const { error } = await supabase
         .from('progress')
@@ -61,13 +86,22 @@ for (const row of rows) {
       }
 
       await db.runAsync(
-        `UPDATE progress SET synced = 1 WHERE id = ?`,
-        [row.id]
-      );
+  `UPDATE progress SET synced = 1 WHERE id = ?`,
+  [row.id]
+);
 
-      syncedCount++;
+syncedCount++;
+
+console.log('[SYNC][PROGRESS] row synced', {
+  rowId: row.id,
+  localChildId: row.child_id,
+});
+
     }
-
+console.log('[SYNC][PROGRESS] completed', {
+  parentUuid,
+  syncedCount,
+});
     return { success: true, syncedCount };
   } catch (error) {
     return { success: false, error };

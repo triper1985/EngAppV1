@@ -8,10 +8,12 @@ import type { Locale } from '../../i18n/types';
 import { syncAllSafe } from '../../data/sync/syncAllSafe';
 import { logout } from '../../screens/auth/authApi';
 import { syncPushNewChildren } from '../../data/sync/syncPushNewChildren';
+import { syncPushDeletedChildren } from '../../data/sync/syncPushDeletedChildren';
 
 type Props = {
   users: ChildProfile[];
   parentLocale: Locale;
+  parentEmail?: string;
   onChangeParentLocale: (loc: Locale) => void;
   onExit: () => void;
   onOpenProgress: () => void;
@@ -25,6 +27,7 @@ type Props = {
 export function ParentHomeScreen({
   users,
   parentLocale,
+  parentEmail,
   onChangeParentLocale,
   onExit,
   onOpenProgress,
@@ -40,22 +43,23 @@ export function ParentHomeScreen({
 async function onLogout() {
   try {
     console.log('[SYNC] before parent logout (button)');
-
     await syncAllSafe('manual');
-
     // 🔥 דוחף ילדים שנוצרו מאז ה־PIN האחרון
     await syncPushNewChildren({ parentId });
-
+    await syncPushDeletedChildren({ parentId });
     console.log('[SYNC] done before parent logout');
-
     await logout(); // supabase.signOut
-    onExit();
+    // ❌ לא קוראים פה setScreen
+    // ❌ לא מנסים "לעזור"
   } catch (e) {
     console.error('[AUTH][LOGOUT] failed', e);
   }
 }
 
-
+function emailPrefix(email?: string) {
+  if (!email) return null;
+  return email.split('@')[0];
+}
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -65,6 +69,13 @@ async function onLogout() {
         backLabel={t('parent.common.back')}
         dir={dir}
       />
+
+      
+      {parentEmail ? (
+        <Text style={{ opacity: 0.7, marginTop: 4 }}>
+          הורה מחובר: {emailPrefix(parentEmail)}
+        </Text>
+      ) : null}
 
       {/* Header block */}
       <View style={styles.headerBlock}>

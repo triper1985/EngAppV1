@@ -2,7 +2,8 @@
 import NetInfo from '@react-native-community/netinfo';
 import { supabase } from '../../supabase/client';
 import { ChildrenStore } from '../../storage/childrenStore';
-import { clearChildIdMap, setRemoteChildId } from './childIdMap';
+import { setRemoteChildId } from './childIdMap';
+import { getDeletedChildIds } from './deletedChildIds';
 
 type PullResult =
   | { ok: true; source: 'cloud'; count: number }
@@ -29,33 +30,94 @@ export async function syncPullChildren(opts: {
     return { ok: false, reason: 'not-authorized' };
   }
 
+  // 🪦 tombstones – ילדים שנמחקו מקומית ואסור להחזיר
+  const deletedChildIds = await getDeletedChildIds(parentId);
+
   // 3️⃣ שליפת ילדים מהענן
-  const { data, error } = await supabase
+    const { data, error } = await supabase
     .from('children')
     .select('id, local_child_id, name')
-    .eq('parent_id', parentId);
+    .eq('parent_id', parentId)
+    .is('deleted_at', null);
 
   if (error) {
     console.error('[SYNC][PULL][CHILDREN] failed', error);
     throw error;
   }
 
-  // 4️⃣ מחיקה מוחלטת של local children + mapping
-  await ChildrenStore.clear();
-  await clearChildIdMap();
+  console.log('[SYNC][PULL][CHILDREN] fetched from cloud', {
+    parentId,
+    count: data?.length ?? 0,
+    children: (data ?? []).map(r => ({
+      localChildId: r.local_child_id,
+      name: r.name,
+      remoteChildId: r.id,
+    })),
+  });
 
-  // 5️⃣ בנייה מחדש
-  for (const row of data ?? []) {
-    const localId = row.local_child_id;
 
-    // יצירת ילד מקומי (id יציב = local_child_id)
-    const child = ChildrenStore.add(row.name);
+  // 4️⃣ merge בלבד – אין clear, אין overwrite
+    const localChildren = ChildrenStore.list();
+    const localChildIds = new Set(localChildren.map(child => child.id));
 
-    if (child && localId) {
-      // שמירה של mapping local <-> remote
-      await setRemoteChildId(child.id, row.id);
-    }
+ // 5️⃣ בנייה מחדש (authoritative, לפי local_child_id)
+for (const row of data ?? []) {
+  if (!row.local_child_id) continue;
+
+    console.log('[SYNC][PULL][CHILDREN] processing row', {
+    parentId,
+    localChildId: row.local_child_id,
+    remoteChildId: row.id,
+    nameFromCloud: row.name,
+  });
+
+  // 🪦 אם הילד נמחק מקומית בעבר – מדלגים ולא מחיים
+  if (deletedChildIds.has(row.local_child_id)) {
+    console.log('[SYNC][PULL][CHILDREN] skip deleted child', {
+      parentId,
+      localChildId: row.local_child_id,
+      remoteChildId: row.id,
+      reason: 'tombstone',
+    });
+    continue;
   }
+
+
+
+  if (localChildIds.has(row.local_child_id)) {
+    console.log('[SYNC][PULL][CHILDREN] child exists locally – mapping only', {
+      parentId,
+      localChildId: row.local_child_id,
+      remoteChildId: row.id,
+    });
+
+    await setRemoteChildId(row.local_child_id, row.id);
+    continue;
+  }
+  console.log('[SYNC][PULL][CHILDREN] adding new local child from cloud', {
+    parentId,
+    localChildId: row.local_child_id,
+    nameFromCloud: row.name,
+    source: 'syncPullChildren',
+  });
+
+    // 🧠 ילד חדש למכשיר הזה – bootstrap חד־פעמי בלבד
+    ChildrenStore.upsert({
+      id: row.local_child_id,
+      name: row.name,
+      iconId: undefined,
+      selectedPackIds: undefined,
+      favoritePackIds: undefined,
+      activePackId: undefined,
+      coins: undefined,
+      levelId: undefined,
+      beginnerProgress: undefined,
+      unlockedIconIds: undefined,
+    } as any);
+
+  await setRemoteChildId(row.local_child_id, row.id);
+}
+
 
   console.log('[SYNC][PULL][CHILDREN] completed', {
     parentId,
