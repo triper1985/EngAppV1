@@ -7,6 +7,7 @@ import { getDeviceId } from './storage/device';
 import { initDb } from './storage/db';
 import { syncAll } from './data/sync';
 import { Alert } from 'react-native';
+import { DevOverlay } from './dev/DevOverlay';
 import { getDeviceParentId, setDeviceParentId, clearDeviceParentId } from './storage/parentOwner';
 import { resetParentPin } from './parentPin';
 import { clearAllEvents } from './storage/events';
@@ -100,6 +101,9 @@ let childrenHydratedOnce = false;
 
 function AppInner() {
   const { isReady, session } = useAuth();
+  const DEV_EMAILS = ['kobisalman1985@gmail.com'];
+  const isDevUser = DEV_EMAILS.includes(session?.user?.email ?? '');
+
   const [screen, setScreen] = useState<Screen>('home');
 
   const [users, setUsers] = useState<ChildProfile[]>([]);
@@ -288,7 +292,7 @@ useEffect(() => {
           await initDb();
           console.log('[DB] ready');
 
-          if (__DEV__) {
+          if (__DEV__ && false) {
             await clearAllEvents();
             await clearAllProgress();
             await AsyncStorage.clear();
@@ -657,6 +661,7 @@ if (!parentUnlocked) {
         return (
           <ParentUsersScreen
             users={users}
+            isDevUser={isDevUser}
             onUsersChanged={(next) => {
               setUsers(next);
               if (!parentSelectedChildId && next[0]) setParentSelectedChildId(next[0].id);
@@ -717,9 +722,20 @@ if (!parentUnlocked) {
       child={activeChild ?? null}
       forcedLocale={isParentScreen(screen) ? parentLocale : undefined}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
-        {ui}
-      </SafeAreaView>
+<SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
+  {ui}
+
+  {isDevUser && (
+    <DevOverlay
+      onPress={() => {
+        console.log('[DEV] overlay pressed', {
+          screen,
+          parentId: session?.user?.id,
+        });
+      }}
+    />
+  )}
+</SafeAreaView>
     </I18nProvider>
   );
 }

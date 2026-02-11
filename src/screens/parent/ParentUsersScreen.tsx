@@ -14,6 +14,7 @@ import { useI18n } from '../../i18n/I18nContext';
 
 type Props = {
   users: ChildProfile[];
+  isDevUser?: boolean;
   onUsersChanged: (users: ChildProfile[]) => void;
   onBack: () => void;
 };
@@ -24,7 +25,7 @@ type UiState =
   | { kind: 'edit'; user: ChildProfile; name: string; error?: string }
   | { kind: 'delete'; user: ChildProfile };
 
-export function ParentUsersScreen({ users, onUsersChanged, onBack }: Props) {
+export function ParentUsersScreen({ users, isDevUser, onUsersChanged, onBack }: Props) {
   const { t, dir } = useI18n();
   const isRtl = dir === 'rtl';
 
@@ -240,7 +241,7 @@ function submitDelete() {
       >
         <Button onClick={() => setUi({ kind: 'add', name: '' })}>{labelAddUser}</Button>
 
-        {__DEV__ ? (
+        {isDevUser ? (
           <Button variant="secondary" onClick={submitDevAllUnlocked}>
             {labelDev}
           </Button>

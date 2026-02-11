@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { ChildProfile } from '../../types';
 import { iconToDisplay } from '../../data/icons';
-import { ChildrenStore } from '../../storage/childrenStore';
+
 
 import { Button } from '../../ui/Button';
 
@@ -30,12 +30,6 @@ export function HomeScreen({ users, onUsersChanged, onSelectChild, onEnterParent
   }, [users]);
 
   const hasUsers = (localUsers?.length ?? 0) > 0;
-
-  function refresh() {
-    const next = ChildrenStore.list();
-    setLocalUsers(next);
-    onUsersChanged?.(next);
-  }
 
   const sortedUsers = useMemo(() => {
     const arr = [...(localUsers ?? [])];
@@ -81,19 +75,6 @@ export function HomeScreen({ users, onUsersChanged, onSelectChild, onEnterParent
             ))}
           </View>
         )}
-      </View>
-
-      {/* Dev helper – keep for now */}
-      <View style={{ marginTop: 14 }}>
-        <Button
-          onClick={() => {
-            ChildrenStore.ensureDefaultsIfEmpty();
-            refresh();
-          }}
-          style={styles.refreshBtn}
-        >
-          Refresh
-        </Button>
       </View>
     </ScrollView>
   );
@@ -149,6 +130,4 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontWeight: '900', flexShrink: 1 },
 
   enter: { fontSize: 14, opacity: 0.7, marginLeft: 10 },
-
-  refreshBtn: { alignSelf: 'flex-start' },
 });

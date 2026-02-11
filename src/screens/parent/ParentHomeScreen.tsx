@@ -146,16 +146,6 @@ function emailPrefix(email?: string) {
     <Button
       fullWidth
       variant="secondary"
-      onClick={() => syncAllSafe('manual')}
-    >
-      סנכרן נתונים עכשיו
-    </Button>
-  </View>
-
-  <View style={styles.actionGap}>
-    <Button
-      fullWidth
-      variant="secondary"
       onClick={onLogout}
     >
       Logout (Parent)
