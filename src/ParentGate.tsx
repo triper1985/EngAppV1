@@ -93,31 +93,47 @@ function emailPrefix(email: string) {
           {t('parent.gate.subtitle')}
         </Text>
 
-        <TextInput
-          value={pin}
-          onChangeText={(v) => setPin(clampDigitsOnly(v))}
-          placeholder="••••"
-          keyboardType="number-pad"
-          secureTextEntry={!showPin}
-          editable={!locked}
-          style={{
-            fontSize: 18,
-            paddingVertical: 12,
-            paddingHorizontal: 12,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: '#ddd',
-            opacity: locked ? 0.6 : 1,
-          }}
-          onSubmitEditing={submit}
-          returnKeyType="done"
-        />
+<View
+  style={{
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    opacity: locked ? 0.6 : 1,
+  }}
+>
+      <TextInput
+        value={pin}
+        onChangeText={(v) => setPin(clampDigitsOnly(v))}
+        placeholder="••••"
+        keyboardType="number-pad"
+        secureTextEntry={!showPin}
+        editable={!locked}
+        style={{
+          flex: 1,
+          fontSize: 18,
+          paddingVertical: 12,
+        }}
+        onSubmitEditing={submit}
+        returnKeyType="done"
+      />
 
-        <Button onClick={() => setShowPin((v) => !v)} disabled={locked}>
-          {showPin
-            ? t('parent.gate.button.hide')
-            : t('parent.gate.button.show')}
-        </Button>
+      <Text
+        onPress={() => !locked && setShowPin((v) => !v)}
+        style={{
+          fontSize: 18,
+          paddingHorizontal: 6,
+          opacity: locked ? 0.4 : 0.7,
+        }}
+      >
+        {showPin ? '🙈' : '👁'}
+      </Text>
+    </View>
+
+
+
 
         {error ? (
           <Text style={{ color: '#b00020', fontSize: 13 }}>

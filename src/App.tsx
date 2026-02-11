@@ -15,12 +15,16 @@ import type { ChildProfile } from './types';
 import { ChildrenStore } from './storage/childrenStore';
 import { clearAllProgress } from './storage/progress';
 import { syncPullChildren } from './data/sync/syncPullChildren';
+import { captureRef } from 'react-native-view-shot';
+import { Image, TextInput } from 'react-native';
+
 
 import { HomeScreen } from './screens/child/HomeScreen';
 import { ChildHubScreen } from './screens/child/ChildHubScreen';
 import { RewardsShopScreen } from './screens/rewards/RewardsShopScreen';
 import { ensureParentExists } from './supabase/ensureParent';
 import { clearLocalDataForParentSwitch } from './parent/clearLocalData';
+import * as Sharing from 'expo-sharing';
 
 import { LearnFlow } from './screens/learn';
 import { ParentHomeScreen } from './screens/parent/ParentHomeScreen';
@@ -40,6 +44,7 @@ import { ListeningChooseGameScreen } from './games/listening/ListeningChooseGame
 import { MatchingGameScreen } from './games/matching/MatchingGameScreen';
 import { TapMatchGameScreen } from './games/tapMatch/TapMatchGameScreen';
 import { PhonicsMatchGameScreen } from './games/phonicsMatch/PhonicsMatchGameScreen';
+
 
 import { I18nProvider } from './i18n/I18nContext';
 
@@ -103,7 +108,11 @@ function AppInner() {
   const { isReady, session } = useAuth();
   const DEV_EMAILS = ['kobisalman1985@gmail.com'];
   const isDevUser = DEV_EMAILS.includes(session?.user?.email ?? '');
-
+  const screenRef = useRef<View>(null);
+  const [devImageUri, setDevImageUri] = useState<string | null>(null);
+  const [devComment, setDevComment] = useState('');
+  const [markers, setMarkers] = useState<{ x: number; y: number }[]>([]);
+  const previewRef = useRef<View>(null);
   const [screen, setScreen] = useState<Screen>('home');
 
   const [users, setUsers] = useState<ChildProfile[]>([]);
@@ -722,19 +731,178 @@ if (!parentUnlocked) {
       child={activeChild ?? null}
       forcedLocale={isParentScreen(screen) ? parentLocale : undefined}
     >
-<SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
+<SafeAreaView
+  ref={screenRef}
+  style={{ flex: 1, backgroundColor: '#fff' }}
+  edges={['top']}
+>
   {ui}
 
-  {isDevUser && (
-    <DevOverlay
-      onPress={() => {
-        console.log('[DEV] overlay pressed', {
-          screen,
-          parentId: session?.user?.id,
-        });
-      }}
+{devImageUri && (
+  <View
+    style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.95)',
+      padding: 20,
+    }}
+  >
+    <View style={{ flex: 1 }}>
+
+      <Text style={{ color: '#fff', fontWeight: '700', marginBottom: 8 }}>
+        Tap image to add red marker
+      </Text>
+
+<View
+  ref={previewRef}
+  style={{ flex: 1 }}
+  collapsable={false}
+>
+  <Pressable
+    style={{ flex: 1 }}
+    onPress={(e) => {
+      const { locationX, locationY } = e.nativeEvent;
+      setMarkers((prev) => [...prev, { x: locationX, y: locationY }]);
+    }}
+  >
+    <Image
+      source={{ uri: devImageUri }}
+      style={{ flex: 1, resizeMode: 'contain' }}
     />
-  )}
+
+    {markers.map((m, i) => (
+      <View
+        key={i}
+        style={{
+          position: 'absolute',
+          left: m.x - 10,
+          top: m.y - 10,
+          width: 20,
+          height: 20,
+          borderRadius: 10,
+          backgroundColor: 'red',
+        }}
+      />
+    ))}
+
+    {devComment ? (
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 20,
+          left: 20,
+          right: 20,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: 12,
+          borderRadius: 12,
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: '600' }}>
+          {devComment}
+        </Text>
+        <Text style={{ color: '#ccc', fontSize: 12, marginTop: 4 }}>
+          {new Date().toLocaleString()}
+        </Text>
+      </View>
+    ) : null}
+  </Pressable>
+</View>
+
+
+      <TextInput
+        placeholder="Write comment..."
+        placeholderTextColor="#aaa"
+        value={devComment}
+        onChangeText={setDevComment}
+        style={{
+          backgroundColor: '#222',
+          color: '#fff',
+          padding: 12,
+          borderRadius: 12,
+          marginTop: 12,
+        }}
+      />
+
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+
+        <Pressable
+          style={{
+            flex: 1,
+            backgroundColor: '#444',
+            padding: 12,
+            borderRadius: 12,
+            alignItems: 'center',
+          }}
+          onPress={() => {
+            setDevImageUri(null);
+            setDevComment('');
+            setMarkers([]);
+          }}
+        >
+          <Text style={{ color: '#fff' }}>Cancel</Text>
+        </Pressable>
+
+        <Pressable
+          style={{
+            flex: 1,
+            backgroundColor: '#2e7d32',
+            padding: 12,
+            borderRadius: 12,
+            alignItems: 'center',
+          }}
+          onPress={async () => {
+            try {
+              if (!previewRef.current) return;
+
+              const finalUri = await captureRef(previewRef.current, {
+                format: 'png',
+                quality: 1,
+              });
+
+              await Sharing.shareAsync(finalUri);
+
+              setDevImageUri(null);
+              setDevComment('');
+              setMarkers([]);
+
+            } catch (e) {
+              console.warn('[DEV] share failed', e);
+            }
+          }}
+        >
+          <Text style={{ color: '#fff' }}>Share</Text>
+        </Pressable>
+
+      </View>
+    </View>
+  </View>
+)}
+
+
+
+{isDevUser && (
+  <DevOverlay
+      onPress={async () => {
+        try {
+          if (!screenRef.current) return;
+
+          const uri = await captureRef(screenRef.current, {
+            format: 'png',
+            quality: 1,
+          });
+          setMarkers([]);
+          setDevComment('');
+          setDevImageUri(uri);
+          setDevImageUri(uri); // 👈 במקום share
+        } catch (e) {
+          console.warn('[DEV] screenshot failed', e);
+        }
+      }}
+  />
+)}
 </SafeAreaView>
     </I18nProvider>
   );

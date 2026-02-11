@@ -15,6 +15,7 @@ type Props = {
 export function LoginScreen({ onGoRegister, onLoggedIn, onBack }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,13 +51,38 @@ export function LoginScreen({ onGoRegister, onLoggedIn, onBack }: Props) {
         style={{ borderWidth: 1, borderRadius: 12, padding: 12 }}
       />
 
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholder="Password"
-        style={{ borderWidth: 1, borderRadius: 12, padding: 12 }}
-      />
+<View
+  style={{
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  }}
+>
+  <TextInput
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!showPassword}
+    placeholder="Password"
+    style={{
+      flex: 1,
+      paddingVertical: 12,
+    }}
+  />
+
+  <Text
+    onPress={() => setShowPassword((v) => !v)}
+    style={{
+      fontSize: 18,
+      paddingHorizontal: 6,
+      opacity: 0.7,
+    }}
+  >
+    {showPassword ? '🙈' : '👁'}
+  </Text>
+</View>
+
 
       {error ? <Text style={{ color: 'crimson' }}>{error}</Text> : null}
 
