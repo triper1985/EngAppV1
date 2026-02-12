@@ -102,7 +102,7 @@ function isParentScreen(screen: Screen) {
 function getWebLocalStorage(): Storage | null {
   return (globalThis as any)?.localStorage ?? null;
 }
-let childrenHydratedOnce = false;
+
 
 function AppInner() {
   const { isReady, session } = useAuth();
@@ -117,6 +117,7 @@ function AppInner() {
 
   const [users, setUsers] = useState<ChildProfile[]>([]);
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
+  const [childrenReady, setChildrenReady] = useState(false);
 
   // 🔒 prevents double parent switch execution
   const lastHandledParentRef = useRef<string | null>(null);
@@ -269,30 +270,26 @@ useEffect(() => {
     }
   }
 
-  useEffect(() => {
-    let alive = true;
+useEffect(() => {
+  let alive = true;
 
-    (async () => {
-      // ✅ Preload FX for the first time UX (no delay)
-      await preloadFx();
+  (async () => {
+    await preloadFx();
 
-      // ✅ Hydrate ChildrenStore (native persistence)
-      if (!childrenHydratedOnce) {
-        await ChildrenStore.hydrate();
-        childrenHydratedOnce = true;
-      }
+    // 🔥 Always hydrate on app start (no global flags)
+    await ChildrenStore.hydrate();
 
+    if (!alive) return;
 
-      if (alive) {
-        syncUsersFromStore(false);
-      }
-    })();
+    syncUsersFromStore(false);
+    setChildrenReady(true);
+  })();
 
-    return () => {
-      alive = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  return () => {
+    alive = false;
+  };
+}, []);
+
 
     // ✅ Init local SQLite DB (offline-first)
   useEffect(() => {
@@ -336,6 +333,14 @@ useEffect(() => {
 }
 
   const ui = (() => {
+    if (!childrenReady) {
+  return (
+    <View style={{ padding: 16 }}>
+      <Text>Loading children…</Text>
+    </View>
+  );
+}
+
     // Loading auth state (only matters when we need it)
     if (!isReady && (screen === 'login' || screen === 'register' || isParentScreen(screen))) {
       return (
