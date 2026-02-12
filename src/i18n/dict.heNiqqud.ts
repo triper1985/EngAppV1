@@ -363,6 +363,10 @@ export const DICT_HE_NIQQUD: Record<string, string> = {
   'gamesHub.gameTap.desc': 'גַּע בַּתְּמוּנָה הַנְּכוֹנָה בִּמְהִירוּת.',
   'gamesHub.gamePhonics.title': 'צְלִילִים וְאוֹתִיּוֹת',
   'gamesHub.gamePhonics.desc': 'הַתְאָמַת אוֹת לְצְלִיל.',
+// Games Hub — Locked state
+  'gamesHub.locked.title': 'הַמִּשְׂחָקִים נְעוּלִים',
+  'gamesHub.locked.desc': 'סַיֵּם אֶת שְׁכָבָה 2 כְּדֵי לִפְתֹּחַ מִשְׂחָקִים.',
+  'gamesHub.locked.cta': 'לֵךְ לִלְמוֹד',
 
   // מִשְׂחָקִים (Common)
   'games.common.playAgain': 'שַׂחֵק שׁוּב',

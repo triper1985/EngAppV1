@@ -189,7 +189,10 @@ export const DICT_HE: Record<string, string> = {
   'gamesHub.gameTap.desc': 'גע בתמונה הנכונה במהירות.',
   'gamesHub.gamePhonics.title': 'צלילים ואותיות',
   'gamesHub.gamePhonics.desc': 'התאמת אות לצליל.',
-
+// Games Hub — Locked
+  'gamesHub.locked.title': 'המשחקים נעולים',
+  'gamesHub.locked.desc': 'סיים שכבה 2 כדי לפתוח משחקים.',
+  'gamesHub.locked.cta': 'חזרה ללימוד',
   // משחקים (Common)
 
   'games.common.back': 'חזרה',
