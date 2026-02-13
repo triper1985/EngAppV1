@@ -73,6 +73,9 @@ export function LearnUnitsScreen({
     <ScrollView contentContainerStyle={styles.container}>
       <TopBar title={t('learn.units.title')} onBack={onBack} dir={dir} />
 
+
+
+
       <Text style={[styles.subtitle, isRtl && styles.rtl]}>
         {t('learn.units.subtitle')}
       </Text>
@@ -223,3 +226,5 @@ const styles = StyleSheet.create({
   rtl: { textAlign: 'right' as const },
   metaRtl: { textAlign: 'right' as const, writingDirection: 'rtl' as const },
 });
+
+

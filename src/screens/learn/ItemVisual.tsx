@@ -7,40 +7,26 @@ import { getItemVisualImage } from '../../visuals/itemVisualRegistry';
 
 type Props = {
   item: ContentItem;
-  /** Visual scale. Default tuned for quiz tiles. */
   size?: number;
-
-  /**
-   * Back-compat: previously CSSProperties (web).
-   * In RN we accept either ViewStyle or TextStyle depending on kind.
-   */
   style?: StyleProp<ViewStyle | TextStyle>;
 };
 
-/**
- * Renders the "no-reading" visual for a content item.
- * ✅ Keep layout stable across visuals.
- * Always return a fixed-size container; never let emoji/text change the card height.
- */
 export function ItemVisual({ item, size = 68, style }: Props) {
   const v = item.visual;
 
-  // One stable box size for all kinds.
-  const dim = size + 22;
-
-  // Keep inner text visually centered and not affecting outer layout.
-  const textSize = Math.round(size * 0.95);
-
-  // ✅ NEW: item-level image override (by item.id)
   const itemImg = getItemVisualImage(item.id);
 
+  // ===============================
+  // COLOR
+  // ===============================
   if (v.kind === 'color') {
+    const dim = size + 22;
+
     return (
       <View
         accessibilityLabel={item.en}
         style={[
           styles.boxBase,
-          styles.colorBox,
           {
             width: dim,
             height: dim,
@@ -53,14 +39,17 @@ export function ItemVisual({ item, size = 68, style }: Props) {
     );
   }
 
-  // ✅ If registry has an image, render it (preferred)
+  // ===============================
+  // IMAGE (registry override)
+  // ===============================
   if (itemImg) {
+    const dim = size + 22;
+
     return (
       <View
         accessibilityLabel={item.en}
         style={[
           styles.boxBase,
-          styles.imageBox,
           { width: dim, height: dim, borderRadius: 18 },
           style as StyleProp<ViewStyle>,
         ]}
@@ -74,14 +63,17 @@ export function ItemVisual({ item, size = 68, style }: Props) {
     );
   }
 
-  // Optional: if content ever uses v.kind === 'image' (assetId), keep fallback placeholder for now
+  // ===============================
+  // IMAGE (fallback)
+  // ===============================
   if (v.kind === 'image') {
+    const dim = size + 22;
+
     return (
       <View
         accessibilityLabel={item.en}
         style={[
           styles.boxBase,
-          styles.imageBox,
           { width: dim, height: dim, borderRadius: 18 },
           style as StyleProp<ViewStyle>,
         ]}
@@ -101,48 +93,62 @@ export function ItemVisual({ item, size = 68, style }: Props) {
     );
   }
 
-  // v.kind === 'text'
-  const textVal = v.he;
-  const isNumeric = /^\d+$/.test(textVal.trim());
-  const digits = textVal.trim().length;
+ // ===============================
+// TEXT
+// ===============================
+const textVal = v.he ?? '';
+const trimmed = textVal.trim();
+const isNumeric = /^\d+$/.test(trimmed);
+if (item.id.includes('100') || item.id.includes('hundred')) {
+  console.log('HUNDREDS DEBUG', {
+    id: item.id,
+    textVal,
+    visual: v,
+  });
+}
 
-  // For multi-digit numbers, shrink more aggressively to avoid clipping (11→1 issue).
-  const numericFontSize =
-    digits <= 1
-      ? textSize
-      : digits === 2
-        ? Math.round(textSize * 0.85)
-        : digits === 3
-          ? Math.round(textSize * 0.72)
-          : Math.round(textSize * 0.62);
+// גודל קופסה קבוע — לא להגדיל לפי ספרות
+const dim = size + 22;
 
-  return (
-    <View
-      accessibilityLabel={item.en}
+// גודל פונט קבוע למספרים (מתאים עד 4 ספרות)
+const baseFontSize = Math.round(size * 0.95);
+const digits = trimmed.length;
+
+const numericFontSize =
+  digits <= 2
+    ? Math.round(size * 0.85)
+    : digits === 3
+      ? Math.round(size * 0.78)
+      : Math.round(size * 0.68); // 4 ספרות
+
+return (
+  <View
+    accessibilityLabel={item.en}
+    style={[
+      styles.boxBase,
+      { width: dim, height: dim, borderRadius: 18 },
+      style as StyleProp<ViewStyle>,
+    ]}
+  >
+    <Text
       style={[
-        styles.boxBase,
-        { width: dim, height: dim, borderRadius: 18 },
-        style as StyleProp<ViewStyle>,
+        styles.centerText,
+        styles.textBold,
+        {
+          fontSize: isNumeric ? numericFontSize : baseFontSize,
+        },
       ]}
-    >
-      <Text
-        style={[
-          styles.centerText,
-          styles.textBold,
-          {
-            fontSize: isNumeric ? numericFontSize : textSize,
-            lineHeight: Math.round((isNumeric ? numericFontSize : textSize) * 1.05),
-            paddingHorizontal: isNumeric ? 2 : 6,
-          },
-        ]}
-        numberOfLines={isNumeric ? 1 : 2}
+        numberOfLines={1}
         adjustsFontSizeToFit
-        minimumFontScale={isNumeric ? 0.45 : 0.7}
-      >
-        {textVal}
-      </Text>
-    </View>
-  );
+        minimumFontScale={0.6}
+        ellipsizeMode="clip"
+
+    >
+      {textVal}
+    </Text>
+  </View>
+);
+
 }
 
 const styles = StyleSheet.create({
@@ -150,7 +156,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    // shadow (best-effort)
     shadowOpacity: 0.18,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
@@ -160,16 +165,13 @@ const styles = StyleSheet.create({
     borderColor: '#111',
   },
 
-  colorBox: {},
+centerText: {
+  textAlign: 'center',
+  textAlignVertical: 'center' as any,
+  includeFontPadding: false,
+},
 
-  imageBox: {
-    backgroundColor: '#fff',
+  textBold: {
+    fontWeight: '900',
   },
-
-  centerText: {
-    textAlign: 'center',
-    textAlignVertical: 'center' as any,
-  },
-
-  textBold: { fontWeight: '900' },
 });

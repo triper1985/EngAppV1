@@ -469,7 +469,7 @@ export const numbersPack: ContentPack = {
         'eight_thousand',
         'nine_thousand',
       ],
-      policy: { minLayer: 4 },
+      policy: { minLayer: 3 },
     },
   ],
 

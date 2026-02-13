@@ -24,6 +24,7 @@ import {
 } from '../../tracks/beginnerProgress';
 
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
+import { listBuiltInPacks, isBeginnerBridgePack } from '../../content/registry';
 
 // ✅ audio layer
 import {
@@ -189,10 +190,22 @@ export function UnitQuizScreen({
     return unit.titleKey ? t(unit.titleKey) : unit.title;
   }, [unit, t]);
 
-  const catalog = useMemo(() => {
-    const packIds = ensureRequiredSelected(child.selectedPackIds ?? ['basic']);
-    return getItemsForPackIds(packIds);
-  }, [child.selectedPackIds]);
+const catalog = useMemo(() => {
+  // 1️⃣ Core Beginner packs – always included
+  const beginnerPackIds = listBuiltInPacks()
+    .filter(isBeginnerBridgePack)
+    .map((p) => p.id);
+
+  // 2️⃣ Parent-selected interest packs
+  const selected = child.selectedPackIds ?? [];
+
+  const allPackIds = Array.from(
+    new Set([...beginnerPackIds, ...selected])
+  );
+
+  return getItemsForPackIds(allPackIds);
+}, [child.selectedPackIds]);
+
 
   const unitItems = useMemo(() => {
     if (!unit) return [];

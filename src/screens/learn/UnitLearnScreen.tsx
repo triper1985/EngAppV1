@@ -14,6 +14,7 @@ import {
 
 import { getBeginnerProgress } from '../../tracks/beginnerProgress';
 import { getItemsForPackIds, ensureRequiredSelected } from '../../packs/packsCatalog';
+import { listBuiltInPacks, isBeginnerBridgePack } from '../../content/registry';
 
 // ✅ audio layer
 import { playFx, playFxAndWait, stopAllFx, speakContentItem, speakHebrewItemLike, stopTTS, getEffectiveAudioSettings, speakLetterWordEN, speakLetterWordHE } from '../../audio';
@@ -162,10 +163,23 @@ export function UnitLearnScreen({
   // ✅ Effective audio settings for THIS child (global + child override)
   const effectiveAudio = useMemo(() => getEffectiveAudioSettings(child), [child]);
 
-  const catalog = useMemo(() => {
-    const packs = ensureRequiredSelected(child.selectedPackIds ?? []);
-    return getItemsForPackIds(packs);
-  }, [child.selectedPackIds]);
+const catalog = useMemo(() => {
+  // 1️⃣ Core Beginner packs – תמיד כלולים במסלול
+  const beginnerPackIds = listBuiltInPacks()
+    .filter(isBeginnerBridgePack)
+    .map((p) => p.id);
+
+  // 2️⃣ Interest packs שנבחרו ע"י ההורה
+  const selected = child.selectedPackIds ?? [];
+
+  // 3️⃣ איחוד ללא כפילויות
+  const allPackIds = Array.from(
+    new Set([...beginnerPackIds, ...selected])
+  );
+
+  return getItemsForPackIds(allPackIds);
+}, [child.selectedPackIds]);
+
 
   const unit: UnitDef | undefined = useMemo(
     () => BEGINNER_UNITS.find((u) => u.id === unitId),
@@ -424,6 +438,12 @@ function getDurationSec() {
   const unitTitle = unit.titleKey ? t(unit.titleKey) : unit.title;
 
   if (unitItems.length === 0) {
+    console.log('DEBUG UNIT', {
+  unitId,
+  unitItemIds: unit.itemIds,
+  selectedPackIds: child.selectedPackIds,
+  catalogCount: catalog.length,
+});
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <TopBar backLabel={t('learn.common.back')} dir={dir} title={unitTitle} onBack={onBack} />

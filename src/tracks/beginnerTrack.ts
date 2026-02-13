@@ -139,24 +139,35 @@ export const BEGINNER_UNITS: UnitDef[] = [];
   let prevLastUnitId: UnitId | null = null;
 
   for (const p of packs) {
-    const gs = (p.groups ?? []).map((g) => g.id);
-    const effectiveGroupIds = gs.length > 0 ? gs : [p.id];
+  const gs = (p.groups ?? []).map((g) => g.id);
+  const effectiveGroupIds = gs.length > 0 ? gs : [p.id];
 
-    const firstUnitId = effectiveGroupIds[0];
-    const lastUnitId = effectiveGroupIds[effectiveGroupIds.length - 1];
+  const firstUnitId = effectiveGroupIds[0];
+  const lastUnitId = effectiveGroupIds[effectiveGroupIds.length - 1];
 
-    if (prevLastUnitId) {
-      const firstUnit = BEGINNER_UNITS.find((u) => u.id === firstUnitId);
-      if (firstUnit) {
-        // Only add if not already present (preserve in-pack prereqs)
-        if (!firstUnit.prereqUnitIds.includes(prevLastUnitId)) {
-          firstUnit.prereqUnitIds = [prevLastUnitId, ...firstUnit.prereqUnitIds];
-        }
+  const currentLayer = (p.policy?.minLayer ?? 0);
+
+  if (prevLastUnitId) {
+    const prevUnit = BEGINNER_UNITS.find((u) => u.id === prevLastUnitId);
+    const currentUnit = BEGINNER_UNITS.find((u) => u.id === firstUnitId);
+
+    const prevPack = packs.find(pp =>
+      (pp.groups ?? []).some(g => g.id === prevLastUnitId) ||
+      pp.id === prevLastUnitId
+    );
+
+    const prevLayer = (prevPack?.policy?.minLayer ?? 0);
+
+    // ✅ Only chain packs within same layer
+    if (prevLayer === currentLayer && currentUnit) {
+      if (!currentUnit.prereqUnitIds.includes(prevLastUnitId)) {
+        currentUnit.prereqUnitIds = [prevLastUnitId, ...currentUnit.prereqUnitIds];
       }
     }
-
-    prevLastUnitId = lastUnitId;
   }
+
+  prevLastUnitId = lastUnitId;
+}
 })();
 
 // ------------------------------------------------------------
@@ -223,14 +234,25 @@ export function getUnitStatus(
     const preSeenAll = (preProg?.seenItemIds?.length ?? 0) >= preTotal;
     const prePassed = (preProg?.bestQuizScore ?? 0) >= QUIZ_PASS_SCORE;
 
-    if (!(preSeenAll && prePassed)) {
-      return {
-        status: 'locked',
-        seenCount: 0,
-        totalCount,
-        bestQuizScore: progress.units[unit.id]?.bestQuizScore,
-      };
-    }
+if (!(preSeenAll && prePassed)) {
+  console.log('UNIT LOCK CHECK', {
+    unit: unit.id,
+    prereqUnit: preId,
+    preSeenAll,
+    prePassed,
+    seenCount: preProg?.seenItemIds?.length ?? 0,
+    total: preTotal,
+    bestQuizScore: preProg?.bestQuizScore ?? 0,
+  });
+
+  return {
+    status: 'locked',
+    seenCount: 0,
+    totalCount,
+    bestQuizScore: progress.units[unit.id]?.bestQuizScore,
+  };
+}
+
   }
 
   const up = progress.units[unit.id];

@@ -111,7 +111,7 @@ export const lettersPack: ContentPack = {
         'letter_y',
         'letter_z',
       ],
-      policy: { minLayer: 4, maxLayer: 4, skills: ['phonics'] },
+      policy: { minLayer: 3, maxLayer: 3, skills: ['phonics'] },
     },
   ],
 

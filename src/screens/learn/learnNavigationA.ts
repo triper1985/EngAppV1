@@ -125,16 +125,21 @@ export function getLearnHomeVM_A(args: {
  * All other layers keep their original BEGINNER_GROUPS idx order.
  */
 const LAYER3_GROUP_ORDER: Record<string, number> = {
-  letters: 10,
-  numbers: 20,
+  numbers: 10,
+  letters: 20,
   letter_words: 30,
 };
+
 
 export function getLearnLayerVM_A(args: {
   child: ChildProfile;
   layerId: number;
 }) {
   const { child, layerId } = args;
+  console.log('LAYER VM ENTRY', {
+  layerId,
+  type: typeof layerId,
+});
   const { unlockedLayer } = getUnlockedLayerSnapshotA(child, 'A');
   const unlocked = unlockedLayer as number;
 
@@ -146,6 +151,12 @@ export function getLearnLayerVM_A(args: {
     .sort((a, b) => {
       // ✅ Special sort only for Layer 3
       if (layerId === 3) {
+            console.log('LAYER3 SORT DEBUG', {
+                aId: a.g.id,
+                bId: b.g.id,
+                aOrder: LAYER3_GROUP_ORDER[a.g.id],
+                bOrder: LAYER3_GROUP_ORDER[b.g.id],
+              });
         const ao = LAYER3_GROUP_ORDER[a.g.id] ?? 999;
         const bo = LAYER3_GROUP_ORDER[b.g.id] ?? 999;
         if (ao !== bo) return ao - bo;

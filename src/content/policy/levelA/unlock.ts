@@ -73,14 +73,25 @@ function computeUnlockedLayer(child: ChildProfile, levelTag: LevelTag): LevelLay
       if (pack && pack.policy?.packType && pack.policy.packType !== 'core') return false;
       return getRequiredLayerForGroup(g.id) === layer;
     });
-
+      console.log('DEBUG LAYER CHECK', {
+        layer,
+        groups: groupsInLayer.map(g => g.id),
+      });
     // If a layer has no groups at all, treat it as completed.
     if (groupsInLayer.length === 0) {
       highestCompleted = layer;
       continue;
     }
 
-    const done = groupsInLayer.every((g) => isGroupCompleted(g.id));
+    const done = groupsInLayer.every((g) =>  {
+  const completed = isGroupCompleted(g.id);
+  console.log('GROUP STATUS', {
+    layer,
+    group: g.id,
+    completed,
+  });
+  return completed;
+});
     if (done) highestCompleted = layer;
     else break;
   }
