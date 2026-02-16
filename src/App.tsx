@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Text, View, Pressable } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { getDeviceId } from './storage/device';
 import { initDb } from './storage/db';
 import { syncAll } from './data/sync';
@@ -17,6 +17,7 @@ import { clearAllProgress } from './storage/progress';
 import { syncPullChildren } from './data/sync/syncPullChildren';
 import { captureRef } from 'react-native-view-shot';
 import { Image, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 import { HomeScreen } from './screens/child/HomeScreen';
